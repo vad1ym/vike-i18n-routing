@@ -1,0 +1,21 @@
+{
+  "name": "example-basic",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.6",
+    "vike": "^0.4.259",
+    "vike-i18n-routing": "workspace:*",
+    "vike-vue": "^0.9.11",
+    "vite": "^8.0.12",
+    "vue": "^3.5.34"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "typescript": "^6.0.3"
+  }
+}

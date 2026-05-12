@@ -1,0 +1,52 @@
+{
+  "name": "vike-i18n-routing",
+  "version": "0.1.0",
+  "description": "Vike plugin for i18n routing with locale prefixes and translated URLs",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "vike",
+    "i18n",
+    "routing",
+    "vue",
+    "vite"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vad1ym/vike-i18n-routing.git"
+  },
+  "exports": {
+    ".": "./lib/index.ts",
+    "./config": "./lib/vike/+config.ts",
+    "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
+    "./__internal/onBeforeRenderHtml": "./lib/vike/onBeforeRenderHtml.ts",
+    "./__internal/client": "./lib/vike/client.ts",
+    "./middleware": "./lib/middleware.ts"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "changelog": "changelogen",
+    "changelog:dry": "changelogen --no-output",
+    "release": "changelogen --release",
+    "example": "pnpm --filter example-basic dev",
+    "example:build": "pnpm --filter example-basic build"
+  },
+  "devDependencies": {
+    "changelogen": "^0.6.2",
+    "typescript": "^6.0.3",
+    "vike": "^0.4.259",
+    "vitest": "^4.1.6"
+  },
+  "peerDependencies": {
+    "vike": ">=0.4.259"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "path-to-regexp": "^8.4.2"
+  }
+}

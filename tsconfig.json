@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["lib/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+}
