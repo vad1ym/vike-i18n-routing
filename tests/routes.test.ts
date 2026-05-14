@@ -8,7 +8,6 @@ describe('routes — translated paths', () => {
     const result = onBeforeRoute(makePageContext('/ru/o-nas', baseConfig) as any)
     const i18nRoute = result.pageContext.i18nRoute!
     expect(result.pageContext.locale).toBe('ru')
-    expect(i18nRoute.requestConfig.locale).toBe('en')
     expect(i18nRoute.localeConfig.currentLocale).toBe('ru')
     expect(i18nRoute.routeConfig).toMatchObject({
       requestUrl: '/ru/o-nas',

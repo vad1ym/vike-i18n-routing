@@ -327,7 +327,6 @@ The default cookie name is `i18n-locale`.
 The plugin adds:
 
 - `pageContext.locale`
-- `pageContext.i18nRoute.requestConfig`
 - `pageContext.i18nRoute.localeConfig`
 - `pageContext.i18nRoute.domainConfig`
 - `pageContext.i18nRoute.routeConfig`

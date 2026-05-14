@@ -1,5 +1,5 @@
 import { detectDomain, resolveDomainConfig } from './domain/normalize'
-import { detectRequestLocale, resolveCookieLocale } from './locale/detector'
+import { detectRequestLocale } from './locale/detector'
 import { getI18nConfig } from './pageContext'
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
 import type {
@@ -359,8 +359,8 @@ function getVariantRedirectPath(
 // ────────────────────────────────────────────────────────────────
 // Config resolution
 //
-// Resolves the three config objects that make up I18nRoute:
-// - requestConfig: detected locale, domain, cookie locale
+// Resolves the config objects that drive I18nRoute:
+// - detected request locale/domain for internal routing decisions
 // - localeConfig: available locales, default locale, prefix settings
 // - domainConfig: domain-specific overrides (if multi-domain setup)
 // ────────────────────────────────────────────────────────────────
@@ -369,18 +369,14 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
   const domain = detectDomain(pageContext, i18n)
   const ctxWithDomain = domain ? { ...pageContext, domain } : pageContext
 
-  const requestConfig = {
-    locale: detectRequestLocale(ctxWithDomain, i18n),
-    domain,
-    cookieLocale: resolveCookieLocale(pageContext, i18n),
-  }
+  const requestLocale = detectRequestLocale(ctxWithDomain, i18n)
 
   const resolved = resolveDomainConfig(i18n, ctxWithDomain)
 
   const localeConfig: PageContextLocaleConfig = {
     defaultLocale: resolved.defaultLocale,
     locales: resolved.locales,
-    currentLocale: requestConfig.locale,
+    currentLocale: requestLocale,
     prefixDefaultLocale: resolved.prefixDefaultLocale,
   }
 
@@ -394,7 +390,7 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
       }
     : { domain: undefined as string | undefined }
 
-  return { requestConfig, localeConfig, domainConfig }
+  return { requestLocale, domainConfig, localeConfig, domain }
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -426,8 +422,7 @@ function buildAlternateUrls(
 // Steps:
 //
 // 1. RESOLVE CONFIGS
-//    Detect domain, locale (from cookie/header/URL), and build
-//    requestConfig, localeConfig, domainConfig.
+//    Detect domain and locale and build localeConfig/domainConfig.
 //
 // 2. EXTRACT LOCALE FROM URL PREFIX
 //    Check if the first URL segment is a locale prefix (e.g. "/ru/...").
@@ -463,7 +458,7 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext)
   const paramVariants = getParamVariants(pageContext)
 
   // Step 1: Resolve configs
-  const { requestConfig, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
+  const { requestLocale, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
 
   // Step 2: Extract locale from URL prefix
   const requestUrl = normalizePathname(pathname)
@@ -471,7 +466,7 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext)
   const prefixedLocale = Object.entries(localeConfig.locales).find(
     ([, config]) => config.urlPrefix === segments[0],
   )?.[0]
-  const currentLocale = prefixedLocale ?? requestConfig.locale ?? localeConfig.defaultLocale
+  const currentLocale = prefixedLocale ?? requestLocale ?? localeConfig.defaultLocale
   const localizedRequestUrl = prefixedLocale
     ? normalizePathname(`/${segments.slice(1).join('/')}`)
     : requestUrl
@@ -533,7 +528,6 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext)
   }
 
   const i18nRoute: I18nRoute = {
-    requestConfig,
     localeConfig: { ...localeConfig, currentLocale },
     domainConfig,
     routeConfig,

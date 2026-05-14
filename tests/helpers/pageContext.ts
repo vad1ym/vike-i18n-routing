@@ -9,8 +9,11 @@ export function makePageContext(
     localStorage?: Record<string, string | undefined>
   },
 ) {
+  const urlPathname = new URL(urlOriginal, 'http://localhost').pathname
+
   return {
     urlOriginal,
+    urlPathname,
     config: { i18n },
     headers: options?.headers,
     session: options?.session,

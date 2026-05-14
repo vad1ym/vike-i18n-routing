@@ -9,7 +9,6 @@ export type {
   DomainMeta,
   PageContextDomainConfig,
   PageContextLocaleConfig,
-  RequestConfig,
   RouteConfig,
   RouteParamVariants,
   SetRouteParamVariantsOptions,

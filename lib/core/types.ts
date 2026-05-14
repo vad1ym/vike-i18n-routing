@@ -32,12 +32,6 @@ export type LocaleCookieAction = {
   value: string
 }
 
-export type RequestConfig = {
-  locale: LocaleCode
-  domain?: string
-  cookieLocale?: string
-}
-
 export type ResolvedDomainConfig = {
   domain?: string
   defaultLocale: LocaleCode
@@ -102,7 +96,6 @@ export type SetRouteParamVariantsOptions = {
 }
 
 export type I18nRoute = {
-  requestConfig: RequestConfig
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig
   routeConfig: RouteConfig
