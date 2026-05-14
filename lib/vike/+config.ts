@@ -14,6 +14,7 @@ export default {
   },
 
   onBeforeRoute: 'import:vike-i18n-routing/__internal/onBeforeRoute:onBeforeRoute',
+  onHydrationEnd: 'import:vike-i18n-routing/__internal/onHydrationEnd:onHydrationEnd',
 
   // Writes Set-Cookie via headersResponse (only available during render, not in onBeforeRoute)
   onBeforeRender: 'import:vike-i18n-routing/__internal/onBeforeRenderHtml:onBeforeRender',

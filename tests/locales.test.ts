@@ -21,6 +21,12 @@ const objectConfig: I18nConfig = {
   routes: arrayConfig.routes,
 }
 
+const noDefaultPrefixConfig: I18nConfig = {
+  ...arrayConfig,
+  prefixDefaultLocale: false,
+  localeCookie: 'locale',
+}
+
 describe('locales — array form', () => {
   it('resolves locale from url prefix', () => {
     const result = onBeforeRoute(makePageContext('/ru/o-nas', arrayConfig) as any)
@@ -66,5 +72,34 @@ describe('locales — object form', () => {
     }
 
     expect(arrayRedirect).toBe(objectRedirect)
+  })
+})
+
+describe('locales — default locale without prefix', () => {
+  it('redirects explicit default locale prefix to unprefixed url with locale', () => {
+    let redirectTo: string | null = null
+
+    try {
+      onBeforeRoute(
+        makePageContext('/en', noDefaultPrefixConfig, {
+          headers: { cookie: 'locale=ru' },
+        }) as any,
+      )
+    } catch (e) {
+      redirectTo = getRedirectUrl(e)
+    }
+
+    expect(redirectTo).toBe('/?locale=en')
+  })
+
+  it('prefers locale query over stale locale cookie', () => {
+    const result = onBeforeRoute(
+      makePageContext('/?locale=en', noDefaultPrefixConfig, {
+        headers: { cookie: 'locale=ru' },
+      }) as any,
+    )
+
+    expect(result.pageContext.locale).toBe('en')
+    expect(result.pageContext.i18nRoute!.localeConfig.currentLocale).toBe('en')
   })
 })

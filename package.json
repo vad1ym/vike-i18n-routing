@@ -20,7 +20,7 @@
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRenderHtml": "./lib/vike/onBeforeRenderHtml.ts",
-    "./__internal/client": "./lib/vike/client.ts",
+    "./__internal/onHydrationEnd": "./lib/vike/onHydrationEnd.ts",
     "./middleware": "./lib/middleware.ts"
   },
   "files": [

@@ -413,6 +413,17 @@ function buildAlternateUrls(
   }))
 }
 
+function buildSetLocaleRedirect(
+  pageContext: I18nPageContext,
+  pathname: string,
+  locale: LocaleCode,
+): string {
+  const url = new URL(pageContext.urlOriginal, 'http://localhost')
+  url.pathname = pathname
+  url.searchParams.set('locale', locale)
+  return `${url.pathname}${url.search}`
+}
+
 // ────────────────────────────────────────────────────────────────
 // Main resolution — resolveI18nRouteState
 //
@@ -510,6 +521,8 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext)
 
   const redirectTo = variantRedirectPath
     ? applyLocalePrefix(variantRedirectPath, currentLocale, localeConfig)
+    : prefixedLocale === localeConfig.defaultLocale && !localeConfig.prefixDefaultLocale
+      ? buildSetLocaleRedirect(pageContext, currentLocaleUrl, localeConfig.defaultLocale)
     : requestUrl !== currentLocaleUrl
       ? currentLocaleUrl
       : undefined
