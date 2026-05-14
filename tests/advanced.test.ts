@@ -1,22 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  createPageContext,
   getAlternates,
-  setRouteSlugVariants,
-  toCanonicalUrl,
   toLocalizedUrl,
+  createI18nRouter,
 } from '../lib'
 import { createSetCookieHeader, resolveCookieAction } from '../lib/core/cookies'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { makePageContext, getRedirectUrl } from './helpers/pageContext'
-import type { DetectorContext, I18nConfig } from '../lib/core/types'
-
-const context: DetectorContext = {
-  url: 'https://site.com/about',
-  pathname: '/about',
-  headers: { host: 'site.com' },
-  cookies: {},
-  searchParams: new URL('https://site.com/about').searchParams,
-}
+import type { I18nConfig } from '../lib/core/types'
 
 const domainConfig: I18nConfig = {
   defaultLocale: 'en',
@@ -48,6 +40,11 @@ const domainConfig: I18nConfig = {
   localeCookie: 'locale',
 }
 
+const pageContext = createPageContext('https://site.com/about', {
+  config: { i18n: domainConfig },
+  headers: { host: 'site.com' },
+})
+
 describe('advanced features', () => {
   it('detects locale from cookie and accept-language', () => {
     try {
@@ -78,14 +75,65 @@ describe('advanced features', () => {
       }) as any,
     )
 
-    expect(result.pageContext.canonical).toBe('/services/design')
-    expect(toLocalizedUrl('/services/design/specs', 'ru', domainConfig, { context })).toBe(
+    expect(result.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/services/design')
+    expect(toLocalizedUrl('/services/design/specs', 'ru', pageContext)).toBe(
       '/ru/uslugi/design/specs',
     )
   })
 
   it('uses slug variants for params and redirects foreign variants', () => {
-    setRouteSlugVariants(
+    const routeParamVariants = {
+      en: 'web-development',
+      ru: 'veb-razrabotka',
+      fr: 'developpement-web',
+    }
+
+    const ruPageContext = makePageContext('/ru/uslugi/veb-razrabotka', domainConfig, {
+      headers: { host: 'site.com' },
+    }) as any
+    createI18nRouter(ruPageContext).setRouteParamVariants('category', routeParamVariants, {
+      redirect: true,
+    })
+
+    const ruResult = onBeforeRoute(ruPageContext)
+    expect(ruResult.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/services/web-development')
+
+    const invalidEnPageContext = makePageContext('/en/services/veb-razrabotka', domainConfig, {
+      headers: { host: 'site.com' },
+    }) as any
+    createI18nRouter(invalidEnPageContext).setRouteParamVariants('category', routeParamVariants, {
+      redirect: true,
+    })
+
+    try {
+      onBeforeRoute(invalidEnPageContext)
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/services/web-development')
+    }
+
+    const frPageContext = createPageContext('https://site.fr/services-fr/developpement-web', {
+      config: { i18n: domainConfig },
+      headers: { host: 'site.fr' },
+      domain: 'site.fr',
+    })
+    createI18nRouter(frPageContext).setRouteParamVariants('category', routeParamVariants, {
+      redirect: true,
+    })
+
+    expect(
+      toLocalizedUrl('/services/web-development', 'fr', frPageContext),
+    ).toBe('/services-fr/developpement-web')
+  })
+
+  it('updates pageContext.i18nRoute.routeConfig after setRouteParamVariants', () => {
+    const result = onBeforeRoute(
+      makePageContext('/en/services/web-development', domainConfig, {
+        headers: { host: 'site.com' },
+      }) as any,
+    )
+    const i18nRoute = result.pageContext.i18nRoute!
+
+    const redirectTo = i18nRoute.setRouteParamVariants(
       'category',
       {
         en: 'web-development',
@@ -95,53 +143,17 @@ describe('advanced features', () => {
       { redirect: true },
     )
 
-    const ruResult = onBeforeRoute(
-      makePageContext('/ru/uslugi/veb-razrabotka', domainConfig, {
-        headers: { host: 'site.com' },
-      }) as any,
-    )
-    expect(ruResult.pageContext.canonical).toBe('/services/web-development')
-
-    try {
-      onBeforeRoute(
-        makePageContext('/en/services/veb-razrabotka', domainConfig, {
-          headers: { host: 'site.com' },
-        }) as any,
-      )
-    } catch (error) {
-      expect(getRedirectUrl(error)).toBe('/en/services/web-development')
-    }
-
-    expect(
-      toLocalizedUrl('/services/web-development', 'fr', domainConfig, {
-        context: {
-          ...context,
-          url: 'https://site.fr/services-fr/developpement-web',
-          pathname: '/services-fr/developpement-web',
-          headers: { host: 'site.fr' },
-          domain: 'site.fr',
-          searchParams: new URL('https://site.fr/services-fr/developpement-web').searchParams,
-        },
-      }),
-    ).toBe('/services-fr/developpement-web')
+    expect(redirectTo).toBeUndefined()
+    expect(i18nRoute.routeConfig.currentLocaleUrl).toBe('/en/services/web-development')
+    expect(i18nRoute.routeConfig.defaultLocaleUrl).toBe('/en/services/web-development')
+    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+      { locale: 'en', url: '/en/services/web-development' },
+      { locale: 'ru', url: '/ru/uslugi/veb-razrabotka' },
+    ])
   })
 
-  it('builds canonical URLs and alternates from the shared resolver', () => {
-    expect(toCanonicalUrl('/ru/o-nas', domainConfig, { context })).toBe('/en/about')
-    expect(
-      toCanonicalUrl('/fr/a-propos', domainConfig, {
-        context: {
-          ...context,
-          url: 'https://site.fr/a-propos',
-          pathname: '/a-propos',
-          headers: { host: 'site.fr' },
-          domain: 'site.fr',
-          searchParams: new URL('https://site.fr/a-propos').searchParams,
-        },
-      }),
-    ).toBe('/a-propos')
-
-    expect(getAlternates('/about', domainConfig, { context })).toEqual([
+  it('builds alternates from the shared resolver', () => {
+    expect(getAlternates('/about', pageContext)).toEqual([
       { locale: 'en', url: '/en/about' },
       { locale: 'ru', url: '/ru/o-nas' },
     ])

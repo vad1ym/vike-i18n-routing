@@ -10,11 +10,7 @@ declare global {
 
     interface PageContext {
       locale: string
-      canonical: string
-      i18nDomain?: {
-        domain: string
-        meta?: Record<string, any>
-      }
+      i18nRoute: import('../core/types').I18nRoute
     }
   }
 }

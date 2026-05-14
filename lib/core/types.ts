@@ -17,19 +17,25 @@ export type DomainConfig = {
   meta?: DomainMeta
 }
 
-export type DetectorContext = {
-  url: string
-  pathname: string
-  headers: Record<string, string | string[] | undefined>
-  cookies: Record<string, string>
+export type I18nPageContext = {
+  urlOriginal: string
+  config: {
+    i18n?: I18nConfig
+  }
+  headers?: Record<string, string | string[] | undefined>
   session?: Record<string, string | undefined>
   domain?: string
-  searchParams: URLSearchParams
 }
 
 export type LocaleCookieAction = {
   name: string
   value: string
+}
+
+export type RequestConfig = {
+  locale: LocaleCode
+  domain?: string
+  cookieLocale?: string
 }
 
 export type ResolvedDomainConfig = {
@@ -40,18 +46,49 @@ export type ResolvedDomainConfig = {
   meta?: DomainMeta
 }
 
+export type PageContextLocaleConfig = {
+  defaultLocale: LocaleCode
+  locales: Record<LocaleCode, LocaleConfig>
+  currentLocale: LocaleCode
+  prefixDefaultLocale: boolean
+}
+
+export type PageContextDomainConfig = {
+  domain?: string
+  defaultLocale?: LocaleCode
+  locales?: Record<LocaleCode, LocaleConfig>
+  prefixDefaultLocale?: boolean
+  meta?: DomainMeta
+}
+
+export type AlternateUrl = {
+  locale: LocaleCode
+  url: string
+}
+
+export type RouteConfig = {
+  requestUrl: string
+  defaultLocaleUrl: string
+  currentLocaleUrl: string
+  vikeUrl: string
+  i18nUrl: string
+  vikeUrlParams: Record<string, string>
+  i18nUrlParams: Record<string, string>
+  alternateUrls: AlternateUrl[]
+}
+
 export type I18nConfig = {
   defaultLocale: LocaleCode
   locales: LocaleConfigs
   routes: I18nRoutes
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
-  domainDetector?: (context: DetectorContext) => string | null | undefined
-  localeDetector?: (context: DetectorContext) => string | null | undefined
+  domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
+  localeDetector?: (pageContext: I18nPageContext) => string | null | undefined
   localeCookie?: string | false
 }
 
-export type RouteSlugVariants = Record<LocaleCode, string>
+export type RouteParamVariants = Record<LocaleCode, string>
 
 export type LocalizedPathOptions = {
   prefixDefaultLocale?: boolean
@@ -59,31 +96,37 @@ export type LocalizedPathOptions = {
   prefixLocale?: boolean
 }
 
-export type ResolveRouteOptions = {
-  context: DetectorContext
-  detectedLocale?: string
+export type SetRouteParamVariantsOptions = {
+  redirect?: boolean
 }
 
-export type ResolvedRouteResult = {
-  locale: LocaleCode
-  canonical: string
+export type I18nRoute = {
+  requestConfig: RequestConfig
+  localeConfig: PageContextLocaleConfig
+  domainConfig: PageContextDomainConfig
+  routeConfig: RouteConfig
+  setRouteParamVariants: (
+    paramName: string,
+    variants: RouteParamVariants,
+    options?: SetRouteParamVariantsOptions,
+  ) => string | undefined
+}
+
+export type ResolvedI18nRoute = {
+  i18nRoute: I18nRoute
   redirectTo?: string
-  deferredRedirectTo?: string
-  domain?: string
-  domainMeta?: Record<string, any>
 }
 
 export type I18nRouter = {
-  resolve(pathname: string, options: ResolveRouteOptions): ResolvedRouteResult
-  resolveCanonical(pathname: string, context: DetectorContext): string
+  setRouteParamVariants: (
+    paramName: string,
+    variants: RouteParamVariants,
+    options?: SetRouteParamVariantsOptions,
+  ) => void
+  resolve(pathname: string): ResolvedI18nRoute
   resolveLocalizedPath(
     routeKey: string,
     locale: LocaleCode,
-    context: DetectorContext,
     options?: LocalizedPathOptions,
   ): string
-  getAlternates(
-    url: string,
-    context: DetectorContext,
-  ): { locale: LocaleCode; url: string }[]
 }

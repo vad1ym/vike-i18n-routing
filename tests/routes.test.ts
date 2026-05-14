@@ -6,29 +6,41 @@ import { baseConfig } from './helpers/config'
 describe('routes — translated paths', () => {
   it('resolves ru translated path to logical url', () => {
     const result = onBeforeRoute(makePageContext('/ru/o-nas', baseConfig) as any)
-    expect(result.pageContext.canonical).toBe('/about')
-    expect(result.pageContext.urlPathname).toBe('/about')
+    const i18nRoute = result.pageContext.i18nRoute!
     expect(result.pageContext.locale).toBe('ru')
+    expect(i18nRoute.requestConfig.locale).toBe('en')
+    expect(i18nRoute.localeConfig.currentLocale).toBe('ru')
+    expect(i18nRoute.routeConfig).toMatchObject({
+      requestUrl: '/ru/o-nas',
+      defaultLocaleUrl: '/en/about',
+      currentLocaleUrl: '/ru/o-nas',
+      vikeUrl: '/about',
+      i18nUrl: '/about',
+      vikeUrlParams: {},
+      i18nUrlParams: {},
+    })
   })
 
   it('resolves en path to logical url', () => {
     const result = onBeforeRoute(makePageContext('/en/about', baseConfig) as any)
-    expect(result.pageContext.canonical).toBe('/about')
-    expect(result.pageContext.urlPathname).toBe('/about')
     expect(result.pageContext.locale).toBe('en')
+    expect(result.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/about')
   })
 
   it('resolves root path correctly', () => {
     const result = onBeforeRoute(makePageContext('/ru', baseConfig) as any)
-    expect(result.pageContext.canonical).toBe('/')
-    expect(result.pageContext.urlPathname).toBe('/')
     expect(result.pageContext.locale).toBe('ru')
+    expect(result.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/')
   })
 
   it('falls back to path as logical url when no route match', () => {
     const result = onBeforeRoute(makePageContext('/en/unknown-page', baseConfig) as any)
-    expect(result.pageContext.canonical).toBe('/unknown-page')
-    expect(result.pageContext.urlPathname).toBe('/unknown-page')
+    expect(result.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/unknown-page')
+  })
+
+  it('stores informational domainConfig when no domain override is matched', () => {
+    const result = onBeforeRoute(makePageContext('/en/about', baseConfig) as any)
+    expect(result.pageContext.i18nRoute!.domainConfig).toEqual({ domain: undefined })
   })
 })
 

@@ -59,7 +59,7 @@ It resolves incoming localized URLs back to one canonical route, redirects inval
 - Locale detection from URL params, cookies, session, and `Accept-Language`
 - Automatic locale cookie persistence
 - Per-domain locale config
-- URL helpers for canonical URLs, alternates, and localized links
+- URL helpers for alternates and localized links
 - Slug variant support for dynamic params
 
 ## Installation
@@ -137,7 +137,7 @@ The plugin runs in `onBeforeRoute` and:
 1. Detects the active locale
 2. Resolves the incoming localized path to a canonical route path
 3. Redirects to the correct localized URL when needed
-4. Exposes `pageContext.locale` and `pageContext.canonical`
+4. Exposes `pageContext.locale` and `pageContext.i18nRoute`
 
 It also writes the resolved locale to a cookie during render unless cookie support is disabled.
 
@@ -155,8 +155,8 @@ type I18nConfig = {
   routes: Record<string, Record<string, string>>
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
-  domainDetector?: (context: DetectorContext) => string | null | undefined
-  localeDetector?: (context: DetectorContext) => string | null | undefined
+  domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
+  localeDetector?: (pageContext: I18nPageContext) => string | null | undefined
   localeCookie?: string | false
 }
 ```
@@ -235,12 +235,17 @@ Examples:
 
 ## Slug Variants
 
-Use `setRouteSlugVariants()` when a dynamic param should have locale-specific slug values.
+Use `router.setRouteParamVariants()` or `pageContext.i18nRoute.setRouteParamVariants()` when a dynamic param should have locale-specific slug values.
 
 ```ts
-import { setRouteSlugVariants } from 'vike-i18n-routing'
+import { createI18nRouter, createPageContext } from 'vike-i18n-routing'
 
-setRouteSlugVariants('category', {
+const pageContext = createPageContext('https://site.com/about', {
+  config: { i18n },
+  headers: { host: 'site.com' },
+})
+
+createI18nRouter(pageContext).setRouteParamVariants('category', {
   en: 'web-development',
   ru: 'veb-razrabotka',
   fr: 'developpement-web',
@@ -283,13 +288,13 @@ i18n: {
 }
 ```
 
-The resolved domain metadata is exposed on `pageContext.i18nDomain`.
+The resolved domain metadata is exposed on `pageContext.i18nRoute.domainConfig`.
 
 ## Locale Detection
 
 For unprefixed requests, locale resolution checks candidates in this order:
 
-1. Custom `localeDetector(context)`
+1. Custom `localeDetector(pageContext)`
 2. `?locale=...`
 3. `?lang=...`
 4. Locale cookie
@@ -302,8 +307,8 @@ This keeps unprefixed requests usable while still normalizing users onto the cor
 You can also override domain detection:
 
 ```ts
-domainDetector(context) {
-  return context.headers.host as string
+domainDetector(pageContext) {
+  return pageContext.headers?.host as string
 }
 ```
 
@@ -330,47 +335,34 @@ The default cookie name is `i18n-locale`.
 ```ts
 import {
   createI18nRouter,
+  createPageContext,
   getAlternates,
-  resolveCanonical,
-  resolveI18nRoute,
-  setRouteSlugVariants,
-  toCanonicalUrl,
   toLocalizedUrl,
-  toRouteUrl,
 } from 'vike-i18n-routing'
 ```
 
 ### `toLocalizedUrl()`
 
 ```ts
-toLocalizedUrl('/about', 'ru', i18n)
+const pageContext = createPageContext('https://site.com/about', {
+  config: { i18n },
+  headers: { host: 'site.com' },
+})
+
+toLocalizedUrl('/about', 'ru', pageContext)
 // /ru/o-nas
 ```
 
-You can also omit the locale and let it infer from the current URL/context:
+You can also omit the locale and let it infer from the current `pageContext`:
 
 ```ts
-toLocalizedUrl('/about', i18n, { context })
-```
-
-### `toCanonicalUrl()`
-
-```ts
-toCanonicalUrl('/ru/o-nas', i18n)
-// /en/about   when prefixDefaultLocale === true
-```
-
-### `toRouteUrl()`
-
-```ts
-toRouteUrl('/ru/o-nas', i18n)
-// /about
+toLocalizedUrl('/about', pageContext)
 ```
 
 ### `getAlternates()`
 
 ```ts
-getAlternates('/about', i18n, { context })
+getAlternates('/about', pageContext)
 // [
 //   { locale: 'en', url: '/en/about' },
 //   { locale: 'ru', url: '/ru/o-nas' }
@@ -382,12 +374,14 @@ getAlternates('/about', i18n, { context })
 Create a reusable router instance if you want to resolve/build URLs repeatedly:
 
 ```ts
-const router = createI18nRouter(i18n)
+const router = createI18nRouter(pageContext)
 
-router.resolve('/ru/o-nas', { context })
-router.resolveCanonical('/ru/o-nas', context)
-router.resolveLocalizedPath('/about', 'ru', context)
-router.getAlternates('/about', context)
+router.resolve('/ru/o-nas')
+router.resolveLocalizedPath('/about', 'ru')
+router.setRouteParamVariants('category', {
+  en: 'web-development',
+  ru: 'veb-razrabotka',
+})
 ```
 
 ## Page Context
@@ -395,14 +389,19 @@ router.getAlternates('/about', context)
 The plugin adds:
 
 - `pageContext.locale`
-- `pageContext.canonical`
-- `pageContext.i18nDomain`
+- `pageContext.i18nRoute.requestConfig`
+- `pageContext.i18nRoute.localeConfig`
+- `pageContext.i18nRoute.domainConfig`
+- `pageContext.i18nRoute.routeConfig`
 
 Example:
 
 ```ts
 const locale = pageContext.locale
-const canonicalRoute = pageContext.canonical
+const canonicalRoute = pageContext.i18nRoute.routeConfig.vikeUrl
+const publicUrl = pageContext.i18nRoute.routeConfig.currentLocaleUrl
+const defaultLocaleUrl = pageContext.i18nRoute.routeConfig.defaultLocaleUrl
+const alternateUrls = pageContext.i18nRoute.routeConfig.alternateUrls
 ```
 
 ## Example

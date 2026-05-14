@@ -1,6 +1,5 @@
 import { createI18nRouter } from './router'
-import { resolveDomainConfig } from './domain/normalize'
-import type { DetectorContext, I18nConfig, LocaleCode } from './types'
+import type { I18nPageContext, LocaleCode } from './types'
 
 type UrlOptions = {
   locale?: LocaleCode
@@ -8,30 +7,12 @@ type UrlOptions = {
   prefixDefaultLocale?: boolean
   prefixLocale?: boolean
   noPrefixLocale?: boolean
-  context?: DetectorContext
-}
-
-// Creates a minimal detector context from a URL when no explicit context is provided.
-function makeContext(url: string, context?: DetectorContext): DetectorContext {
-  if (context) return context
-
-  const parsed = new URL(url, 'http://localhost')
-
-  return {
-    url,
-    pathname: parsed.pathname,
-    headers: {},
-    cookies: {},
-    searchParams: parsed.searchParams,
-  }
 }
 
 // Infers the active locale for a URL by running the route resolver.
-function inferLocale(url: string, i18n: I18nConfig, context: DetectorContext): LocaleCode {
-  const result = createI18nRouter(i18n).resolve(new URL(url, 'http://localhost').pathname, {
-    context,
-  })
-  return result.locale
+function inferLocale(url: string, pageContext: I18nPageContext): LocaleCode {
+  const result = createI18nRouter(pageContext).resolve(new URL(url, 'http://localhost').pathname)
+  return result.i18nRoute.localeConfig.currentLocale
 }
 
 // Removes a trailing slash from a URL unless the URL is root.
@@ -47,12 +28,12 @@ function withSlashOption(url: string, removeTrailingSlash?: boolean): string {
 export function toLocalizedUrl(
   url: string,
   locale: LocaleCode,
-  i18n: I18nConfig,
+  pageContext: I18nPageContext,
   options?: Omit<UrlOptions, 'locale'>,
 ): string
 export function toLocalizedUrl(
   url: string,
-  i18n: I18nConfig,
+  pageContext: I18nPageContext,
   options?: UrlOptions,
 ): string
 /**
@@ -62,61 +43,22 @@ export function toLocalizedUrl(
  */
 export function toLocalizedUrl(
   url: string,
-  localeOrI18n: LocaleCode | I18nConfig,
-  i18nOrOptions?: I18nConfig | UrlOptions,
+  localeOrPageContext: LocaleCode | I18nPageContext,
+  pageContextOrOptions?: I18nPageContext | UrlOptions,
   maybeOptions?: Omit<UrlOptions, 'locale'>,
 ): string {
-  const isLegacySignature = typeof localeOrI18n === 'string'
-  const i18n = (isLegacySignature ? i18nOrOptions : localeOrI18n) as I18nConfig
-  const options = (isLegacySignature ? maybeOptions : i18nOrOptions) as UrlOptions | undefined
-  const context = makeContext(url, options?.context)
+  const hasExplicitLocale = typeof localeOrPageContext === 'string'
+  const pageContext = (hasExplicitLocale ? pageContextOrOptions : localeOrPageContext) as I18nPageContext
+  const options = (hasExplicitLocale ? maybeOptions : pageContextOrOptions) as UrlOptions | undefined
   const locale =
-    (isLegacySignature ? localeOrI18n : options?.locale) ??
-    inferLocale(url, i18n, context)
-  const router = createI18nRouter(i18n)
+    (hasExplicitLocale ? localeOrPageContext : options?.locale) ??
+    inferLocale(url, pageContext)
+  const router = createI18nRouter(pageContext)
 
   return withSlashOption(
-    router.resolveLocalizedPath(url, locale, context, options),
+    router.resolveLocalizedPath(url, locale, options),
     options?.removeTrailingSlash,
   )
-}
-
-/**
- * Converts any localized URL to the canonical URL for the default locale.
- */
-export function toCanonicalUrl(
-  url: string,
-  i18n: I18nConfig,
-  options?: Omit<UrlOptions, 'locale' | 'prefixLocale'>,
-): string {
-  const context = makeContext(url, options?.context)
-  const router = createI18nRouter(i18n)
-  const canonical = router.resolveCanonical(url, context)
-  const defaultLocale = resolveDomainConfig(i18n, context).defaultLocale
-
-  if (options?.noPrefixLocale) {
-    return withSlashOption(canonical, options.removeTrailingSlash)
-  }
-
-  return withSlashOption(
-    router.resolveLocalizedPath(canonical, defaultLocale, context, {
-      prefixDefaultLocale: options?.prefixDefaultLocale,
-      noPrefixLocale: false,
-    }),
-    options?.removeTrailingSlash,
-  )
-}
-
-/**
- * Resolves any localized URL to the logical route URL used by route matching.
- */
-export function toRouteUrl(
-  url: string,
-  i18n: I18nConfig,
-  options?: { context?: DetectorContext },
-): string {
-  const context = makeContext(url, options?.context)
-  return createI18nRouter(i18n).resolveCanonical(url, context)
 }
 
 /**
@@ -124,9 +66,7 @@ export function toRouteUrl(
  */
 export function getAlternates(
   url: string,
-  i18n: I18nConfig,
-  options?: { context?: DetectorContext },
+  pageContext: I18nPageContext,
 ): { locale: LocaleCode; url: string }[] {
-  const context = makeContext(url, options?.context)
-  return createI18nRouter(i18n).getAlternates(url, context)
+  return createI18nRouter(pageContext).resolve(url).i18nRoute.routeConfig.alternateUrls
 }

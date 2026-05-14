@@ -24,7 +24,10 @@ const objectConfig: I18nConfig = {
 describe('locales — array form', () => {
   it('resolves locale from url prefix', () => {
     const result = onBeforeRoute(makePageContext('/ru/o-nas', arrayConfig) as any)
+    const i18nRoute = result.pageContext.i18nRoute!
     expect(result.pageContext.locale).toBe('ru')
+    expect(i18nRoute.localeConfig.defaultLocale).toBe('en')
+    expect(i18nRoute.localeConfig.currentLocale).toBe('ru')
   })
 
   it('redirects unprefixed url to default locale', () => {
@@ -46,7 +49,9 @@ describe('locales — object form', () => {
     const arrayResult = onBeforeRoute(makePageContext('/ru/o-nas', arrayConfig) as any)
     const objectResult = onBeforeRoute(makePageContext('/ru/o-nas', objectConfig) as any)
     expect(arrayResult.pageContext.locale).toBe(objectResult.pageContext.locale)
-    expect(arrayResult.pageContext.canonical).toBe(objectResult.pageContext.canonical)
+    expect(arrayResult.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe(
+      objectResult.pageContext.i18nRoute!.routeConfig.vikeUrl,
+    )
   })
 
   it('redirects same as array form', () => {

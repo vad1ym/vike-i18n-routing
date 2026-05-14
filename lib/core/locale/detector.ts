@@ -1,6 +1,6 @@
+import { getCookies, getHeaders, getSearchParams, getSession } from '../pageContext'
 import { resolveDomainConfig } from '../domain/normalize'
-import { normalizeLocales } from './normalize'
-import type { DetectorContext, I18nConfig, LocaleCode } from '../types'
+import type { I18nConfig, I18nPageContext, LocaleCode } from '../types'
 
 // Parses a Cookie header string into a name/value map.
 export function parseCookies(cookieHeader: string): Record<string, string> {
@@ -35,19 +35,22 @@ function parseAcceptLanguage(header: string | undefined): string[] {
 }
 
 // Reads the configured locale cookie from the request context.
-function resolveCookieLocale(context: DetectorContext, i18n: I18nConfig): string | undefined {
+export function resolveCookieLocale(
+  pageContext: I18nPageContext,
+  i18n: I18nConfig,
+): string | undefined {
   if (i18n.localeCookie === false) return undefined
   const cookieName = i18n.localeCookie ?? 'i18n-locale'
-  return context.cookies[cookieName]
+  return getCookies(pageContext)[cookieName]
 }
 
 // Resolves the best locale for an unprefixed request.
-export function runLocaleDetector(
-  context: DetectorContext,
+export function detectRequestLocale(
+  pageContext: I18nPageContext,
   i18n: I18nConfig,
 ): LocaleCode {
-  const resolvedDomain = resolveDomainConfig(i18n, context)
-  const locales = normalizeLocales(resolvedDomain.locales)
+  const resolvedDomain = resolveDomainConfig(i18n, pageContext)
+  const locales = resolvedDomain.locales
 
   const validate = (locale: string | null | undefined): LocaleCode | null => {
     if (locale && locales[locale]) return locale
@@ -57,17 +60,18 @@ export function runLocaleDetector(
   const candidates: Array<string | null | undefined> = []
 
   if (i18n.localeDetector) {
-    candidates.push(i18n.localeDetector(context))
+    candidates.push(i18n.localeDetector(pageContext))
   }
 
+  const searchParams = getSearchParams(pageContext)
   candidates.push(
-    context.searchParams.get('locale'),
-    context.searchParams.get('lang'),
-    resolveCookieLocale(context, i18n),
-    context.session?.locale,
+    searchParams.get('locale'),
+    searchParams.get('lang'),
+    resolveCookieLocale(pageContext, i18n),
+    getSession(pageContext)?.locale,
   )
 
-  const acceptLanguage = context.headers['accept-language']
+  const acceptLanguage = getHeaders(pageContext)['accept-language']
   const headerValue = Array.isArray(acceptLanguage) ? acceptLanguage[0] : acceptLanguage
   candidates.push(...parseAcceptLanguage(headerValue))
 
