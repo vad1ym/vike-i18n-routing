@@ -98,7 +98,6 @@ Extend your Vike config with the plugin config and provide an `i18n` definition.
 import vikeVue from 'vike-vue/config'
 import vikeI18n from 'vike-i18n-routing/config'
 import type { Config } from 'vike/types'
-import type { I18nConfig } from 'vike-i18n-routing'
 
 export default {
   extends: [vikeVue, vikeI18n],
@@ -111,7 +110,7 @@ export default {
       '/': { en: '/', ru: '/' },
       '/about': { en: '/about', ru: '/o-nas' },
     },
-  } satisfies I18nConfig,
+  },
 } satisfies Config
 ```
 
@@ -235,17 +234,10 @@ Examples:
 
 ## Slug Variants
 
-Use `router.setRouteParamVariants()` or `pageContext.i18nRoute.setRouteParamVariants()` when a dynamic param should have locale-specific slug values.
+Use `pageContext.i18nRoute.setRouteParamVariants()` when a dynamic param should have locale-specific slug values.
 
 ```ts
-import { createI18nRouter, createPageContext } from 'vike-i18n-routing'
-
-const pageContext = createPageContext('https://site.com/about', {
-  config: { i18n },
-  headers: { host: 'site.com' },
-})
-
-createI18nRouter(pageContext).setRouteParamVariants('category', {
+pageContext.i18nRoute.setRouteParamVariants('category', {
   en: 'web-development',
   ru: 'veb-razrabotka',
   fr: 'developpement-web',
@@ -330,60 +322,6 @@ localeCookie: false
 
 The default cookie name is `i18n-locale`.
 
-## Runtime Helpers
-
-```ts
-import {
-  createI18nRouter,
-  createPageContext,
-  getAlternates,
-  toLocalizedUrl,
-} from 'vike-i18n-routing'
-```
-
-### `toLocalizedUrl()`
-
-```ts
-const pageContext = createPageContext('https://site.com/about', {
-  config: { i18n },
-  headers: { host: 'site.com' },
-})
-
-toLocalizedUrl('/about', 'ru', pageContext)
-// /ru/o-nas
-```
-
-You can also omit the locale and let it infer from the current `pageContext`:
-
-```ts
-toLocalizedUrl('/about', pageContext)
-```
-
-### `getAlternates()`
-
-```ts
-getAlternates('/about', pageContext)
-// [
-//   { locale: 'en', url: '/en/about' },
-//   { locale: 'ru', url: '/ru/o-nas' }
-// ]
-```
-
-### `createI18nRouter()`
-
-Create a reusable router instance if you want to resolve/build URLs repeatedly:
-
-```ts
-const router = createI18nRouter(pageContext)
-
-router.resolve('/ru/o-nas')
-router.resolveLocalizedPath('/about', 'ru')
-router.setRouteParamVariants('category', {
-  en: 'web-development',
-  ru: 'veb-razrabotka',
-})
-```
-
 ## Page Context
 
 The plugin adds:
@@ -393,6 +331,9 @@ The plugin adds:
 - `pageContext.i18nRoute.localeConfig`
 - `pageContext.i18nRoute.domainConfig`
 - `pageContext.i18nRoute.routeConfig`
+
+The root `vike-i18n-routing` entry intentionally exposes only types related to
+`pageContext.i18nRoute`. Runtime helpers stay internal to keep the public API small.
 
 Example:
 

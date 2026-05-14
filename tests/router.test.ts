@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createI18nRouter, createPageContext } from '../lib'
+import { createPageContext } from '../lib/core/pageContext'
+import { createI18nRouter } from '../lib/core/router'
 import { baseConfig } from './helpers/config'
 
 const pageContext = createPageContext('https://site.com/about', {
@@ -9,11 +10,11 @@ const pageContext = createPageContext('https://site.com/about', {
 
 describe('router', () => {
   it('resolves and builds urls through a single router instance', () => {
-    const router = createI18nRouter(pageContext)
+    const i18nRoute = createI18nRouter('/about', pageContext)
 
-    expect(router.resolve('/ru/o-nas').i18nRoute.routeConfig.vikeUrl).toBe('/about')
-    expect(router.resolveLocalizedPath('/about', 'ru')).toBe('/ru/o-nas')
-    expect(router.resolve('/about').i18nRoute.routeConfig.alternateUrls).toEqual([
+    expect(i18nRoute.routeConfig.vikeUrl).toBe('/about')
+    expect(i18nRoute.localizePath('/about', 'ru')).toBe('/ru/o-nas')
+    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
       { locale: 'ru', url: '/ru/o-nas' },
     ])

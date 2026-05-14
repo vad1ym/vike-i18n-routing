@@ -70,6 +70,7 @@ export type RouteConfig = {
   requestUrl: string
   defaultLocaleUrl: string
   currentLocaleUrl: string
+  redirectTo?: string
   vikeUrl: string
   i18nUrl: string
   vikeUrlParams: Record<string, string>
@@ -109,24 +110,10 @@ export type I18nRoute = {
     paramName: string,
     variants: RouteParamVariants,
     options?: SetRouteParamVariantsOptions,
-  ) => string | undefined
-}
-
-export type ResolvedI18nRoute = {
-  i18nRoute: I18nRoute
-  redirectTo?: string
-}
-
-export type I18nRouter = {
-  setRouteParamVariants: (
-    paramName: string,
-    variants: RouteParamVariants,
-    options?: SetRouteParamVariantsOptions,
   ) => void
-  resolve(pathname: string): ResolvedI18nRoute
-  resolveLocalizedPath(
+  localizePath: (
     routeKey: string,
-    locale: LocaleCode,
+    locale?: LocaleCode,
     options?: LocalizedPathOptions,
-  ): string
+  ) => string
 }

@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import {
-  createPageContext,
-  getAlternates,
-  toLocalizedUrl,
-  createI18nRouter,
-} from '../lib'
 import { createSetCookieHeader, resolveCookieAction } from '../lib/core/cookies'
+import { createPageContext } from '../lib/core/pageContext'
+import { createI18nRouter } from '../lib/core/router'
+import { getAlternates, toLocalizedUrl } from '../lib/core/utils'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { makePageContext, getRedirectUrl } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
@@ -91,9 +88,8 @@ describe('advanced features', () => {
     const ruPageContext = makePageContext('/ru/uslugi/veb-razrabotka', domainConfig, {
       headers: { host: 'site.com' },
     }) as any
-    createI18nRouter(ruPageContext).setRouteParamVariants('category', routeParamVariants, {
-      redirect: true,
-    })
+    createI18nRouter('/ru/uslugi/veb-razrabotka', ruPageContext)
+      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
 
     const ruResult = onBeforeRoute(ruPageContext)
     expect(ruResult.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/services/web-development')
@@ -101,9 +97,8 @@ describe('advanced features', () => {
     const invalidEnPageContext = makePageContext('/en/services/veb-razrabotka', domainConfig, {
       headers: { host: 'site.com' },
     }) as any
-    createI18nRouter(invalidEnPageContext).setRouteParamVariants('category', routeParamVariants, {
-      redirect: true,
-    })
+    createI18nRouter('/en/services/veb-razrabotka', invalidEnPageContext)
+      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
 
     try {
       onBeforeRoute(invalidEnPageContext)
@@ -116,9 +111,8 @@ describe('advanced features', () => {
       headers: { host: 'site.fr' },
       domain: 'site.fr',
     })
-    createI18nRouter(frPageContext).setRouteParamVariants('category', routeParamVariants, {
-      redirect: true,
-    })
+    createI18nRouter('/services-fr/developpement-web', frPageContext)
+      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
 
     expect(
       toLocalizedUrl('/services/web-development', 'fr', frPageContext),
@@ -133,7 +127,7 @@ describe('advanced features', () => {
     )
     const i18nRoute = result.pageContext.i18nRoute!
 
-    const redirectTo = i18nRoute.setRouteParamVariants(
+    i18nRoute.setRouteParamVariants(
       'category',
       {
         en: 'web-development',
@@ -143,7 +137,7 @@ describe('advanced features', () => {
       { redirect: true },
     )
 
-    expect(redirectTo).toBeUndefined()
+    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
     expect(i18nRoute.routeConfig.currentLocaleUrl).toBe('/en/services/web-development')
     expect(i18nRoute.routeConfig.defaultLocaleUrl).toBe('/en/services/web-development')
     expect(i18nRoute.routeConfig.alternateUrls).toEqual([

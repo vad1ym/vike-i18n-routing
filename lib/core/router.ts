@@ -7,12 +7,10 @@ import type {
   I18nConfig,
   I18nPageContext,
   I18nRoute,
-  I18nRouter,
   I18nRoutes,
   LocaleCode,
   LocalizedPathOptions,
   PageContextLocaleConfig,
-  ResolvedI18nRoute,
   RouteConfig,
   RouteParamVariants,
 } from './types'
@@ -457,18 +455,13 @@ function buildAlternateUrls(
 //       → redirect to the canonical URL form (e.g. add missing prefix)
 //
 // 6. RETURN
-//    Returns { i18nRoute, redirectTo } where:
-//    - i18nRoute contains requestConfig, localeConfig, domainConfig, routeConfig,
-//      and a setRouteParamVariants() method for runtime slug registration
-//    - redirectTo is the URL to redirect to, or undefined if no redirect needed
+//    Returns I18nRoute with redirect information embedded in routeConfig.
 // ────────────────────────────────────────────────────────────────
 
-function resolveI18nRouteState(
-  pageContext: I18nPageContext,
-  i18n: I18nConfig,
-  paramVariants: ParamVariants,
-  pathname: string,
-): ResolvedI18nRoute {
+export function createI18nRouter(pathname: string, pageContext: I18nPageContext): I18nRoute {
+  const i18n = getI18nConfig(pageContext)
+  const paramVariants = getParamVariants(pageContext)
+
   // Step 1: Resolve configs
   const { requestConfig, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
 
@@ -531,6 +524,7 @@ function resolveI18nRouteState(
     requestUrl,
     defaultLocaleUrl,
     currentLocaleUrl,
+    redirectTo,
     vikeUrl: canonicalPath,
     i18nUrl: routePattern,
     vikeUrlParams: params,
@@ -547,41 +541,24 @@ function resolveI18nRouteState(
     // Re-resolves the entire route to update routeConfig with new variant values.
     setRouteParamVariants(paramName, variants, options) {
       paramVariants.set(paramName, { variants, redirect: options?.redirect ?? false })
-      const next = resolveI18nRouteState(pageContext, i18n, paramVariants, pathname)
-      this.localeConfig.currentLocale = next.i18nRoute.localeConfig.currentLocale
-      this.routeConfig = next.i18nRoute.routeConfig
-      return next.redirectTo
+      const next = createI18nRouter(pathname, pageContext)
+      this.localeConfig.currentLocale = next.localeConfig.currentLocale
+      this.routeConfig = next.routeConfig
     },
-  }
-
-  return { i18nRoute, redirectTo }
-}
-
-// ────────────────────────────────────────────────────────────────
-// Public API
-//
-// createI18nRouter is the main entry point. It captures pageContext
-// and provides three methods:
-// - resolve(pathname): full route resolution with redirect detection
-// - resolveLocalizedPath(routeKey, locale): build a localized URL for a route
-// - setRouteParamVariants(paramName, variants): register slug variants
-// ────────────────────────────────────────────────────────────────
-
-export function createI18nRouter(pageContext: I18nPageContext): I18nRouter {
-  const i18n = getI18nConfig(pageContext)
-  const paramVariants = getParamVariants(pageContext)
-
-  return {
-    setRouteParamVariants(paramName, variants, options) {
-      paramVariants.set(paramName, { variants, redirect: options?.redirect ?? false })
-    },
-    resolve(pathname) {
-      return resolveI18nRouteState(pageContext, i18n, paramVariants, pathname)
-    },
-    resolveLocalizedPath(routeKey, locale, options) {
+    localizePath(routeKey, locale, options) {
       const { localeConfig } = resolveConfigs(pageContext, i18n)
-      const canonicalPath = resolveI18nRouteState(pageContext, i18n, paramVariants, routeKey).i18nRoute.routeConfig.vikeUrl
-      return localizeCanonicalPath(i18n.routes, paramVariants, canonicalPath, locale, localeConfig, options)
+      const targetLocale = locale ?? this.localeConfig.currentLocale
+      const canonicalPath = createI18nRouter(routeKey, pageContext).routeConfig.vikeUrl
+      return localizeCanonicalPath(
+        i18n.routes,
+        paramVariants,
+        canonicalPath,
+        targetLocale,
+        localeConfig,
+        options,
+      )
     },
   }
+
+  return i18nRoute
 }

@@ -11,8 +11,7 @@ type UrlOptions = {
 
 // Infers the active locale for a URL by running the route resolver.
 function inferLocale(url: string, pageContext: I18nPageContext): LocaleCode {
-  const result = createI18nRouter(pageContext).resolve(new URL(url, 'http://localhost').pathname)
-  return result.i18nRoute.localeConfig.currentLocale
+  return createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext).localeConfig.currentLocale
 }
 
 // Removes a trailing slash from a URL unless the URL is root.
@@ -53,10 +52,10 @@ export function toLocalizedUrl(
   const locale =
     (hasExplicitLocale ? localeOrPageContext : options?.locale) ??
     inferLocale(url, pageContext)
-  const router = createI18nRouter(pageContext)
+  const i18nRoute = createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext)
 
   return withSlashOption(
-    router.resolveLocalizedPath(url, locale, options),
+    i18nRoute.localizePath(url, locale, options),
     options?.removeTrailingSlash,
   )
 }
@@ -68,5 +67,5 @@ export function getAlternates(
   url: string,
   pageContext: I18nPageContext,
 ): { locale: LocaleCode; url: string }[] {
-  return createI18nRouter(pageContext).resolve(url).i18nRoute.routeConfig.alternateUrls
+  return createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext).routeConfig.alternateUrls
 }
