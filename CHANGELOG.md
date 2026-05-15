@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.1.10
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.9...v0.1.10)
+
+### 🚀 Enhancements
+
+- Add react useI18nRoute support ([#18](https://github.com/vad1ym/vike-i18n-routing/pull/18))
+- Add Solid useI18nRoute support ([#19](https://github.com/vad1ym/vike-i18n-routing/pull/19))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.9
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.8...v0.1.9)
