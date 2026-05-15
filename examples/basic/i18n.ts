@@ -31,7 +31,12 @@ export const i18n = createI18n({
       },
       specialities: {
         title: 'Specialities',
-        body: 'A mock list loaded from +data with per-link localized slug params.',
+        body: 'A mock list loaded from +data with localized slug params and a translated query filter.',
+        filters: {
+          all: 'All',
+          frontend: 'Frontend',
+          backend: 'Backend',
+        },
       },
     },
     ru: {
@@ -60,7 +65,12 @@ export const i18n = createI18n({
       },
       specialities: {
         title: 'Специальности',
-        body: 'Мок-список из +data с локализованными slug-параметрами для каждой ссылки.',
+        body: 'Мок-список из +data с локализованными slug-параметрами и переводимым query-фильтром.',
+        filters: {
+          all: 'Все',
+          frontend: 'Фронтенд',
+          backend: 'Бэкенд',
+        },
       },
     },
   },

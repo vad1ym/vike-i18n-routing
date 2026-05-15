@@ -89,4 +89,25 @@ function data(pageContext: PageContext) {
 
 When `setRouteParamVariants()` changes the normalized route, the redirect is handled automatically. You no longer need a separate `+onData` file or manual `throw redirect(...)` after registration.
 
+## Query variants
+
+Use `setRouteQueryVariants()` when a query-string value also has locale-specific variants.
+
+```ts
+const { setRouteQueryVariants } = useI18nRoute(pageContext)
+
+setRouteQueryVariants('focus', {
+  en: 'frontend',
+  ru: 'frontend-ru',
+})
+```
+
+After registration, the router can:
+
+- canonicalize `?focus=frontend-ru` to `?focus=frontend`
+- localize the active filter when switching locale
+- redirect a foreign query value to the current locale automatically
+
+This fits filter-link pages especially well.
+
 Next: [useI18nRoute](/guide/use-i18n-route)

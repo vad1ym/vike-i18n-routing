@@ -15,13 +15,14 @@ type RouteConfig = {
   i18nUrlParams: Record<string, string>
   alternateUrls: { locale: string; url: string }[]
   paramVariants: Record<string, { variants: Record<string, string> }>
+  queryVariants: Record<string, { variants: Record<string, string> }>
 }
 ```
 
 ## Main values
 
 - `requestUrl`: incoming request URL
-- `canonicalUrl`: canonical internal route
+- `canonicalUrl`: canonical internal route, including canonicalized query values
 - `currentLocaleUrl`: normalized URL for the active locale
 - `defaultLocaleUrl`: normalized URL for the default locale
 - `redirectTo`: redirect target when the request URL should be normalized
@@ -48,5 +49,7 @@ Example:
 `i18nUrlParams` contains extracted route params after route matching.
 
 `paramVariants` contains registered translated param values.
+
+`queryVariants` contains registered translated query values.
 
 Next: [localeConfig](/guide/locale-config)

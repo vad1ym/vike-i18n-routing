@@ -1,5 +1,6 @@
 export type SpecialityRecord = {
   slug: string
+  focus: 'frontend' | 'backend'
   variants: {
     speciality: {
       en: string
@@ -19,6 +20,7 @@ export type SpecialityRecord = {
 export const specialities: SpecialityRecord[] = [
   {
     slug: 'web-development',
+    focus: 'frontend',
     variants: {
       speciality: {
         en: 'web-development',
@@ -36,6 +38,7 @@ export const specialities: SpecialityRecord[] = [
   },
   {
     slug: 'analytic',
+    focus: 'backend',
     variants: {
       speciality: {
         en: 'analytic',
@@ -56,5 +59,30 @@ export const specialities: SpecialityRecord[] = [
 export function findSpecialityBySlug(slug: string) {
   return specialities.find((item) =>
     slug === item.slug || Object.values(item.variants.speciality).includes(slug),
+  )
+}
+
+export const specialityFocusFilters = [
+  {
+    key: 'frontend',
+    variants: {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    },
+  },
+  {
+    key: 'backend',
+    variants: {
+      en: 'backend',
+      ru: 'backend-ru',
+    },
+  },
+] as const
+
+export function findSpecialityFocusBySlug(slug: string | null | undefined) {
+  if (!slug) return undefined
+
+  return specialityFocusFilters.find((item) =>
+    slug === item.key || Object.values(item.variants).includes(slug),
   )
 }

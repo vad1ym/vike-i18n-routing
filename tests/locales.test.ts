@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { makePageContext, getRedirectUrl } from './helpers/pageContext'
+import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
 const arrayConfig: I18nConfig = {
@@ -37,11 +37,7 @@ describe('locales — array form', () => {
   })
 
   it('redirects unprefixed url to default locale', () => {
-    try {
-      onBeforeRoute(makePageContext('/', arrayConfig) as any)
-    } catch (e) {
-      expect(getRedirectUrl(e)).toBe('/en')
-    }
+    expect(resolveRenderRedirect(makePageContext('/', arrayConfig))).toBe('/en')
   })
 
   it('throws for missing i18n config', () => {
@@ -61,35 +57,21 @@ describe('locales — object form', () => {
   })
 
   it('redirects same as array form', () => {
-    let arrayRedirect: string | null = null
-    let objectRedirect: string | null = null
-
-    try { onBeforeRoute(makePageContext('/about', arrayConfig) as any) } catch (e) {
-      arrayRedirect = getRedirectUrl(e)
-    }
-    try { onBeforeRoute(makePageContext('/about', objectConfig) as any) } catch (e) {
-      objectRedirect = getRedirectUrl(e)
-    }
-
+    const arrayRedirect = resolveRenderRedirect(makePageContext('/about', arrayConfig))
+    const objectRedirect = resolveRenderRedirect(makePageContext('/about', objectConfig))
     expect(arrayRedirect).toBe(objectRedirect)
   })
 })
 
 describe('locales — default locale without prefix', () => {
   it('redirects explicit default locale prefix to unprefixed url with locale', () => {
-    let redirectTo: string | null = null
-
-    try {
-      onBeforeRoute(
+    expect(
+      resolveRenderRedirect(
         makePageContext('/en', noDefaultPrefixConfig, {
           headers: { cookie: 'locale=ru' },
-        }) as any,
-      )
-    } catch (e) {
-      redirectTo = getRedirectUrl(e)
-    }
-
-    expect(redirectTo).toBe('/?locale=en')
+        }),
+      ),
+    ).toBe('/?locale=en')
   })
 
   it('prefers locale query over stale locale cookie', () => {

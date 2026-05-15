@@ -1,3 +1,5 @@
+import { onBeforeRender } from '../../lib/vike/onBeforeRender'
+import { onBeforeRoute } from '../../lib/vike/onBeforeRoute'
 import type { I18nConfig } from '../../lib/core/types'
 
 export function makePageContext(
@@ -30,5 +32,19 @@ export function getRedirectUrl(error: unknown): string | null {
   ) {
     return (error as any)._pageContextAbort._urlRedirect?.url ?? null
   }
+  return null
+}
+
+export function resolveRenderRedirect(pageContext: ReturnType<typeof makePageContext>): string | null {
+  try {
+    const routeResult = onBeforeRoute(pageContext as any)
+    onBeforeRender({
+      ...pageContext,
+      ...routeResult?.pageContext,
+    } as any)
+  } catch (error) {
+    return getRedirectUrl(error)
+  }
+
   return null
 }

@@ -12,6 +12,7 @@ declare global {
       locale: string
       i18nRoute: import('../core/types').I18nRoute
       i18nParamVariants?: Record<string, import('../core/types').ParamVariantConfig>
+      i18nQueryVariants?: Record<string, import('../core/types').QueryVariantConfig>
     }
   }
 }

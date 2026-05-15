@@ -71,6 +71,7 @@ export type RouteConfig = {
   i18nUrlParams: Record<string, string>
   alternateUrls: AlternateUrl[]
   paramVariants: Record<string, ParamVariantConfig>
+  queryVariants: Record<string, QueryVariantConfig>
 }
 
 export type I18nConfig = {
@@ -85,9 +86,14 @@ export type I18nConfig = {
 }
 
 export type RouteParamVariants = Record<LocaleCode, string>
+export type RouteQueryVariants = Record<LocaleCode, string>
 
 export type ParamVariantConfig = {
   variants: RouteParamVariants
+}
+
+export type QueryVariantConfig = {
+  variants: RouteQueryVariants
 }
 
 export type LocalizedPathOptions = {

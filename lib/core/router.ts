@@ -12,6 +12,7 @@ import type {
   LocalizedPathOptions,
   PageContextLocaleConfig,
   ParamVariantConfig,
+  QueryVariantConfig,
   RouteConfig,
 } from './types'
 
@@ -26,6 +27,7 @@ type RouteMatch = {
 }
 
 type ParamVariants = Map<string, ParamVariantConfig>
+type QueryVariants = Map<string, QueryVariantConfig>
 
 
 // ────────────────────────────────────────────────────────────────
@@ -104,6 +106,121 @@ function localizeParamValue(
   return variants[locale] && locale === localeConfig.defaultLocale && defaultValue === undefined
     ? variants[locale]
     : canonicalValue
+}
+
+function getDefaultQueryVariantLocale(
+  queryVariants: QueryVariants,
+  queryName: string,
+  localeConfig: PageContextLocaleConfig,
+): string | undefined {
+  const variants = queryVariants.get(queryName)?.variants
+  if (!variants) return undefined
+
+  return variants[localeConfig.defaultLocale]
+    ? localeConfig.defaultLocale
+    : Object.keys(variants)[0]
+}
+
+function canonicalizeQueryValue(
+  queryVariants: QueryVariants,
+  queryName: string,
+  rawValue: string,
+  localeConfig: PageContextLocaleConfig,
+): string {
+  const variants = queryVariants.get(queryName)?.variants
+  if (!variants) return rawValue
+
+  const defaultVariantLocale = getDefaultQueryVariantLocale(queryVariants, queryName, localeConfig)
+  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
+
+  for (const variant of Object.values(variants)) {
+    if (variant === rawValue) return defaultValue ?? rawValue
+  }
+
+  return rawValue
+}
+
+function localizeQueryValue(
+  queryVariants: QueryVariants,
+  queryName: string,
+  canonicalValue: string,
+  localeConfig: PageContextLocaleConfig,
+  locale = localeConfig.defaultLocale,
+): string {
+  const variants = queryVariants.get(queryName)?.variants
+  if (!variants) return canonicalValue
+
+  const defaultVariantLocale = getDefaultQueryVariantLocale(queryVariants, queryName, localeConfig)
+  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
+
+  if (defaultValue === canonicalValue) {
+    return variants[locale] ?? canonicalValue
+  }
+
+  for (const variant of Object.values(variants)) {
+    if (variant === canonicalValue) {
+      return variants[locale] ?? canonicalValue
+    }
+  }
+
+  return canonicalValue
+}
+
+function sanitizeRouteSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  const sanitized = new URLSearchParams(searchParams)
+  sanitized.delete('locale')
+  sanitized.delete('lang')
+  return sanitized
+}
+
+function canonicalizeQueryParams(
+  queryVariants: QueryVariants,
+  searchParams: URLSearchParams,
+  localeConfig: PageContextLocaleConfig,
+): URLSearchParams {
+  const canonical = new URLSearchParams()
+
+  for (const [name, value] of sanitizeRouteSearchParams(searchParams).entries()) {
+    canonical.append(name, canonicalizeQueryValue(queryVariants, name, value, localeConfig))
+  }
+
+  return canonical
+}
+
+function localizeQueryParams(
+  queryVariants: QueryVariants,
+  searchParams: URLSearchParams,
+  localeConfig: PageContextLocaleConfig,
+  locale = localeConfig.defaultLocale,
+): URLSearchParams {
+  const localized = new URLSearchParams()
+
+  for (const [name, value] of searchParams.entries()) {
+    localized.append(name, localizeQueryValue(queryVariants, name, value, localeConfig, locale))
+  }
+
+  return localized
+}
+
+function buildUrl(pathname: string, searchParams: URLSearchParams): string {
+  const search = searchParams.toString()
+  return search ? `${pathname}?${search}` : pathname
+}
+
+function normalizeRoutingPathname(pathname: string): string {
+  const normalized = normalizePathname(pathname)
+
+  if (normalized.endsWith('/index.pageContext.json')) {
+    const base = normalized.slice(0, -'/index.pageContext.json'.length)
+    return base || '/'
+  }
+
+  if (normalized.endsWith('.pageContext.json')) {
+    const base = normalized.slice(0, -'.pageContext.json'.length)
+    return base || '/'
+  }
+
+  return normalized
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -270,11 +387,15 @@ export function localizeCanonicalPath(
   routes: I18nRoutes,
   paramVariants: ParamVariants,
   canonicalPath: string,
+  queryVariants: QueryVariants,
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
 ): string {
-  const match = findCanonicalRouteMatch(routes, paramVariants, canonicalPath, localeConfig)
+  const url = new URL(canonicalPath, 'http://localhost')
+  const canonicalPathname = normalizePathname(url.pathname)
+  const canonicalSearchParams = sanitizeRouteSearchParams(url.searchParams)
+  const match = findCanonicalRouteMatch(routes, paramVariants, canonicalPathname, localeConfig)
   const localizedPath = match
     ? buildConcretePath(
         paramVariants,
@@ -283,9 +404,12 @@ export function localizeCanonicalPath(
         localeConfig,
         locale,
       )
-    : normalizePathname(canonicalPath)
+    : canonicalPathname
 
-  return applyLocalePrefix(localizedPath, locale, localeConfig, options)
+  return buildUrl(
+    applyLocalePrefix(localizedPath, locale, localeConfig, options),
+    localizeQueryParams(queryVariants, canonicalSearchParams, localeConfig, locale),
+  )
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -385,21 +509,20 @@ function buildAlternateUrls(
   routes: I18nRoutes,
   paramVariants: ParamVariants,
   canonicalPath: string,
+  queryVariants: QueryVariants,
   localeConfig: PageContextLocaleConfig,
 ): AlternateUrl[] {
   return Object.keys(localeConfig.locales).map((locale) => ({
     locale,
-    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, locale, localeConfig),
+    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, queryVariants, locale, localeConfig),
   }))
 }
 
 function buildSetLocaleRedirect(
-  pageContext: I18nPageContext,
   pathname: string,
   locale: LocaleCode,
 ): string {
-  const url = new URL(pageContext.urlOriginal, 'http://localhost')
-  url.pathname = pathname
+  const url = new URL(pathname, 'http://localhost')
   url.searchParams.set('locale', locale)
   return `${url.pathname}${url.search}`
 }
@@ -444,22 +567,35 @@ function buildSetLocaleRedirect(
 //    Returns I18nRoute with redirect information embedded in routeConfig.
 // ────────────────────────────────────────────────────────────────
 
-export function createI18nRouter(pathname: string, pageContext: I18nPageContext, paramVariants: ParamVariants = new Map()): I18nRoute {
+export function createI18nRouter(
+  pathname: string,
+  pageContext: I18nPageContext,
+  paramVariants: ParamVariants = new Map(),
+  queryVariants: QueryVariants = new Map(),
+): I18nRoute {
   const i18n = getI18nConfig(pageContext)
+  const request = new URL(pathname, 'http://localhost')
 
   // Step 1: Resolve configs
   const { requestLocale, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
 
   // Step 2: Extract locale from URL prefix
-  const requestUrl = normalizePathname(pathname)
-  const segments = requestUrl.split('/').filter(Boolean)
+  const requestPath = normalizeRoutingPathname(request.pathname)
+  const explicitLocaleQuery = request.searchParams.get('locale') ?? request.searchParams.get('lang')
+  const requestSearchParams = sanitizeRouteSearchParams(request.searchParams)
+  const requestUrl = buildUrl(requestPath, requestSearchParams)
+  const segments = requestPath.split('/').filter(Boolean)
   const prefixedLocale = Object.entries(localeConfig.locales).find(
     ([, config]) => config.urlPrefix === segments[0],
   )?.[0]
   const currentLocale = prefixedLocale ?? requestLocale ?? localeConfig.defaultLocale
+  const hasDefaultPrefixIntent = !localeConfig.prefixDefaultLocale
+    && prefixedLocale === localeConfig.defaultLocale
+  const hasDefaultQueryIntent = !localeConfig.prefixDefaultLocale
+    && explicitLocaleQuery === localeConfig.defaultLocale
   const localizedRequestUrl = prefixedLocale
     ? normalizePathname(`/${segments.slice(1).join('/')}`)
-    : requestUrl
+    : requestPath
 
   // Step 3: Match route (localized first, then canonical fallback)
   const localizedMatch = findLocalizedRouteMatch(
@@ -470,6 +606,7 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
   const canonicalPath = canonicalMatch?.canonicalPath ?? localizedRequestUrl
   const routePattern = canonicalMatch?.canonicalPattern ?? canonicalPath
   const params = canonicalMatch?.params ?? {}
+  const canonicalSearchParams = canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig)
 
   // Step 4: Build all URL variants
   const currentLocalePath = canonicalMatch
@@ -486,9 +623,17 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
         params, localeConfig,
       )
     : localizedRequestUrl
+  const currentLocaleSearchParams = localizeQueryParams(queryVariants, canonicalSearchParams, localeConfig, currentLocale)
+  const defaultLocaleSearchParams = localizeQueryParams(queryVariants, canonicalSearchParams, localeConfig, localeConfig.defaultLocale)
 
-  const currentLocaleUrl = applyLocalePrefix(currentLocalePath, currentLocale, localeConfig)
-  const defaultLocaleUrl = applyLocalePrefix(defaultLocalePath, localeConfig.defaultLocale, localeConfig)
+  const currentLocaleUrl = buildUrl(
+    applyLocalePrefix(currentLocalePath, currentLocale, localeConfig),
+    currentLocaleSearchParams,
+  )
+  const defaultLocaleUrl = buildUrl(
+    applyLocalePrefix(defaultLocalePath, localeConfig.defaultLocale, localeConfig),
+    defaultLocaleSearchParams,
+  )
 
   // Step 5: Determine redirect
   const variantRedirectPath = localizedMatch
@@ -497,11 +642,27 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
         localizedRequestUrl, currentLocale, localeConfig,
       )
     : undefined
+  const queryRedirect = requestSearchParams.toString() !== currentLocaleSearchParams.toString()
 
-  const redirectTo = variantRedirectPath
-    ? applyLocalePrefix(variantRedirectPath, currentLocale, localeConfig)
-    : prefixedLocale === localeConfig.defaultLocale && !localeConfig.prefixDefaultLocale
-      ? buildSetLocaleRedirect(pageContext, currentLocaleUrl, localeConfig.defaultLocale)
+  const normalizedRedirect = variantRedirectPath || queryRedirect
+    ? buildUrl(
+        applyLocalePrefix(variantRedirectPath ?? currentLocalePath, currentLocale, localeConfig),
+        currentLocaleSearchParams,
+      )
+    : requestUrl !== currentLocaleUrl
+      ? currentLocaleUrl
+      : undefined
+
+  const redirectTo = hasDefaultPrefixIntent
+    ? normalizedRedirect
+      ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
+      : buildSetLocaleRedirect(currentLocaleUrl, localeConfig.defaultLocale)
+    : hasDefaultQueryIntent
+      ? normalizedRedirect
+        ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
+        : undefined
+    : normalizedRedirect
+      ? normalizedRedirect
     : requestUrl !== currentLocaleUrl
       ? currentLocaleUrl
       : undefined
@@ -512,11 +673,18 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
     defaultLocaleUrl,
     currentLocaleUrl,
     redirectTo,
-    canonicalUrl: canonicalPath,
+    canonicalUrl: buildUrl(canonicalPath, canonicalSearchParams),
     i18nUrl: routePattern,
     i18nUrlParams: params,
-    alternateUrls: buildAlternateUrls(i18n.routes, paramVariants, canonicalPath, localeConfig),
+    alternateUrls: buildAlternateUrls(
+      i18n.routes,
+      paramVariants,
+      buildUrl(canonicalPath, canonicalSearchParams),
+      queryVariants,
+      localeConfig,
+    ),
     paramVariants: Object.fromEntries(paramVariants),
+    queryVariants: Object.fromEntries(queryVariants),
   }
 
   return {
