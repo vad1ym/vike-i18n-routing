@@ -7,3 +7,14 @@ i18n: {
   localeCookie: false,
 }
 ```
+
+If cookie writes should stay enabled but cookie-based detection should be skipped, use:
+
+```ts
+i18n: {
+  localeCookie: 'locale',
+  localeDetector: {
+    localeCookie: false,
+  },
+}
+```

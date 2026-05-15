@@ -33,6 +33,13 @@ export type LocaleCookieAction = {
   value: string
 }
 
+export type LocaleDetectorConfig = {
+  acceptLanguageHeader?: boolean
+  localeCookie?: boolean
+  queryParams?: boolean
+  session?: boolean
+}
+
 export type ResolvedDomainConfig = {
   domain?: string
   defaultLocale: LocaleCode
@@ -81,7 +88,7 @@ export type I18nConfig = {
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
-  localeDetector?: (pageContext: I18nPageContext) => string | null | undefined
+  localeDetector?: ((pageContext: I18nPageContext) => string | null | undefined) | LocaleDetectorConfig
   localeCookie?: string | false
 }
 
