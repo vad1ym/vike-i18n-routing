@@ -74,7 +74,7 @@ export type RouteConfig = {
   currentLocaleUrl: string
   redirectTo?: string
   canonicalUrl: string
-  i18nUrl: string
+  i18nUrl?: string
   i18nUrlParams: Record<string, string>
   alternateUrls: AlternateUrl[]
   paramVariants: Record<string, ParamVariantConfig>

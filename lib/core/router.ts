@@ -604,7 +604,7 @@ export function createI18nRouter(
   const canonicalMatch = localizedMatch
     ?? findCanonicalRouteMatch(i18n.routes, paramVariants, localizedRequestUrl, localeConfig)
   const canonicalPath = canonicalMatch?.canonicalPath ?? localizedRequestUrl
-  const routePattern = canonicalMatch?.canonicalPattern ?? canonicalPath
+  const routePattern = canonicalMatch?.canonicalPattern
   const params = canonicalMatch?.params ?? {}
   const canonicalSearchParams = canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig)
 
