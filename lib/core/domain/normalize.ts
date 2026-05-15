@@ -1,6 +1,6 @@
 import { getDomain } from '../pageContext'
 import { normalizeLocales } from '../locale/normalize'
-import type { I18nConfig, I18nPageContext, ResolvedDomainConfig } from '../types'
+import type { DomainConfig, I18nConfig, I18nPageContext, ResolvedDomainConfig } from '../types'
 
 export function detectDomain(pageContext: I18nPageContext, i18n: I18nConfig): string | undefined {
   const custom = i18n.domainDetector?.(pageContext)
@@ -14,7 +14,7 @@ export function resolveDomainConfig(
   pageContext: I18nPageContext,
 ): ResolvedDomainConfig {
   const domain = detectDomain(pageContext, i18n)
-  const domainConfig = domain ? i18n.domains?.[domain] : undefined
+  const domainConfig = domain ? resolveMatchingDomainConfig(domain, i18n.domains) : undefined
   const baseLocales = normalizeLocales(i18n.locales)
   const locales = domainConfig?.locales
     ? normalizeLocales(domainConfig.locales)
@@ -28,4 +28,32 @@ export function resolveDomainConfig(
     prefixDefaultLocale: domainConfig?.prefixDefaultLocale ?? i18n.prefixDefaultLocale !== false,
     meta: domainConfig?.meta,
   }
+}
+
+function resolveMatchingDomainConfig(
+  domain: string,
+  domains: Record<string, DomainConfig> | undefined,
+): DomainConfig | undefined {
+  if (!domains) return undefined
+
+  const exactMatch = domains[domain]
+  if (exactMatch) return exactMatch
+
+  let bestMatch: { config: DomainConfig; specificity: number } | undefined
+
+  for (const [pattern, config] of Object.entries(domains)) {
+    if (!pattern.startsWith('*.')) continue
+
+    const suffix = pattern.slice(2)
+    if (!suffix) continue
+    if (domain === suffix) continue
+    if (!domain.endsWith(`.${suffix}`)) continue
+
+    const specificity = suffix.split('.').length
+    if (!bestMatch || specificity > bestMatch.specificity) {
+      bestMatch = { config, specificity }
+    }
+  }
+
+  return bestMatch?.config
 }
