@@ -6,5 +6,9 @@ export const baseConfig: I18nConfig = {
   routes: {
     '/': { en: '/', ru: '/' },
     '/about': { en: '/about', ru: '/o-nas' },
+    '/specialities/:speciality': {
+      en: '/specialities/:speciality',
+      ru: '/specialnosti/:speciality',
+    },
   },
 }

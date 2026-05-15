@@ -12,7 +12,8 @@
     "vike-i18n-routing": "workspace:*",
     "vike-vue": "^0.9.11",
     "vite": "^8.0.12",
-    "vue": "^3.5.34"
+    "vue": "^3.5.34",
+    "vue-i18n": "^11.4.2"
   },
   "devDependencies": {
     "@types/node": "^25.7.0",
