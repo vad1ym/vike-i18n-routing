@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.1.5
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.4...v0.1.5)
+
+### 💅 Refactors
+
+- Automatic params redirect, simplify usage ([0f548e3](https://github.com/vad1ym/vike-i18n-routing/commit/0f548e3))
+
+### 📖 Documentation
+
+- Add documentation ([04d0a12](https://github.com/vad1ym/vike-i18n-routing/commit/04d0a12))
+
+### 🏡 Chore
+
+- Add gh pages workflow ([c5aae44](https://github.com/vad1ym/vike-i18n-routing/commit/c5aae44))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.4
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.3...v0.1.4)
