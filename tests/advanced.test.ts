@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { redirect } from 'vike/abort'
 import { createSetCookieHeader, resolveCookieAction } from '../lib/core/cookies'
+import { resolveDomainConfig } from '../lib/core/domain/normalize'
 import { createPageContext } from '../lib/core/pageContext'
 import { createI18nRouter } from '../lib/core/router'
 import { useI18nRoute } from '../lib/core/useI18nRoute'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { makePageContext, getRedirectUrl } from './helpers/pageContext'
+import { makePageContext, getRedirectUrl, resolveRenderRedirect } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
 const domainConfig: I18nConfig = {
@@ -45,24 +46,96 @@ const pageContext = createPageContext('https://site.com/about', {
 
 describe('advanced features', () => {
   it('detects locale from cookie and accept-language', () => {
-    try {
-      onBeforeRoute(
+    expect(
+      resolveRenderRedirect(
         makePageContext('/about', domainConfig, {
           headers: { host: 'site.com', cookie: 'locale=ru' },
-        }) as any,
-      )
-    } catch (error) {
-      expect(getRedirectUrl(error)).toBe('/ru/o-nas')
-    }
+        }),
+      ),
+    ).toBe('/ru/o-nas')
 
-    try {
-      onBeforeRoute(
+    expect(
+      resolveRenderRedirect(
         makePageContext('/about', domainConfig, {
           headers: { host: 'site.com', 'accept-language': 'fr-CA,fr;q=0.8,en;q=0.5' },
+        }),
+      ),
+    ).toBe('/en/about')
+  })
+
+  it('can disable query param locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about?locale=ru', {
+          ...domainConfig,
+          localeDetector: { queryParams: false },
+        }, {
+          headers: { host: 'site.com' },
         }) as any,
       )
     } catch (error) {
       expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable cookie locale detection even when localeCookie is configured', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { localeCookie: false },
+        }, {
+          headers: { host: 'site.com', cookie: 'locale=ru' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable session locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { session: false, acceptLanguageHeader: false },
+        }, {
+          headers: { host: 'site.com' },
+          session: { locale: 'ru' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable accept-language locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { acceptLanguageHeader: false },
+        }, {
+          headers: { host: 'site.com', 'accept-language': 'ru;q=1.0,en;q=0.5' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('keeps custom localeDetector function behavior unchanged', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: () => 'ru',
+        }, {
+          headers: { host: 'site.com' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/ru/o-nas')
     }
   })
 
@@ -136,6 +209,127 @@ describe('advanced features', () => {
     ])
   })
 
+  it('localizes query variants and stores canonical query values in routeConfig', () => {
+    const pc = makePageContext('/ru/o-nas?focus=frontend-ru', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/ru/o-nas?focus=frontend-ru', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    })
+
+    expect(i18nRoute.routeConfig.canonicalUrl).toBe('/about?focus=frontend')
+    expect(i18nRoute.routeConfig.currentLocaleUrl).toBe('/ru/o-nas?focus=frontend-ru')
+    expect(i18nRoute.routeConfig.defaultLocaleUrl).toBe('/en/about?focus=frontend')
+    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+      { locale: 'en', url: '/en/about?focus=frontend' },
+      { locale: 'ru', url: '/ru/o-nas?focus=frontend-ru' },
+    ])
+    expect(i18nRoute.routeConfig.queryVariants).toEqual({
+      focus: {
+        variants: {
+          en: 'frontend',
+          ru: 'frontend-ru',
+        },
+      },
+    })
+  })
+
+  it('redirects foreign query variants to the current locale variant', () => {
+    const pc = makePageContext('/en/about?focus=frontend-ru', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/about?focus=frontend-ru', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    })
+
+    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about?focus=frontend')
+  })
+
+  it('preserves explicit default locale intent when query variant redirect removes the default prefix', () => {
+    const config: I18nConfig = {
+      ...domainConfig,
+      prefixDefaultLocale: false,
+    }
+    const pc = makePageContext('/en/o-nas?focus=frontend-ru', config, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/o-nas?focus=frontend-ru', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    })
+
+    expect(i18nRoute.routeConfig.redirectTo).toBe('/about?focus=frontend&locale=en')
+  })
+
+  it('preserves locale query intent across query-value normalization redirects', () => {
+    const config: I18nConfig = {
+      ...domainConfig,
+      prefixDefaultLocale: false,
+    }
+    const pc = makePageContext('/specialities?focus=frontend-ru&locale=en', config, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/specialities?focus=frontend-ru&locale=en', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    })
+
+    expect(i18nRoute.routeConfig.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+  })
+
+  it('normalizes internal pageContext.json requests back to page URLs', () => {
+    const config: I18nConfig = {
+      ...domainConfig,
+      prefixDefaultLocale: false,
+      routes: {
+        ...domainConfig.routes,
+        '/specialities': { en: '/specialities', ru: '/specialnosti' },
+      },
+    }
+    const pc = makePageContext('/specialities/index.pageContext.json?focus=frontend-ru&locale=en', config, {
+      headers: { host: 'site.com' },
+    })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/specialities/index.pageContext.json?focus=frontend-ru&locale=en', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+      ru: 'frontend-ru',
+    })
+
+    expect(i18nRoute.routeConfig.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+  })
+
+  it('keeps the canonical query value when target locale has no registered variant', () => {
+    const pc = makePageContext('/en/about?focus=frontend', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/about?focus=frontend', pc),
+    } as any)
+
+    i18nRoute.setRouteQueryVariants('focus', {
+      en: 'frontend',
+    })
+
+    expect(i18nRoute.localizePath('/about?focus=frontend', 'ru')).toBe('/ru/o-nas?focus=frontend')
+  })
+
   it('builds alternates from the shared resolver', () => {
     expect(createI18nRouter('/about', pageContext).routeConfig.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
@@ -143,9 +337,103 @@ describe('advanced features', () => {
     ])
   })
 
-it('serializes locale cookies via the renamed cookie helper', () => {
+  it('serializes locale cookies via the renamed cookie helper', () => {
     const action = resolveCookieAction('ru', domainConfig)
     expect(action?.name).toBe('locale')
     expect(createSetCookieHeader(action!)).toBe('locale=ru; Path=/; SameSite=Lax; HttpOnly')
+  })
+
+  it('matches wildcard domains when no exact domain config exists', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant1.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant1.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant1.site.com',
+      defaultLocale: 'en',
+      locales: { en: { urlPrefix: 'en' } },
+      prefixDefaultLocale: false,
+    })
+  })
+
+  it('prefers exact domain config over wildcard', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+        'tenant1.site.com': {
+          defaultLocale: 'ru',
+          locales: ['ru', 'en'],
+          prefixDefaultLocale: true,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant1.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant1.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant1.site.com',
+      defaultLocale: 'ru',
+      prefixDefaultLocale: true,
+    })
+    expect(Object.keys(resolved.locales)).toEqual(['ru', 'en'])
+  })
+
+  it('prefers the most specific wildcard domain config', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+        '*.fr.site.com': {
+          defaultLocale: 'fr',
+          locales: ['fr', 'en'],
+          prefixDefaultLocale: true,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant.fr.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant.fr.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant.fr.site.com',
+      defaultLocale: 'fr',
+      prefixDefaultLocale: true,
+    })
+    expect(Object.keys(resolved.locales)).toEqual(['fr', 'en'])
   })
 })

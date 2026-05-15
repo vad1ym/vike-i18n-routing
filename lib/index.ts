@@ -11,6 +11,7 @@ export type {
   PageContextLocaleConfig,
   RouteConfig,
   RouteParamVariants,
+  RouteQueryVariants,
 } from './core/types'
 
 export { useI18nRoute } from './core/useI18nRoute'

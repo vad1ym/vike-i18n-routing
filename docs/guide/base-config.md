@@ -11,7 +11,14 @@ type I18nConfig = {
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext) => string | null | undefined
-  localeDetector?: (pageContext) => string | null | undefined
+  localeDetector?:
+    | ((pageContext) => string | null | undefined)
+    | {
+        acceptLanguageHeader?: boolean
+        localeCookie?: boolean
+        queryParams?: boolean
+        session?: boolean
+      }
   localeCookie?: string | false
 }
 ```
@@ -105,5 +112,22 @@ i18n: {
   },
 }
 ```
+
+Built-in locale detection sources can also be toggled without replacing the detector:
+
+```ts
+// +config
+i18n: {
+  localeCookie: 'locale',
+  localeDetector: {
+    acceptLanguageHeader: false,
+    localeCookie: false,
+    queryParams: false,
+    session: true,
+  },
+}
+```
+
+When `localeDetector` is a function, behavior stays the same as before.
 
 Next: [Getting Current Locale](/guide/current-locale)

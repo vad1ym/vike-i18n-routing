@@ -33,6 +33,13 @@ export type LocaleCookieAction = {
   value: string
 }
 
+export type LocaleDetectorConfig = {
+  acceptLanguageHeader?: boolean
+  localeCookie?: boolean
+  queryParams?: boolean
+  session?: boolean
+}
+
 export type ResolvedDomainConfig = {
   domain?: string
   defaultLocale: LocaleCode
@@ -71,6 +78,7 @@ export type RouteConfig = {
   i18nUrlParams: Record<string, string>
   alternateUrls: AlternateUrl[]
   paramVariants: Record<string, ParamVariantConfig>
+  queryVariants: Record<string, QueryVariantConfig>
 }
 
 export type I18nConfig = {
@@ -80,14 +88,19 @@ export type I18nConfig = {
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
-  localeDetector?: (pageContext: I18nPageContext) => string | null | undefined
+  localeDetector?: ((pageContext: I18nPageContext) => string | null | undefined) | LocaleDetectorConfig
   localeCookie?: string | false
 }
 
 export type RouteParamVariants = Record<LocaleCode, string>
+export type RouteQueryVariants = Record<LocaleCode, string>
 
 export type ParamVariantConfig = {
   variants: RouteParamVariants
+}
+
+export type QueryVariantConfig = {
+  variants: RouteQueryVariants
 }
 
 export type LocalizedPathOptions = {

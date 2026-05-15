@@ -15,9 +15,11 @@ export function useI18nRoute(pageContext: MaybeRefOrGetter<PageContextWithI18nRo
 
   const setRouteParamVariants = (...args: Parameters<typeof result.value.setRouteParamVariants>) =>
     result.value.setRouteParamVariants(...args)
+  const setRouteQueryVariants = (...args: Parameters<typeof result.value.setRouteQueryVariants>) =>
+    result.value.setRouteQueryVariants(...args)
 
   const localizePath = (...args: Parameters<typeof result.value.localizePath>) =>
     result.value.localizePath(...args)
 
-  return { locale, localeConfig, domainConfig, routeConfig, setRouteParamVariants, localizePath }
+  return { locale, localeConfig, domainConfig, routeConfig, setRouteParamVariants, setRouteQueryVariants, localizePath }
 }

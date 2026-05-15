@@ -15,6 +15,7 @@ const {
   domainConfig,
   routeConfig,
   setRouteParamVariants,
+  setRouteQueryVariants,
   localizePath,
 } = useI18nRoute(pageContext)
 ```
@@ -40,9 +41,10 @@ In the Vue version:
 - `domainConfig` is a computed ref
 - `routeConfig` is a computed ref
 
-`setRouteParamVariants()` and `localizePath()` keep the same API shape.
+`setRouteParamVariants()`, `setRouteQueryVariants()`, and `localizePath()` keep the same API shape.
 
 When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
+When `setRouteQueryVariants()` is used during data loading, translated query values are normalized automatically too.
 
 ## Difference between native and `/vue`
 
@@ -68,6 +70,7 @@ type UseI18nRouteResult = {
   domainConfig
   routeConfig
   setRouteParamVariants(paramName, variants)
+  setRouteQueryVariants(paramName, variants)
   localizePath(routeKey, locale?, options?)
 }
 ```
