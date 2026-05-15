@@ -18,10 +18,6 @@ watchEffect(() => {
 function switchLocale(l) {
   return localizePath(currentPath.value, l, { prefixDefaultLocale: true })
 }
-
-function localize(path) {
-  return localizePath(path)
-}
 </script>
 
 <template>
@@ -32,9 +28,9 @@ function localize(path) {
       </div>
 
       <nav class="nav">
-        <a :href="localize('/')">{{ t('layout.home') }}</a>
-        <a :href="localize('/about')">{{ t('layout.about') }}</a>
-        <a :href="localize('/specialities')">{{ t('layout.specialities') }}</a>
+        <a :href="localizePath('/')">{{ t('layout.home') }}</a>
+        <a :href="localizePath('/about')">{{ t('layout.about') }}</a>
+        <a :href="localizePath('/specialities')">{{ t('layout.specialities') }}</a>
       </nav>
 
       <nav class="locale-switcher" :aria-label="t('layout.switchLocale')">
