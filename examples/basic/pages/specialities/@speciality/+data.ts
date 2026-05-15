@@ -21,5 +21,6 @@ function data(pageContext: PageContext) {
     speciality: speciality.slug,
     title: speciality.title[locale as 'en' | 'ru'],
     description: speciality.description[locale as 'en' | 'ru'],
+    variants: speciality.variants,
   }
 }

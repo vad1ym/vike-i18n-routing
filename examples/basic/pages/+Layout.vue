@@ -19,7 +19,7 @@ function switchLocale(locale) {
 }
 
 function localize(path) {
-  return pageContext.i18nRoute.localizePath(path, currentLocale.value)
+  return pageContext.i18nRoute.localizePath(path)
 }
 </script>
 

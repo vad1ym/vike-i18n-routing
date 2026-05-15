@@ -11,5 +11,4 @@ export type {
   PageContextLocaleConfig,
   RouteConfig,
   RouteParamVariants,
-  SetRouteParamVariantsOptions,
 } from './core/types'

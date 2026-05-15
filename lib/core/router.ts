@@ -316,7 +316,7 @@ function getVariantRedirectPath(
   const hasForeignVariant = Object.entries(rawParams).some(([name, value]) => {
     if (!value) return false
     const config = paramVariants.get(name)
-    if (!config?.redirect) return false
+    if (!config) return false
 
     const localizedValue = localizeParamValue(
       paramVariants,
@@ -530,15 +530,17 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
     routeConfig,
     // Allows registering locale-specific slug variants at runtime (e.g. from a CMS).
     // Re-resolves the entire route to update routeConfig with new variant values.
-    setRouteParamVariants(paramName, variants, options) {
-      paramVariants.set(paramName, { variants, redirect: options?.redirect ?? false })
+    setRouteParamVariants(paramName, variants) {
+      paramVariants.set(paramName, { variants })
       const next = createI18nRouter(pathname, pageContext, paramVariants)
       this.localeConfig.currentLocale = next.localeConfig.currentLocale
       this.routeConfig = next.routeConfig
     },
-    localizePath(routeKey, locale, options) {
+    localizePath(routeKey: string, localeOrOptions?: LocaleCode | LocalizedPathOptions, options?: LocalizedPathOptions) {
       const { localeConfig } = resolveConfigs(pageContext, i18n)
-      const targetLocale = locale ?? this.localeConfig.currentLocale
+      const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
+      const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
+      const targetLocale = resolvedLocale ?? this.localeConfig.currentLocale
       const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants).routeConfig.vikeUrl
 
       return localizeCanonicalPath(
@@ -547,7 +549,7 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
         canonicalPath,
         targetLocale,
         localeConfig,
-        options,
+        resolvedOptions,
       )
     },
   }

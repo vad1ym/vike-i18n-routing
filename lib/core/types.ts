@@ -86,7 +86,6 @@ export type I18nConfig = {
 export type RouteParamVariants = Record<LocaleCode, string>
 
 export type ParamVariantConfig = {
-  redirect: boolean
   variants: RouteParamVariants
 }
 
@@ -96,22 +95,14 @@ export type LocalizedPathOptions = {
   prefixLocale?: boolean
 }
 
-export type SetRouteParamVariantsOptions = {
-  redirect?: boolean
-}
 
 export type I18nRoute = {
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig
   routeConfig: RouteConfig
-  setRouteParamVariants: (
-    paramName: string,
-    variants: RouteParamVariants,
-    options?: SetRouteParamVariantsOptions,
-  ) => void
-  localizePath: (
-    routeKey: string,
-    locale?: LocaleCode,
-    options?: LocalizedPathOptions,
-  ) => string
+  setRouteParamVariants: (paramName: string, variants: RouteParamVariants) => void
+  localizePath: {
+    (routeKey: string, locale?: LocaleCode, options?: LocalizedPathOptions): string
+    (routeKey: string, options?: LocalizedPathOptions): string
+  }
 }

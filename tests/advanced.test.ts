@@ -89,7 +89,7 @@ describe('advanced features', () => {
       headers: { host: 'site.com' },
     }) as any
     createI18nRouter('/ru/uslugi/veb-razrabotka', ruPageContext)
-      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
+      .setRouteParamVariants('category', routeParamVariants)
 
     const ruResult = onBeforeRoute(ruPageContext)
     expect(ruResult.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/services/web-development')
@@ -98,7 +98,7 @@ describe('advanced features', () => {
       headers: { host: 'site.com' },
     }) as any
     createI18nRouter('/en/services/veb-razrabotka', invalidEnPageContext)
-      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
+      .setRouteParamVariants('category', routeParamVariants)
 
     try {
       onBeforeRoute(invalidEnPageContext)
@@ -112,7 +112,7 @@ describe('advanced features', () => {
       domain: 'site.fr',
     })
     createI18nRouter('/services-fr/developpement-web', frPageContext)
-      .setRouteParamVariants('category', routeParamVariants, { redirect: true })
+      .setRouteParamVariants('category', routeParamVariants)
 
     expect(
       toLocalizedUrl('/services/web-development', 'fr', frPageContext),
@@ -134,7 +134,6 @@ describe('advanced features', () => {
         ru: 'veb-razrabotka',
         fr: 'developpement-web',
       },
-      { redirect: true },
     )
 
     expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
