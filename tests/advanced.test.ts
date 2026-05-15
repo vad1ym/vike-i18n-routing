@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { redirect } from 'vike/abort'
 import { createSetCookieHeader, resolveCookieAction } from '../lib/core/cookies'
+import { resolveDomainConfig } from '../lib/core/domain/normalize'
 import { createPageContext } from '../lib/core/pageContext'
 import { createI18nRouter } from '../lib/core/router'
 import { useI18nRoute } from '../lib/core/useI18nRoute'
@@ -147,5 +148,99 @@ it('serializes locale cookies via the renamed cookie helper', () => {
     const action = resolveCookieAction('ru', domainConfig)
     expect(action?.name).toBe('locale')
     expect(createSetCookieHeader(action!)).toBe('locale=ru; Path=/; SameSite=Lax; HttpOnly')
+  })
+
+  it('matches wildcard domains when no exact domain config exists', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant1.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant1.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant1.site.com',
+      defaultLocale: 'en',
+      locales: { en: { urlPrefix: 'en' } },
+      prefixDefaultLocale: false,
+    })
+  })
+
+  it('prefers exact domain config over wildcard', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+        'tenant1.site.com': {
+          defaultLocale: 'ru',
+          locales: ['ru', 'en'],
+          prefixDefaultLocale: true,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant1.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant1.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant1.site.com',
+      defaultLocale: 'ru',
+      prefixDefaultLocale: true,
+    })
+    expect(Object.keys(resolved.locales)).toEqual(['ru', 'en'])
+  })
+
+  it('prefers the most specific wildcard domain config', () => {
+    const wildcardConfig: I18nConfig = {
+      ...domainConfig,
+      domains: {
+        '*.site.com': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          prefixDefaultLocale: false,
+        },
+        '*.fr.site.com': {
+          defaultLocale: 'fr',
+          locales: ['fr', 'en'],
+          prefixDefaultLocale: true,
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      wildcardConfig,
+      createPageContext('https://tenant.fr.site.com/about', {
+        config: { i18n: wildcardConfig },
+        headers: { host: 'tenant.fr.site.com' },
+      }),
+    )
+
+    expect(resolved).toMatchObject({
+      domain: 'tenant.fr.site.com',
+      defaultLocale: 'fr',
+      prefixDefaultLocale: true,
+    })
+    expect(Object.keys(resolved.locales)).toEqual(['fr', 'en'])
   })
 })
