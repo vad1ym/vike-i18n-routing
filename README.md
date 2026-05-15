@@ -32,7 +32,7 @@ It resolves localized requests back to canonical routes, normalizes invalid loca
 
 - Canonical route mapping with localized public URLs
 - Locale prefixes with optional unprefixed default locale
-- Dynamic route patterns via `path-to-regexp`
+- Dynamic route patterns with `@param` syntax (alias for `path-to-regexp` `:param`)
 - Translated route params with automatic URL normalization
 - Locale detection from URL, query, cookies, session, and `Accept-Language`
 - Per-domain locale configuration
@@ -106,9 +106,9 @@ Route patterns and translated param values are configured separately.
 ```ts
 // +config
 routes: {
-  '/services/:item': {
-    en: '/services/:item',
-    ru: '/uslugi/:item',
+  '/services/@item': {
+    en: '/services/@item',
+    ru: '/uslugi/@item',
   },
 }
 ```

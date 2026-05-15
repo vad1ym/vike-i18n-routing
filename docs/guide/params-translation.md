@@ -2,15 +2,31 @@
 
 Localized route patterns and translated param values are separate concerns.
 
+## Route param syntax
+
+Use `@paramName` to declare dynamic segments:
+
+```ts
+'/services/@category/@slug'
+```
+
+This is the preferred syntax. `@` is an alias for `:` — under the hood the pattern is passed to [path-to-regexp](https://github.com/pillarjs/path-to-regexp), so all its syntax works too:
+
+```ts
+'/services/:category/:slug'    // same as above
+'/services/@category{/@tab}'   // optional segment
+'/files/@path*'                // zero or more segments
+```
+
 ## Localized route pattern
 
 ```ts
 // +config
 routes: {
-  '/services/:category{/:tab}': {
-    en: '/services/:category{/:tab}',
-    ru: '/uslugi/:category{/:tab}',
-    fr: '/services-fr/:category{/:tab}',
+  '/services/@category{/@tab}': {
+    en: '/services/@category{/@tab}',
+    ru: '/uslugi/@category{/@tab}',
+    fr: '/services-fr/@category{/@tab}',
   },
 }
 ```

@@ -16,9 +16,14 @@ export function normalizePathname(pathname: string): string {
   return normalized.length > 1 ? normalized.replace(/\/+$/, '') : normalized
 }
 
+// Converts vike-style @param syntax to path-to-regexp :param syntax.
+export function normalizeRoutePattern(pattern: string): string {
+  return pattern.replaceAll('@', ':')
+}
+
 // Compiles and caches a route pattern for fast repeated match/build operations.
 function getCompiledRoutePattern(pattern: string): CompiledRoutePattern {
-  const normalizedPattern = normalizePathname(pattern)
+  const normalizedPattern = normalizePathname(normalizeRoutePattern(pattern))
   const cached = routePatternCache.get(normalizedPattern)
   if (cached) return cached
 
