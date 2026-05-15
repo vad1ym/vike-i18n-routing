@@ -89,6 +89,8 @@ With this config:
 
 ## Runtime Example
 
+Vue:
+
 ```ts
 import { useI18nRoute } from 'vike-i18n-routing/vue'
 import { usePageContext } from 'vike-vue/usePageContext'
@@ -98,6 +100,32 @@ const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
 
 localizePath('/about')
 localizePath(routeConfig.value.canonicalUrl, 'ru')
+```
+
+React:
+
+```ts
+import { useI18nRoute } from 'vike-i18n-routing/react'
+import { usePageContext } from 'vike-react/usePageContext'
+
+const pageContext = usePageContext()
+const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
+
+localizePath('/about')
+localizePath(routeConfig.canonicalUrl, 'ru')
+```
+
+Solid:
+
+```ts
+import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { usePageContext } from 'vike-solid/usePageContext'
+
+const pageContext = usePageContext()
+const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
+
+localizePath('/about')
+localizePath(routeConfig().canonicalUrl, 'ru')
 ```
 
 ## Params And Query Translation

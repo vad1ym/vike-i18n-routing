@@ -1,6 +1,6 @@
 # Usage On Client
 
-This package handles routing only. Text translation can be handled by `vue-i18n` or another i18n library.
+This package handles routing only. Text translation can be handled by `vue-i18n`, `react-intl`, a small Solid helper, or another i18n library.
 
 ## Vue + `vue-i18n`
 
@@ -52,6 +52,54 @@ export function onCreateApp(pageContext: Vike.PageContext) {
   i18n.global.locale.value = pageContext.locale ?? 'en'
   pageContext.app.use(i18n)
 }
+```
+
+## React + `react-intl`
+
+The React example uses `react-intl` and wraps the layout with an `IntlProvider`.
+
+```tsx
+import type { ReactNode } from 'react'
+import { IntlProvider } from 'react-intl'
+import { usePageContext } from 'vike-react/usePageContext'
+import { messages } from '../messages'
+
+export { Layout }
+
+function Layout({ children }: { children: ReactNode }) {
+  const pageContext = usePageContext()
+  const locale = (pageContext.locale ?? 'en') as keyof typeof messages
+
+  return (
+    <IntlProvider locale={locale} messages={messages[locale]} defaultLocale="en">
+      {children}
+    </IntlProvider>
+  )
+}
+```
+
+Use the React wrapper inside components:
+
+```tsx
+import { usePageContext } from 'vike-react/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/react'
+
+const pageContext = usePageContext()
+const { locale, localizePath } = useI18nRoute(pageContext)
+```
+
+## Solid + simple translator
+
+The Solid example keeps text translation intentionally small and SSR-safe.
+
+```tsx
+import { usePageContext } from 'vike-solid/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { createTranslator } from '../i18n'
+
+const pageContext = usePageContext()
+const { locale, localizePath } = useI18nRoute(pageContext)
+const t = createTranslator(locale)
 ```
 
 Next: [I18n Routes](/guide/i18n-routes)
