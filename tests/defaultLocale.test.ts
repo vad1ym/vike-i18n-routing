@@ -37,6 +37,6 @@ describe('defaultLocale', () => {
     const ctx = makePageContext('/en/about', baseConfig)
     const result = onBeforeRoute(ctx as any)
     expect(result.pageContext.locale).toBe('en')
-    expect(result.pageContext.i18nRoute!.routeConfig.vikeUrl).toBe('/about')
+    expect(result.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe('/about')
   })
 })

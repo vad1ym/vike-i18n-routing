@@ -2,24 +2,25 @@
 import { computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageContext } from 'vike-vue/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/vue'
 
-const pageContext = usePageContext()
 const { t, locale } = useI18n({ useScope: 'global' })
+const pageContext = usePageContext()
+const { locale: currentLocale, localeConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
 
-const currentLocale = computed(() => pageContext.locale ?? 'en')
-const currentPath = computed(() => pageContext.i18nRoute.routeConfig.vikeUrl)
-const locales = computed(() => Object.keys(pageContext.i18nRoute.localeConfig.locales))
+const currentPath = computed(() => routeConfig.value.canonicalUrl)
+const locales = computed(() => Object.keys(localeConfig.value.locales))
 
 watchEffect(() => {
   locale.value = currentLocale.value
 })
 
-function switchLocale(locale) {
-  return pageContext.i18nRoute.localizePath(currentPath.value, locale, { prefixDefaultLocale: true })
+function switchLocale(l) {
+  return localizePath(currentPath.value, l, { prefixDefaultLocale: true })
 }
 
 function localize(path) {
-  return pageContext.i18nRoute.localizePath(path, currentLocale.value)
+  return localizePath(path)
 }
 </script>
 
@@ -53,7 +54,7 @@ function localize(path) {
     </main>
 
     <footer>
-      <pre>{{ pageContext.i18nRoute }}</pre>
+      <pre>{{ routeConfig }}</pre>
     </footer>
   </div>
 </template>

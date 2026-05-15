@@ -17,9 +17,9 @@ export default {
       '/': { ru: '/', en: '/' },
       '/about': { ru: '/o-nas', en: '/about' },
       '/specialities': { ru: '/specialnosti', en: '/specialities' },
-      '/specialities/:speciality': {
-        ru: '/specialnosti/:speciality',
-        en: '/specialities/:speciality',
+      '/specialities/:speciality{/:id}': {
+        ru: '/specialnosti/:speciality{/:id}',
+        en: '/specialities/:speciality{/:id}',
       },
     },
   } satisfies I18nConfig,
