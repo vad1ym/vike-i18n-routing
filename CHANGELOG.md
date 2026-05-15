@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.9
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.8...v0.1.9)
+
+### 🚀 Enhancements
+
+- Add static paths helper , closes #6 ([#15](https://github.com/vad1ym/vike-i18n-routing/pull/15), [#6](https://github.com/vad1ym/vike-i18n-routing/issues/6))
+
+### 📖 Documentation
+
+- Correct documentation ([5c16d9e](https://github.com/vad1ym/vike-i18n-routing/commit/5c16d9e))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.8
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.7...v0.1.8)
