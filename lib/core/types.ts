@@ -85,6 +85,11 @@ export type I18nConfig = {
 
 export type RouteParamVariants = Record<LocaleCode, string>
 
+export type ParamVariantConfig = {
+  redirect: boolean
+  variants: RouteParamVariants
+}
+
 export type LocalizedPathOptions = {
   prefixDefaultLocale?: boolean
   noPrefixLocale?: boolean

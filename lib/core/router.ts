@@ -11,16 +11,9 @@ import type {
   LocaleCode,
   LocalizedPathOptions,
   PageContextLocaleConfig,
+  ParamVariantConfig,
   RouteConfig,
-  RouteParamVariants,
 } from './types'
-
-// Stores redirect flag alongside locale-specific slug values for a single param.
-// Example: { redirect: true, variants: { en: 'about-us', ru: 'o-nas' } }
-type ParamVariantConfig = {
-  redirect: boolean
-  variants: RouteParamVariants
-}
 
 // Result of matching a URL against a route. Carries everything needed
 // to build canonical and localized URLs for the matched route.
@@ -34,14 +27,6 @@ type RouteMatch = {
 
 type ParamVariants = Map<string, ParamVariantConfig>
 
-// Param variants are stored on pageContext via a Symbol to avoid property collisions.
-// They persist across multiple resolve() calls within the same request.
-const paramVariantsKey = Symbol('vike-i18n-routing.param-variants')
-
-function getParamVariants(pageContext: I18nPageContext): ParamVariants {
-  const ctx = pageContext as I18nPageContext & { [paramVariantsKey]?: ParamVariants }
-  return (ctx[paramVariantsKey] ??= new Map())
-}
 
 // ────────────────────────────────────────────────────────────────
 // Param variant helpers
@@ -464,9 +449,8 @@ function buildSetLocaleRedirect(
 //    Returns I18nRoute with redirect information embedded in routeConfig.
 // ────────────────────────────────────────────────────────────────
 
-export function createI18nRouter(pathname: string, pageContext: I18nPageContext): I18nRoute {
+export function createI18nRouter(pathname: string, pageContext: I18nPageContext, paramVariants: ParamVariants = new Map()): I18nRoute {
   const i18n = getI18nConfig(pageContext)
-  const paramVariants = getParamVariants(pageContext)
 
   // Step 1: Resolve configs
   const { requestLocale, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
@@ -548,14 +532,15 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext)
     // Re-resolves the entire route to update routeConfig with new variant values.
     setRouteParamVariants(paramName, variants, options) {
       paramVariants.set(paramName, { variants, redirect: options?.redirect ?? false })
-      const next = createI18nRouter(pathname, pageContext)
+      const next = createI18nRouter(pathname, pageContext, paramVariants)
       this.localeConfig.currentLocale = next.localeConfig.currentLocale
       this.routeConfig = next.routeConfig
     },
     localizePath(routeKey, locale, options) {
       const { localeConfig } = resolveConfigs(pageContext, i18n)
       const targetLocale = locale ?? this.localeConfig.currentLocale
-      const canonicalPath = createI18nRouter(routeKey, pageContext).routeConfig.vikeUrl
+      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants).routeConfig.vikeUrl
+
       return localizeCanonicalPath(
         i18n.routes,
         paramVariants,
