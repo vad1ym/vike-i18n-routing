@@ -4,6 +4,12 @@
 
 **I18n routing for Vike with localized URLs, canonical route mapping, translated params, and domain-aware locale config**
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./.github/assets/banner.png">
+  <img src="./.github/assets/banner.png" alt="vike-i18n-routing banner" width="100%" />
+</picture>
+
 [![NPM Version](https://img.shields.io/npm/v/vike-i18n-routing?style=flat&colorA=18181B&colorB=C96B36)](https://www.npmjs.com/package/vike-i18n-routing)
 [![NPM Downloads](https://img.shields.io/npm/dm/vike-i18n-routing?style=flat&colorA=18181B&colorB=C96B36)](https://www.npmjs.com/package/vike-i18n-routing)
 [![License](https://img.shields.io/npm/l/vike-i18n-routing?style=flat&colorA=18181B&colorB=C96B36)](./LICENSE)

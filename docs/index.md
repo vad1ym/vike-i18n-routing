@@ -5,6 +5,9 @@ hero:
   name: vike-i18n-routing
   text: I18n routing for Vike
   tagline: Localized paths, locale prefixes, domains, and translated route params.
+  image:
+    src: /hero-banner.png
+    alt: vike-i18n-routing hero banner
   actions:
     - theme: brand
       text: Quick Start
