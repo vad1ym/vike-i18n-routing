@@ -1,5 +1,5 @@
 {
-  "name": "example-basic",
+  "name": "example-react",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -7,16 +7,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-vue": "^6.0.6",
+    "@vitejs/plugin-react": "^5.0.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-intl": "^7.1.14",
     "vike": "^0.4.259",
     "vike-i18n-routing": "workspace:*",
-    "vike-vue": "^0.9.11",
-    "vite": "^8.0.12",
-    "vue": "^3.5.34",
-    "vue-i18n": "^11.4.2"
+    "vike-react": "^0.6.4",
+    "vite": "^8.0.12"
   },
   "devDependencies": {
     "@types/node": "^25.7.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "typescript": "^6.0.3"
   }
 }
