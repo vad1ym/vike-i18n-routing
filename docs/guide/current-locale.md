@@ -32,6 +32,18 @@ const { locale } = useI18nRoute(pageContext)
 
 In the Vue export, `locale` is a computed ref. In the root export, `locale` is a plain string getter.
 
+React version:
+
+```ts
+import { usePageContext } from 'vike-react/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/react'
+
+const pageContext = usePageContext()
+const { locale } = useI18nRoute(pageContext)
+```
+
+In the React export, `locale` is a plain value.
+
 ## `localeDetector`
 
 Use `localeDetector` when locale should be derived from your own app state before fallback detection runs, or when you need to disable specific built-in detection sources.

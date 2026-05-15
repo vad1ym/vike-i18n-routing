@@ -1,5 +1,6 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18nRoute as coreUseI18nRoute } from '../core/useI18nRoute'
+import type { UseI18nRouteResult } from '../core/useI18nRoute'
 import type { I18nRoute } from '../core/types'
 import type { I18nPageContext } from '../core/types'
 
@@ -13,13 +14,13 @@ export function useI18nRoute(pageContext: MaybeRefOrGetter<PageContextWithI18nRo
   const domainConfig = computed(() => result.value.domainConfig)
   const routeConfig = computed(() => result.value.routeConfig)
 
-  const setRouteParamVariants = (...args: Parameters<typeof result.value.setRouteParamVariants>) =>
-    result.value.setRouteParamVariants(...args)
-  const setRouteQueryVariants = (...args: Parameters<typeof result.value.setRouteQueryVariants>) =>
-    result.value.setRouteQueryVariants(...args)
+  const setRouteParamVariants: UseI18nRouteResult['setRouteParamVariants'] = (paramName, variants) =>
+    result.value.setRouteParamVariants(paramName, variants)
+  const setRouteQueryVariants: UseI18nRouteResult['setRouteQueryVariants'] = (paramName, variants) =>
+    result.value.setRouteQueryVariants(paramName, variants)
 
-  const localizePath = (...args: Parameters<typeof result.value.localizePath>) =>
-    result.value.localizePath(...args)
+  const localizePath = ((routeKey: string, localeOrOptions?: string | Record<string, unknown>, options?: Record<string, unknown>) =>
+    result.value.localizePath(routeKey, localeOrOptions as any, options as any)) as UseI18nRouteResult['localizePath']
 
   return { locale, localeConfig, domainConfig, routeConfig, setRouteParamVariants, setRouteQueryVariants, localizePath }
 }

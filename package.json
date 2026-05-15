@@ -8,6 +8,7 @@
     "vike",
     "i18n",
     "routing",
+    "react",
     "vue",
     "vite"
   ],
@@ -17,6 +18,7 @@
   },
   "exports": {
     ".": "./lib/index.ts",
+    "./react": "./lib/react/useI18nRoute.ts",
     "./vue": "./lib/vue/useI18nRoute.ts",
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
@@ -37,13 +39,19 @@
     "changelog": "changelogen",
     "changelog:dry": "changelogen --no-output",
     "release": "changelogen --release",
-    "example": "pnpm --filter example-basic dev",
-    "example:build": "pnpm --filter example-basic build",
+    "example": "pnpm --filter example-vue dev",
+    "example:build": "pnpm --filter example-vue build",
+    "example:react": "pnpm --filter example-react dev",
+    "example:react:build": "pnpm --filter example-react build",
     "example:static": "pnpm --filter example-static dev",
     "example:static:build": "pnpm --filter example-static build"
   },
   "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "changelogen": "^0.6.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "^6.0.3",
     "vike": "^0.4.259",
     "vite": "^8.0.12",
