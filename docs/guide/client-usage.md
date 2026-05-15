@@ -1,6 +1,6 @@
 # Usage On Client
 
-This package handles routing only. Text translation can be handled by `vue-i18n`, `react-intl`, or another i18n library.
+This package handles routing only. Text translation can be handled by `vue-i18n`, `react-intl`, a small Solid helper, or another i18n library.
 
 ## Vue + `vue-i18n`
 
@@ -86,6 +86,20 @@ import { useI18nRoute } from 'vike-i18n-routing/react'
 
 const pageContext = usePageContext()
 const { locale, localizePath } = useI18nRoute(pageContext)
+```
+
+## Solid + simple translator
+
+The Solid example keeps text translation intentionally small and SSR-safe.
+
+```tsx
+import { usePageContext } from 'vike-solid/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { createTranslator } from '../i18n'
+
+const pageContext = usePageContext()
+const { locale, localizePath } = useI18nRoute(pageContext)
+const t = createTranslator(locale)
 ```
 
 Next: [I18n Routes](/guide/i18n-routes)

@@ -44,6 +44,18 @@ const { locale } = useI18nRoute(pageContext)
 
 In the React export, `locale` is a plain value.
 
+Solid version:
+
+```ts
+import { usePageContext } from 'vike-solid/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/solid'
+
+const pageContext = usePageContext()
+const { locale } = useI18nRoute(pageContext)
+```
+
+In the Solid export, `locale` is a memo accessor, so read it with `locale()`.
+
 ## `localeDetector`
 
 Use `localeDetector` when locale should be derived from your own app state before fallback detection runs, or when you need to disable specific built-in detection sources.
