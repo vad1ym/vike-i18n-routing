@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/vike-i18n-routing/',
   lang: 'en-US',
   title: 'vike-i18n-routing',
   description: 'Documentation for i18n routing in Vike',
