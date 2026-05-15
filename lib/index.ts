@@ -14,5 +14,6 @@ export type {
   RouteQueryVariants,
 } from './core/types'
 
+export { generateStaticPaths } from './core/generateStaticPaths'
 export { useI18nRoute } from './core/useI18nRoute'
 export type { UseI18nRouteResult } from './core/useI18nRoute'

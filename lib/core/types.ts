@@ -107,7 +107,6 @@ export type LocalizedPathOptions = {
   prefix?: boolean
 }
 
-
 export type I18nRoute = {
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig
