@@ -6,10 +6,6 @@ import { createI18nRouter } from '../core/router'
 export function onBeforeRoute(pageContext: PageContextServer) {
   const i18nRoute = createI18nRouter(pageContext.urlPathname, pageContext as any)
 
-  if (i18nRoute.routeConfig.redirectTo) {
-    throw redirect(i18nRoute.routeConfig.redirectTo)
-  }
-
   return {
     pageContext: {
       urlLogical: i18nRoute.routeConfig.canonicalUrl,

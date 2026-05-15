@@ -1,5 +1,6 @@
 import type { PageContext } from 'vike/types'
 import { findSpecialityBySlug } from '../data'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 export { data }
 
@@ -14,8 +15,11 @@ function data(pageContext: PageContext) {
       description: 'Unknown speciality',
     }
   }
-
+  
   const locale = pageContext.locale ?? 'en'
+  
+  const { setRouteParamVariants } = useI18nRoute(pageContext)
+  setRouteParamVariants('speciality', speciality.variants.speciality)
 
   return {
     speciality: speciality.slug,
