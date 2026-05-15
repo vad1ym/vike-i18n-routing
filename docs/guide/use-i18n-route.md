@@ -42,6 +42,8 @@ In the Vue version:
 
 `setRouteParamVariants()` and `localizePath()` keep the same API shape.
 
+When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
+
 ## Difference between native and `/vue`
 
 Use `'vike-i18n-routing'` when you have a plain `pageContext`.

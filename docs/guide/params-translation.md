@@ -37,7 +37,7 @@ After variants are registered, the router can:
 
 - resolve a localized slug to a canonical value
 - build the correct slug for another locale
-- redirect a foreign slug to the current locale slug
+- normalize a foreign slug to the current locale slug automatically
 
 Example:
 
@@ -45,23 +45,32 @@ Example:
 - canonical route becomes `/services/web-development`
 - `localizePath('/services/web-development', 'fr')` returns `/services-fr/developpement-web`
 
-## Typical hook flow
+## Typical `+data` flow
 
 ```ts
-import { redirect } from 'vike/abort'
+import type { PageContext } from 'vike/types'
 import { useI18nRoute } from 'vike-i18n-routing'
+import { loadItemFromDb } from '../data'
 
-export function onData(pageContext: Vike.PageContext<{ variants?: { speciality: Record<string, string> } }>) {
-  if (!pageContext.data?.variants) return
+export { data }
 
-  const { setRouteParamVariants, routeConfig } = useI18nRoute(pageContext)
+function data(pageContext: PageContext) {
+  const requestedSlug = pageContext.i18nRoute.routeConfig.i18nUrlParams.item
+  const item = loadItemFromDb(requestedSlug)
 
-  setRouteParamVariants('speciality', pageContext.data.variants.speciality)
+  if (!item) return null
 
-  if (routeConfig.redirectTo) {
-    throw redirect(routeConfig.redirectTo)
+  const { setRouteParamVariants } = useI18nRoute(pageContext)
+
+  setRouteParamVariants('item', item.slugVariants)
+
+  return {
+    itemId: item.id,
+    slug: item.slug,
   }
 }
 ```
+
+When `setRouteParamVariants()` changes the normalized route, the redirect is handled automatically. You no longer need a separate `+onData` file or manual `throw redirect(...)` after registration.
 
 Next: [useI18nRoute](/guide/use-i18n-route)
