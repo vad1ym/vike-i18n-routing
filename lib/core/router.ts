@@ -255,10 +255,7 @@ function applyLocalePrefix(
     throw new Error(`[vike-i18n] Unknown locale: "${locale}"`)
   }
 
-  const forceNoPrefix = options?.noPrefixLocale === true || options?.prefixLocale === false
-  const shouldPrefixDefault = options?.prefixDefaultLocale ?? localeConfig.prefixDefaultLocale
-
-  if (forceNoPrefix || (locale === localeConfig.defaultLocale && !shouldPrefixDefault)) {
+  if (options?.prefix === false || (options?.prefix === undefined && locale === localeConfig.defaultLocale && !localeConfig.prefixDefaultLocale)) {
     return normalized
   }
 
@@ -392,9 +389,7 @@ function buildAlternateUrls(
 ): AlternateUrl[] {
   return Object.keys(localeConfig.locales).map((locale) => ({
     locale,
-    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, locale, localeConfig, {
-      prefixDefaultLocale: localeConfig.prefixDefaultLocale,
-    }),
+    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, locale, localeConfig),
   }))
 }
 
