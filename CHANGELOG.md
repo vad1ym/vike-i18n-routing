@@ -1,6 +1,23 @@
 # Changelog
 
 
+## v0.1.6
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.5...v0.1.6)
+
+### 💅 Refactors
+
+- Allow vike-like route params definition ([f07cf9d](https://github.com/vad1ym/vike-i18n-routing/commit/f07cf9d))
+
+### 🏡 Chore
+
+- Add gh pages workflow ([23d3dbe](https://github.com/vad1ym/vike-i18n-routing/commit/23d3dbe))
+- Add readme banner ([c2b0031](https://github.com/vad1ym/vike-i18n-routing/commit/c2b0031))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.5
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.4...v0.1.5)
