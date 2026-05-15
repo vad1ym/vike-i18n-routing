@@ -67,6 +67,82 @@ describe('advanced features', () => {
     }
   })
 
+  it('can disable query param locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about?locale=ru', {
+          ...domainConfig,
+          localeDetector: { queryParams: false },
+        }, {
+          headers: { host: 'site.com' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable cookie locale detection even when localeCookie is configured', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { localeCookie: false },
+        }, {
+          headers: { host: 'site.com', cookie: 'locale=ru' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable session locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { session: false, acceptLanguageHeader: false },
+        }, {
+          headers: { host: 'site.com' },
+          session: { locale: 'ru' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('can disable accept-language locale detection', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: { acceptLanguageHeader: false },
+        }, {
+          headers: { host: 'site.com', 'accept-language': 'ru;q=1.0,en;q=0.5' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/en/about')
+    }
+  })
+
+  it('keeps custom localeDetector function behavior unchanged', () => {
+    try {
+      onBeforeRoute(
+        makePageContext('/about', {
+          ...domainConfig,
+          localeDetector: () => 'ru',
+        }, {
+          headers: { host: 'site.com' },
+        }) as any,
+      )
+    } catch (error) {
+      expect(getRedirectUrl(error)).toBe('/ru/o-nas')
+    }
+  })
+
   it('matches optional segments and localizes them', () => {
     const result = onBeforeRoute(
       makePageContext('/ru/uslugi/design', domainConfig, {
