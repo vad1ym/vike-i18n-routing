@@ -12,7 +12,7 @@ export function onBeforeRoute(pageContext: PageContextServer) {
 
   return {
     pageContext: {
-      urlLogical: i18nRoute.routeConfig.vikeUrl,
+      urlLogical: i18nRoute.routeConfig.canonicalUrl,
       locale: i18nRoute.localeConfig.currentLocale,
       i18nRoute,
     } as Partial<Vike.PageContext>,

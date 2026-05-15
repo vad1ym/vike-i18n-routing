@@ -17,6 +17,7 @@
   },
   "exports": {
     ".": "./lib/index.ts",
+    "./vue": "./lib/vue/useI18nRoute.ts",
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRenderHtml": "./lib/vike/onBeforeRenderHtml.ts",

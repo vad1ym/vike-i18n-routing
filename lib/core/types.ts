@@ -1,3 +1,5 @@
+import type { PageContext } from "vike/types"
+
 export type LocaleCode = string
 
 export type LocaleConfig = {
@@ -17,12 +19,11 @@ export type DomainConfig = {
   meta?: DomainMeta
 }
 
-export type I18nPageContext = {
+export type I18nPageContext = Partial<PageContext> & {
   urlOriginal: string
   config: {
     i18n?: I18nConfig
   }
-  headers?: Record<string, string | string[] | undefined>
   session?: Record<string, string | undefined>
   domain?: string
 }
@@ -65,11 +66,11 @@ export type RouteConfig = {
   defaultLocaleUrl: string
   currentLocaleUrl: string
   redirectTo?: string
-  vikeUrl: string
+  canonicalUrl: string
   i18nUrl: string
-  vikeUrlParams: Record<string, string>
   i18nUrlParams: Record<string, string>
   alternateUrls: AlternateUrl[]
+  paramVariants: Record<string, ParamVariantConfig>
 }
 
 export type I18nConfig = {
@@ -100,9 +101,4 @@ export type I18nRoute = {
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig
   routeConfig: RouteConfig
-  setRouteParamVariants: (paramName: string, variants: RouteParamVariants) => void
-  localizePath: {
-    (routeKey: string, locale?: LocaleCode, options?: LocalizedPathOptions): string
-    (routeKey: string, options?: LocalizedPathOptions): string
-  }
 }

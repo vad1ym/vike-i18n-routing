@@ -1,17 +1,17 @@
 import { redirect } from 'vike/abort'
 import type { PageContext } from 'vike/types'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 export { onData }
 
 function onData(pageContext: PageContext<{ variants: { speciality: { en: string; ru: string } } }>) {
-  const specialityVariants = pageContext.data.variants.speciality
+  if (!pageContext.data?.variants) return
 
+  const { setRouteParamVariants, routeConfig } = useI18nRoute(pageContext)
 
-  if (!pageContext.data) return
+  setRouteParamVariants('speciality', pageContext.data.variants.speciality)
 
-  pageContext.i18nRoute.setRouteParamVariants('speciality', specialityVariants)
-
-  if (pageContext.i18nRoute.routeConfig.redirectTo) {
-    throw redirect(pageContext.i18nRoute.routeConfig.redirectTo)
+  if (routeConfig.redirectTo) {
+    throw redirect(routeConfig.redirectTo)
   }
 }

@@ -269,7 +269,7 @@ function applyLocalePrefix(
 // Converts a canonical path (e.g. '/about') to a fully localized URL
 // (e.g. '/ru/o-nas') by finding the route, building the localized path,
 // and applying the locale prefix.
-function localizeCanonicalPath(
+export function localizeCanonicalPath(
   routes: I18nRoutes,
   paramVariants: ParamVariants,
   canonicalPath: string,
@@ -517,42 +517,16 @@ export function createI18nRouter(pathname: string, pageContext: I18nPageContext,
     defaultLocaleUrl,
     currentLocaleUrl,
     redirectTo,
-    vikeUrl: canonicalPath,
+    canonicalUrl: canonicalPath,
     i18nUrl: routePattern,
-    vikeUrlParams: params,
     i18nUrlParams: params,
     alternateUrls: buildAlternateUrls(i18n.routes, paramVariants, canonicalPath, localeConfig),
+    paramVariants: Object.fromEntries(paramVariants),
   }
 
-  const i18nRoute: I18nRoute = {
+  return {
     localeConfig: { ...localeConfig, currentLocale },
     domainConfig,
     routeConfig,
-    // Allows registering locale-specific slug variants at runtime (e.g. from a CMS).
-    // Re-resolves the entire route to update routeConfig with new variant values.
-    setRouteParamVariants(paramName, variants) {
-      paramVariants.set(paramName, { variants })
-      const next = createI18nRouter(pathname, pageContext, paramVariants)
-      this.localeConfig.currentLocale = next.localeConfig.currentLocale
-      this.routeConfig = next.routeConfig
-    },
-    localizePath(routeKey: string, localeOrOptions?: LocaleCode | LocalizedPathOptions, options?: LocalizedPathOptions) {
-      const { localeConfig } = resolveConfigs(pageContext, i18n)
-      const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
-      const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
-      const targetLocale = resolvedLocale ?? this.localeConfig.currentLocale
-      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants).routeConfig.vikeUrl
-
-      return localizeCanonicalPath(
-        i18n.routes,
-        paramVariants,
-        canonicalPath,
-        targetLocale,
-        localeConfig,
-        resolvedOptions,
-      )
-    },
   }
-
-  return i18nRoute
 }

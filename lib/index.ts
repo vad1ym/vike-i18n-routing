@@ -12,3 +12,6 @@ export type {
   RouteConfig,
   RouteParamVariants,
 } from './core/types'
+
+export { useI18nRoute } from './core/useI18nRoute'
+export type { UseI18nRouteResult } from './core/useI18nRoute'

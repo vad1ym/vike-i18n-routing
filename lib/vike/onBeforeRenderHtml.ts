@@ -9,7 +9,13 @@ export function onBeforeRender(pageContext: PageContext) {
   if (!i18n || !locale) return
 
   const cookieAction = resolveCookieAction(locale, i18n)
-  if (!cookieAction) return
+  if (cookieAction) {
+    pageContext.headersResponse?.append('Set-Cookie', createSetCookieHeader(cookieAction))
+  }
 
-  pageContext.headersResponse?.append('Set-Cookie', createSetCookieHeader(cookieAction))
+  return {
+    pageContext: {
+      i18nParamVariants: pageContext.i18nRoute.routeConfig.paramVariants,
+    } as Partial<Vike.PageContext>,
+  }
 }
