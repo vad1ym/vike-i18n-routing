@@ -48,8 +48,8 @@ const { localizePath } = useI18nRoute(pageContext)
 
 localizePath('/about')
 localizePath('/about', 'ru')
-localizePath('/about', { prefixDefaultLocale: true })
-localizePath('/about', 'en', { noPrefixLocale: true })
+localizePath('/about', { prefix: false })
+localizePath('/about', 'en', { prefix: false })
 ```
 
 Examples:
@@ -58,6 +58,7 @@ Examples:
 | --- | --- |
 | `localizePath('/about', 'ru')` | `/ru/o-nas` |
 | `localizePath('/about', 'en')` | `/en/about` or `/about` depending on config |
+| `localizePath('/about', 'en', { prefix: false })` | `/about` |
 | `localizePath('/')` | localized home URL for current locale |
 
 ## Important rule

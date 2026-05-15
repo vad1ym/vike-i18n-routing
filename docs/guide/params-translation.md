@@ -87,7 +87,7 @@ function data(pageContext: PageContext) {
 }
 ```
 
-When `setRouteParamVariants()` changes the normalized route, the redirect is handled automatically. You no longer need a separate `+onData` file or manual `throw redirect(...)` after registration.
+When `setRouteParamVariants()` changes the normalized route, the redirect is handled automatically.
 
 ## Query variants
 
