@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.3
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.2...v0.1.3)
+
+### 🩹 Fixes
+
+- Resolve localized params, improve example ([2c5f6bc](https://github.com/vad1ym/vike-i18n-routing/commit/2c5f6bc))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.2
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.1...v0.1.2)
