@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.1.4
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.3...v0.1.4)
+
+### 💅 Refactors
+
+- Simplify setRouteParamVariants and localizePath ([ec20359](https://github.com/vad1ym/vike-i18n-routing/commit/ec20359))
+- Migrate to useI18nRoute ([9f5d106](https://github.com/vad1ym/vike-i18n-routing/commit/9f5d106))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.3
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.2...v0.1.3)
