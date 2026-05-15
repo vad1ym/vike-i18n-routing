@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.7
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.6...v0.1.7)
+
+### 🩹 Fixes
+
+- Apply redirect in onBeforeRoute when redirectTo is set ([849ec33](https://github.com/vad1ym/vike-i18n-routing/commit/849ec33))
+
+### 💅 Refactors
+
+- Simplify LocalizedPathOptions to single prefix flag ([8e3038c](https://github.com/vad1ym/vike-i18n-routing/commit/8e3038c))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.6
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.5...v0.1.6)
