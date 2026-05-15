@@ -1,6 +1,24 @@
 # Changelog
 
 
+## v0.1.8
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.7...v0.1.8)
+
+### 🚀 Enhancements
+
+- Support wildcard domain configs ([87e5ebf](https://github.com/vad1ym/vike-i18n-routing/commit/87e5ebf))
+- Make locale detection sources configurable ([6e61064](https://github.com/vad1ym/vike-i18n-routing/commit/6e61064))
+- Support query string variants ([#14](https://github.com/vad1ym/vike-i18n-routing/pull/14))
+
+### 🏡 Chore
+
+- Clean up example ([b524813](https://github.com/vad1ym/vike-i18n-routing/commit/b524813))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.7
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.6...v0.1.7)
