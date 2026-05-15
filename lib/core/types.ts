@@ -91,9 +91,7 @@ export type ParamVariantConfig = {
 }
 
 export type LocalizedPathOptions = {
-  prefixDefaultLocale?: boolean
-  noPrefixLocale?: boolean
-  prefixLocale?: boolean
+  prefix?: boolean
 }
 
 
