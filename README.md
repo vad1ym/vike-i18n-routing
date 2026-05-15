@@ -34,6 +34,7 @@ It resolves localized requests back to canonical routes, normalizes invalid loca
 - Locale prefixes with optional unprefixed default locale
 - Dynamic route patterns with `@param` syntax (alias for `path-to-regexp` `:param`)
 - Translated route params with automatic URL normalization
+- Translated query-string variants for localized filters and links
 - Locale detection from URL, query, cookies, session, and `Accept-Language`
 - Per-domain locale configuration
 - Runtime helpers for localized links, alternates, and route metadata
@@ -99,7 +100,7 @@ localizePath('/about')
 localizePath(routeConfig.value.canonicalUrl, 'ru')
 ```
 
-## Params Translation
+## Params And Query Translation
 
 Route patterns and translated param values are configured separately.
 
@@ -125,6 +126,17 @@ setRouteParamVariants('item', {
 ```
 
 When variants are registered during data loading, URL normalization happens automatically.
+
+```ts
+const { setRouteQueryVariants } = useI18nRoute(pageContext)
+
+setRouteQueryVariants('focus', {
+  en: 'frontend',
+  ru: 'frontend-ru',
+})
+```
+
+This keeps query filters localized across redirects and locale switches.
 
 ## Domains
 

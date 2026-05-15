@@ -21,6 +21,7 @@ export function onBeforeRender(pageContext: PageContext) {
   return {
     pageContext: {
       i18nParamVariants: pageContext.i18nRoute.routeConfig.paramVariants,
+      i18nQueryVariants: pageContext.i18nRoute.routeConfig.queryVariants,
     } as Partial<Vike.PageContext>,
   }
 }

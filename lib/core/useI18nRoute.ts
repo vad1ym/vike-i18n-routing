@@ -6,10 +6,13 @@ import type {
   LocaleCode,
   LocalizedPathOptions,
   ParamVariantConfig,
+  QueryVariantConfig,
+  RouteQueryVariants,
   RouteParamVariants,
 } from './types'
 
 type ParamVariants = Map<string, ParamVariantConfig>
+type QueryVariants = Map<string, QueryVariantConfig>
 
 export type UseI18nRouteResult = {
   locale: LocaleCode
@@ -17,30 +20,48 @@ export type UseI18nRouteResult = {
   domainConfig: I18nRoute['domainConfig']
   routeConfig: I18nRoute['routeConfig']
   setRouteParamVariants: (paramName: string, variants: RouteParamVariants) => void
+  setRouteQueryVariants: (paramName: string, variants: RouteQueryVariants) => void
   localizePath: {
     (routeKey: string, locale?: LocaleCode, options?: LocalizedPathOptions): string
     (routeKey: string, options?: LocalizedPathOptions): string
   }
 }
 
-export function useI18nRoute(pageContext: I18nPageContext & { i18nRoute: I18nRoute, i18nParamVariants?: Record<string, ParamVariantConfig> }): UseI18nRouteResult {
+export function useI18nRoute(
+  pageContext: I18nPageContext & {
+    i18nRoute: I18nRoute
+    i18nParamVariants?: Record<string, ParamVariantConfig>
+    i18nQueryVariants?: Record<string, QueryVariantConfig>
+  },
+): UseI18nRouteResult {
   const i18n = getI18nConfig(pageContext)
 
-  // On client hydration, i18nRoute is created fresh by onBeforeRoute without paramVariants.
-  // i18nParamVariants is passed separately via passToClient and used to restore them.
+  // On client hydration, i18nRoute is created fresh by onBeforeRoute without runtime variants.
+  // passToClient transfers them separately and they are restored here.
   if (
-    pageContext.i18nParamVariants &&
-    Object.keys(pageContext.i18nParamVariants).length > 0 &&
-    Object.keys(pageContext.i18nRoute.routeConfig.paramVariants ?? {}).length === 0
+    (
+      (pageContext.i18nParamVariants && Object.keys(pageContext.i18nParamVariants).length > 0) ||
+      (pageContext.i18nQueryVariants && Object.keys(pageContext.i18nQueryVariants).length > 0)
+    ) &&
+    Object.keys(pageContext.i18nRoute.routeConfig.paramVariants ?? {}).length === 0 &&
+    Object.keys(pageContext.i18nRoute.routeConfig.queryVariants ?? {}).length === 0
   ) {
-    const paramVariants = new Map(Object.entries(pageContext.i18nParamVariants))
-    const restored = createI18nRouter(pageContext.i18nRoute.routeConfig.requestUrl, pageContext, paramVariants)
+    const paramVariants = new Map(Object.entries(pageContext.i18nParamVariants ?? {}))
+    const queryVariants = new Map(Object.entries(pageContext.i18nQueryVariants ?? {}))
+    const restored = createI18nRouter(
+      pageContext.urlOriginal,
+      pageContext,
+      paramVariants,
+      queryVariants,
+    )
     pageContext.i18nRoute.routeConfig = restored.routeConfig
     pageContext.i18nRoute.localeConfig = restored.localeConfig
   }
 
   const getParamVariants = (): ParamVariants =>
     new Map(Object.entries(pageContext.i18nRoute.routeConfig.paramVariants ?? {}))
+  const getQueryVariants = (): QueryVariants =>
+    new Map(Object.entries(pageContext.i18nRoute.routeConfig.queryVariants ?? {}))
 
   return {
     get locale() { return pageContext.i18nRoute.localeConfig.currentLocale },
@@ -50,10 +71,30 @@ export function useI18nRoute(pageContext: I18nPageContext & { i18nRoute: I18nRou
 
     setRouteParamVariants(paramName, variants) {
       const paramVariants = getParamVariants()
+      const queryVariants = getQueryVariants()
       paramVariants.set(paramName, { variants })
-      const next = createI18nRouter(pageContext.i18nRoute.routeConfig.requestUrl, pageContext, paramVariants)
+      const next = createI18nRouter(
+        pageContext.urlOriginal,
+        pageContext,
+        paramVariants,
+        queryVariants,
+      )
       // Mutate in place so that the vike pageContext reference stays the same
       // and passToClient picks up the updated routeConfig.
+      pageContext.i18nRoute.routeConfig = next.routeConfig
+      pageContext.i18nRoute.localeConfig = next.localeConfig
+    },
+
+    setRouteQueryVariants(paramName, variants) {
+      const paramVariants = getParamVariants()
+      const queryVariants = getQueryVariants()
+      queryVariants.set(paramName, { variants })
+      const next = createI18nRouter(
+        pageContext.urlOriginal,
+        pageContext,
+        paramVariants,
+        queryVariants,
+      )
       pageContext.i18nRoute.routeConfig = next.routeConfig
       pageContext.i18nRoute.localeConfig = next.localeConfig
     },
@@ -63,9 +104,18 @@ export function useI18nRoute(pageContext: I18nPageContext & { i18nRoute: I18nRou
       const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
       const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
       const paramVariants = getParamVariants()
-      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants).routeConfig.canonicalUrl
+      const queryVariants = getQueryVariants()
+      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
 
-      return localizeCanonicalPath(i18n.routes, paramVariants, canonicalPath, targetLocale, pageContext.i18nRoute.localeConfig, resolvedOptions)
+      return localizeCanonicalPath(
+        i18n.routes,
+        paramVariants,
+        canonicalPath,
+        queryVariants,
+        targetLocale,
+        pageContext.i18nRoute.localeConfig,
+        resolvedOptions,
+      )
     },
   }
 }

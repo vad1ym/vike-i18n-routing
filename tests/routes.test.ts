@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { makePageContext, getRedirectUrl } from './helpers/pageContext'
+import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
 import { baseConfig } from './helpers/config'
 
 describe('routes — translated paths', () => {
@@ -44,34 +44,18 @@ describe('routes — translated paths', () => {
 
 describe('routes — redirects', () => {
   it('redirects / to /en', () => {
-    let redirectTo: string | null = null
-    try { onBeforeRoute(makePageContext('/', baseConfig) as any) } catch (e) {
-      redirectTo = getRedirectUrl(e)
-    }
-    expect(redirectTo).toBe('/en')
+    expect(resolveRenderRedirect(makePageContext('/', baseConfig))).toBe('/en')
   })
 
   it('redirects /about to /en/about', () => {
-    let redirectTo: string | null = null
-    try { onBeforeRoute(makePageContext('/about', baseConfig) as any) } catch (e) {
-      redirectTo = getRedirectUrl(e)
-    }
-    expect(redirectTo).toBe('/en/about')
+    expect(resolveRenderRedirect(makePageContext('/about', baseConfig))).toBe('/en/about')
   })
 
   it('redirects /en/o-nas to /en/about (wrong locale translation used)', () => {
-    let redirectTo: string | null = null
-    try { onBeforeRoute(makePageContext('/en/o-nas', baseConfig) as any) } catch (e) {
-      redirectTo = getRedirectUrl(e)
-    }
-    expect(redirectTo).toBe('/en/about')
+    expect(resolveRenderRedirect(makePageContext('/en/o-nas', baseConfig))).toBe('/en/about')
   })
 
   it('redirects /ru/about to /ru/o-nas (wrong locale translation used)', () => {
-    let redirectTo: string | null = null
-    try { onBeforeRoute(makePageContext('/ru/about', baseConfig) as any) } catch (e) {
-      redirectTo = getRedirectUrl(e)
-    }
-    expect(redirectTo).toBe('/ru/o-nas')
+    expect(resolveRenderRedirect(makePageContext('/ru/about', baseConfig))).toBe('/ru/o-nas')
   })
 })

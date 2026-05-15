@@ -16,7 +16,7 @@ watchEffect(() => {
 })
 
 function switchLocale(l) {
-  return localizePath(currentPath.value, l, { prefixDefaultLocale: true })
+  return localizePath(currentPath.value, l, { prefix: true })
 }
 </script>
 
@@ -24,7 +24,7 @@ function switchLocale(l) {
   <div class="layout">
     <header class="header">
       <div>
-        <a class="brand" :href="localize('/')">{{ t('layout.brand') }}</a>
+        <a class="brand" :href="localizePath('/')">{{ t('layout.brand') }}</a>
       </div>
 
       <nav class="nav">

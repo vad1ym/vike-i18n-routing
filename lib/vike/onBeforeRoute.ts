@@ -4,11 +4,11 @@ import { createI18nRouter } from '../core/router'
 
 // Vike route hook that resolves locale-aware routing before page matching.
 export function onBeforeRoute(pageContext: PageContextServer) {
-  const i18nRoute = createI18nRouter(pageContext.urlPathname, pageContext as any)
+  const i18nRoute = createI18nRouter(pageContext.urlOriginal, pageContext as any)
 
-  if (i18nRoute.routeConfig.redirectTo) {
-    throw redirect(i18nRoute.routeConfig.redirectTo)
-  }
+  // if (i18nRoute.routeConfig.redirectTo) {
+  //   throw redirect(i18nRoute.routeConfig.redirectTo)
+  // }
 
   return {
     pageContext: {
