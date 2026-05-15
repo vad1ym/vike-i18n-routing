@@ -53,6 +53,7 @@ export default defineConfig({
           { text: 'SEO Alternates', link: '/guide/recipes/seo-alternates' },
           { text: 'Locale Switcher', link: '/guide/recipes/locale-switcher' },
           { text: 'Navigation Links', link: '/guide/recipes/navigation-links' },
+          { text: 'Static Generation', link: '/guide/recipes/static-generation' },
           { text: 'Param Redirects', link: '/guide/recipes/param-redirects' },
           { text: 'Default Locale Without Prefix', link: '/guide/recipes/default-locale-without-prefix' },
           { text: 'Disable Locale Cookie', link: '/guide/recipes/disable-locale-cookie' },

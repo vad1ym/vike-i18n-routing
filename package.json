@@ -38,7 +38,9 @@
     "changelog:dry": "changelogen --no-output",
     "release": "changelogen --release",
     "example": "pnpm --filter example-basic dev",
-    "example:build": "pnpm --filter example-basic build"
+    "example:build": "pnpm --filter example-basic build",
+    "example:static": "pnpm --filter example-static dev",
+    "example:static:build": "pnpm --filter example-static build"
   },
   "devDependencies": {
     "changelogen": "^0.6.2",

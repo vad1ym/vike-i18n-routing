@@ -159,6 +159,22 @@ i18n: {
 }
 ```
 
+## Static Generation
+
+`generateStaticPaths()` currently supports only static routes.
+
+```ts
+import { generateStaticPaths } from 'vike-i18n-routing'
+
+export { onBeforePrerenderStart }
+
+async function onBeforePrerenderStart() {
+  return await generateStaticPaths(i18nConfig)
+}
+```
+
+Dynamic routes are skipped with a warning for now. If `domains` is configured, it is also ignored with a warning because static output for domain-based routing is not supported yet.
+
 ## Documentation
 
 - Docs: `pnpm docs:dev`
