@@ -94,6 +94,13 @@ export function detectRequestLocale(
   return resolvedDomain.defaultLocale
 }
 
+const localeDetectorConfigCache = new WeakMap<I18nConfig, LocaleDetectorConfig>()
+
 function getLocaleDetectorConfig(i18n: I18nConfig): LocaleDetectorConfig {
-  return typeof i18n.localeDetector === 'function' ? {} : (i18n.localeDetector ?? {})
+  let config = localeDetectorConfigCache.get(i18n)
+  if (!config) {
+    config = typeof i18n.localeDetector === 'function' ? {} : (i18n.localeDetector ?? {})
+    localeDetectorConfigCache.set(i18n, config)
+  }
+  return config
 }
