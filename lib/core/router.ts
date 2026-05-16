@@ -1,6 +1,7 @@
 import { detectDomain, resolveDomainConfig } from './domain/normalize'
 import { detectRequestLocale } from './locale/detector'
 import { getI18nConfig } from './pageContext'
+import { resolveConfigRedirect } from './redirects'
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
 import type {
   AlternateUrl,
@@ -496,7 +497,7 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
       }
     : { domain: undefined as string | undefined }
 
-  return { requestLocale, domainConfig, localeConfig, domain }
+  return { requestLocale, domainConfig, localeConfig, domain, resolved }
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -577,7 +578,15 @@ export function createI18nRouter(
   const request = new URL(pathname, 'http://localhost')
 
   // Step 1: Resolve configs
-  const { requestLocale, localeConfig, domainConfig } = resolveConfigs(pageContext, i18n)
+  const { requestLocale, localeConfig, domainConfig, resolved } = resolveConfigs(pageContext, i18n)
+
+  // Domain-level routes and redirects take priority over global ones
+  const effectiveRoutes = resolved.routes
+    ? { ...i18n.routes, ...resolved.routes }
+    : i18n.routes
+  const effectiveRedirects = resolved.redirects || i18n.redirects
+    ? { ...i18n.redirects, ...resolved.redirects }
+    : undefined
 
   // Step 2: Extract locale from URL prefix
   const requestPath = normalizeRoutingPathname(request.pathname)
@@ -599,14 +608,49 @@ export function createI18nRouter(
 
   // Step 3: Match route (localized first, then canonical fallback)
   const localizedMatch = findLocalizedRouteMatch(
-    i18n.routes, paramVariants, localizedRequestUrl, localeConfig, currentLocale,
+    effectiveRoutes, paramVariants, localizedRequestUrl, localeConfig, currentLocale,
   )
   const canonicalMatch = localizedMatch
-    ?? findCanonicalRouteMatch(i18n.routes, paramVariants, localizedRequestUrl, localeConfig)
+    ?? findCanonicalRouteMatch(effectiveRoutes, paramVariants, localizedRequestUrl, localeConfig)
   const canonicalPath = canonicalMatch?.canonicalPath ?? localizedRequestUrl
-  const routePattern = canonicalMatch?.canonicalPattern ?? canonicalPath
+  const routePattern = canonicalMatch?.canonicalPattern
   const params = canonicalMatch?.params ?? {}
   const canonicalSearchParams = canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig)
+
+  // Step 3.5: Check redirect config
+  if (effectiveRedirects) {
+    const configRedirectTarget = resolveConfigRedirect(
+      effectiveRedirects,
+      localizedRequestUrl,
+      currentLocale,
+      effectiveRoutes,
+      localeConfig,
+    )
+
+    if (configRedirectTarget !== null) {
+      const configRedirectUrl = buildUrl(
+        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget, queryVariants, currentLocale, localeConfig),
+        localizeQueryParams(queryVariants, canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig), localeConfig, currentLocale),
+      )
+
+      return {
+        localeConfig: { ...localeConfig, currentLocale },
+        domainConfig,
+        routeConfig: {
+          requestUrl,
+          defaultLocaleUrl: configRedirectUrl,
+          currentLocaleUrl: configRedirectUrl,
+          redirectTo: configRedirectUrl,
+          canonicalUrl: configRedirectTarget,
+          i18nUrl: undefined,
+          i18nUrlParams: {},
+          alternateUrls: [],
+          paramVariants: Object.fromEntries(paramVariants),
+          queryVariants: Object.fromEntries(queryVariants),
+        },
+      }
+    }
+  }
 
   // Step 4: Build all URL variants
   const currentLocalePath = canonicalMatch
@@ -677,7 +721,7 @@ export function createI18nRouter(
     i18nUrl: routePattern,
     i18nUrlParams: params,
     alternateUrls: buildAlternateUrls(
-      i18n.routes,
+      effectiveRoutes,
       paramVariants,
       buildUrl(canonicalPath, canonicalSearchParams),
       queryVariants,

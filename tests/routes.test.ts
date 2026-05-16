@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
+import { createI18nRouter } from '../lib/core/router'
+import { createPageContext } from '../lib/core/pageContext'
 import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
 import { baseConfig } from './helpers/config'
+import type { I18nConfig } from '../lib/core/types'
 
 describe('routes — translated paths', () => {
   it('resolves ru translated path to logical url', () => {
@@ -57,5 +60,54 @@ describe('routes — redirects', () => {
 
   it('redirects /ru/about to /ru/o-nas (wrong locale translation used)', () => {
     expect(resolveRenderRedirect(makePageContext('/ru/about', baseConfig))).toBe('/ru/o-nas')
+  })
+})
+
+describe('routes — domain overrides', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: true,
+    routes: {
+      '/about': { en: '/about', ru: '/o-nas' },
+      '/services': { en: '/services', ru: '/uslugi' },
+    },
+    domains: {
+      'ru.site.com': {
+        defaultLocale: 'ru',
+        locales: ['ru'],
+        prefixDefaultLocale: false,
+        routes: {
+          '/about': { ru: '/o-sajte' },
+        },
+      },
+    },
+  }
+
+  function makeCtx(host: string) {
+    return createPageContext(`https://${host}/`, {
+      config: { i18n: config },
+      headers: { host },
+    })
+  }
+
+  it('domain route override resolves canonical correctly', () => {
+    const result = createI18nRouter('/o-sajte', makeCtx('ru.site.com'))
+    expect(result.routeConfig.canonicalUrl).toBe('/about')
+  })
+
+  it('domain route override builds correct localized URL', () => {
+    const result = createI18nRouter('/o-sajte', makeCtx('ru.site.com'))
+    expect(result.routeConfig.currentLocaleUrl).toBe('/o-sajte')
+  })
+
+  it('global routes still work on domain (non-overridden key)', () => {
+    const result = createI18nRouter('/uslugi', makeCtx('ru.site.com'))
+    expect(result.routeConfig.canonicalUrl).toBe('/services')
+  })
+
+  it('global route uses global translation on other domain', () => {
+    const result = createI18nRouter('/ru/o-nas', makeCtx('site.com'))
+    expect(result.routeConfig.canonicalUrl).toBe('/about')
   })
 })

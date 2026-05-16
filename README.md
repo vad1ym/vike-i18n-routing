@@ -36,7 +36,8 @@ It resolves localized requests back to canonical routes, normalizes invalid loca
 - Translated route params with automatic URL normalization
 - Translated query-string variants for localized filters and links
 - Locale detection from URL, query, cookies, session, and `Accept-Language`
-- Per-domain locale configuration
+- Per-domain locale configuration with domain-level route and redirect overrides
+- Locale-aware redirects with `path-to-regexp` pattern support
 - Runtime helpers for localized links, alternates, and route metadata
 
 ## Installation
@@ -166,6 +167,41 @@ setRouteQueryVariants('focus', {
 
 This keeps query filters localized across redirects and locale switches.
 
+## Redirects
+
+Declare redirects in config. Source patterns support `path-to-regexp` syntax — named params are transferred to the target, and named wildcards (`{*rest}`) are silently dropped when not referenced in the target.
+
+```ts
+// +config
+i18n: {
+  routes: {
+    '/specialities/:speciality': {
+      en: '/specialities/:speciality',
+      ru: '/specialnosti/:speciality',
+    },
+    '/drugs/:country': {
+      en: '/drugs/:country',
+      ru: '/preparaty/:country',
+    },
+  },
+  redirects: {
+    // Single entry covers all locale variants automatically:
+    //   /specialities/diver  →  /specialities/driver  (en)
+    //   /specialnosti/diver  →  /specialnosti/driver  (ru)
+    '/specialities/diver': '/specialities/driver',
+
+    // Param transfer — wildcard tail is stripped:
+    //   /medicines/ua/extra/path  →  /drugs/ua
+    '/medicines/:country/{*rest}': '/drugs/:country',
+
+    // Locale-scoped redirect (only fires for listed locales):
+    '/old-page': { url: '/about', locales: ['en'] },
+  },
+}
+```
+
+The redirect target is automatically localized for the current locale. If the target is a known route key, its localized variant is used (e.g. `/drugs/ua` becomes `/preparaty/ua` for Russian).
+
 ## Domains
 
 ```ts
@@ -182,6 +218,26 @@ i18n: {
       defaultLocale: 'fr',
       locales: ['fr', 'en'],
       prefixDefaultLocale: false,
+    },
+  },
+}
+```
+
+Domains also support `routes` and `redirects` overrides that are merged with global config. Domain-level values take priority:
+
+```ts
+domains: {
+  'ru.site.com': {
+    defaultLocale: 'ru',
+    locales: ['ru'],
+    prefixDefaultLocale: false,
+    // Override route translation for this domain only
+    routes: {
+      '/about': { ru: '/o-sajte' },
+    },
+    // Add or override redirects for this domain only
+    redirects: {
+      '/legacy': '/about',
     },
   },
 }
