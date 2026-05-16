@@ -330,6 +330,63 @@ describe('advanced features', () => {
     expect(i18nRoute.localizePath('/about?focus=frontend', 'ru')).toBe('/ru/o-nas?focus=frontend')
   })
 
+  it('localizes path with inline paramVariants without mutating global state', () => {
+    const pc = makePageContext('/en/services/web-development', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/services/web-development', pc),
+    } as any)
+
+    const result = i18nRoute.localizePath('/services/:category', 'ru', {
+      paramVariants: {
+        category: { en: 'web-development', ru: 'veb-razrabotka' },
+      },
+    })
+
+    expect(result).toBe('/ru/uslugi/veb-razrabotka')
+    // Global state must be untouched
+    expect(i18nRoute.routeConfig.paramVariants).not.toHaveProperty('category')
+  })
+
+  it('localizes path with inline queryVariants', () => {
+    const pc = makePageContext('/en/about', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/about', pc),
+    } as any)
+
+    const result = i18nRoute.localizePath('/about', 'ru', {
+      query: { category: 'electronics' },
+      queryVariants: {
+        category: { en: 'electronics', ru: 'elektronika' },
+      },
+    })
+
+    expect(result).toBe('/ru/o-nas?category=elektronika')
+  })
+
+  it('inline variants take precedence over globally registered ones', () => {
+    const pc = makePageContext('/en/services/web-development', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/services/web-development', pc),
+    } as any)
+
+    // Register global variant
+    i18nRoute.setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
+
+    // Call with a different inline variant — should win
+    const result = i18nRoute.localizePath('/services/:category', 'ru', {
+      paramVariants: {
+        category: { en: 'design', ru: 'dizajn' },
+      },
+    })
+
+    expect(result).toBe('/ru/uslugi/dizajn')
+    // Global state still has original value
+    expect(i18nRoute.routeConfig.paramVariants.category.variants.ru).toBe('veb-razrabotka')
+  })
+
   it('builds alternates from the shared resolver', () => {
     expect(createI18nRouter('/about', pageContext).routeConfig.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
