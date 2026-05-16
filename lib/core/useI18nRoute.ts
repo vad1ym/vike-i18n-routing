@@ -1,5 +1,6 @@
 import { getI18nConfig } from './pageContext'
 import { createI18nRouter, localizeCanonicalPath } from './router'
+import { buildRoutePath } from './route-patterns'
 import type {
   I18nPageContext,
   I18nRoute,
@@ -105,9 +106,15 @@ export function useI18nRoute(
       const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
       const paramVariants = getParamVariants()
       const queryVariants = getQueryVariants()
-      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
 
-      return localizeCanonicalPath(
+      // Interpolate params into the route key before passing to the router
+      const resolvedRouteKey = resolvedOptions?.params
+        ? buildRoutePath(routeKey, resolvedOptions.params)
+        : routeKey
+
+      const canonicalPath = createI18nRouter(resolvedRouteKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
+
+      const localizedPath = localizeCanonicalPath(
         i18n.routes,
         paramVariants,
         canonicalPath,
@@ -116,6 +123,26 @@ export function useI18nRoute(
         pageContext.i18nRoute.localeConfig,
         resolvedOptions,
       )
+
+      if (!resolvedOptions?.query) return localizedPath
+
+      // Localize query values via queryVariants, then append as search string
+      const localeConfig = pageContext.i18nRoute.localeConfig
+      const searchParams = new URLSearchParams()
+      for (const [key, value] of Object.entries(resolvedOptions.query)) {
+        const variants = queryVariants.get(key)?.variants
+        const localized = variants?.[targetLocale] && variants[localeConfig.defaultLocale] === value
+          ? variants[targetLocale]
+          : variants
+            ? Object.values(variants).includes(value)
+              ? variants[targetLocale] ?? value
+              : value
+            : value
+        searchParams.set(key, localized)
+      }
+
+      const search = searchParams.toString()
+      return search ? `${localizedPath}?${search}` : localizedPath
     },
   }
 }

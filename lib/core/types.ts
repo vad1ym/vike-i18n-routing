@@ -105,6 +105,8 @@ export type QueryVariantConfig = {
 
 export type LocalizedPathOptions = {
   prefix?: boolean
+  params?: Record<string, string>
+  query?: Record<string, string>
 }
 
 export type I18nRoute = {
