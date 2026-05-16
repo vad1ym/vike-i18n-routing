@@ -13,6 +13,19 @@ i18n: {
 }
 ```
 
+String redirects use temporary redirects by default (`302`).
+
+## Redirect status
+
+Use object form to choose between temporary (`302`) and permanent (`301`) redirects:
+
+```ts
+redirects: {
+  '/old-about': { url: '/about', status: 301 },
+  '/preview': { url: '/about', status: 302 },
+},
+```
+
 ## Locale-aware redirects
 
 When the redirect source matches a known route pattern, the redirect applies to all locale variants automatically.
