@@ -4,7 +4,13 @@ import type {
   LocaleCode,
   PageContextLocaleConfig,
   RedirectConfig,
+  RedirectStatusCode,
 } from './types'
+
+type ResolvedConfigRedirect = {
+  url: string
+  status: RedirectStatusCode
+}
 
 // Finds the localized variant of a source pattern for the given locale.
 //
@@ -56,12 +62,13 @@ export function resolveConfigRedirect(
   currentLocale: LocaleCode,
   routes: I18nRoutes,
   localeConfig: PageContextLocaleConfig,
-): string | null {
+): ResolvedConfigRedirect | null {
   const normalizedRequest = normalizePathname(localizedRequestUrl)
 
   for (const [sourcePattern, target] of Object.entries(redirects)) {
     const targetUrl = typeof target === 'string' ? target : target.url
     const allowedLocales = typeof target === 'object' ? target.locales : undefined
+    const status = typeof target === 'object' ? (target.status ?? 302) : 302
 
     // Check locale scope restriction
     if (allowedLocales?.length && !allowedLocales.includes(currentLocale)) continue
@@ -85,7 +92,10 @@ export function resolveConfigRedirect(
     // Skip self-redirects
     if (normalizedTarget === normalizedRequest) continue
 
-    return normalizedTarget
+    return {
+      url: normalizedTarget,
+      status,
+    }
   }
 
   return null

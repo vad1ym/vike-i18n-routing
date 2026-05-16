@@ -594,7 +594,7 @@ export function createI18nRouter(
 
     if (configRedirectTarget !== null) {
       const configRedirectUrl = buildUrl(
-        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget, queryVariants, currentLocale, localeConfig),
+        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget.url, queryVariants, currentLocale, localeConfig),
         localizeQueryParams(queryVariants, canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig), localeConfig, currentLocale),
       )
 
@@ -606,7 +606,8 @@ export function createI18nRouter(
           defaultLocaleUrl: configRedirectUrl,
           currentLocaleUrl: configRedirectUrl,
           redirectTo: configRedirectUrl,
-          canonicalUrl: configRedirectTarget,
+          redirectStatus: configRedirectTarget.status,
+          canonicalUrl: configRedirectTarget.url,
           i18nUrl: undefined,
           i18nUrlParams: {},
           alternateUrls: [],
@@ -682,6 +683,7 @@ export function createI18nRouter(
     defaultLocaleUrl,
     currentLocaleUrl,
     redirectTo,
+    redirectStatus: redirectTo ? 302 : undefined,
     canonicalUrl: buildUrl(canonicalPath, canonicalSearchParams),
     i18nUrl: routePattern,
     i18nUrlParams: params,

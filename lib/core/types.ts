@@ -72,11 +72,14 @@ export type AlternateUrl = {
   url: string
 }
 
+export type RedirectStatusCode = 301 | 302
+
 export type RouteConfig = {
   requestUrl: string
   defaultLocaleUrl: string
   currentLocaleUrl: string
   redirectTo?: string
+  redirectStatus?: RedirectStatusCode
   canonicalUrl: string
   i18nUrl?: string
   i18nUrlParams: Record<string, string>
@@ -87,7 +90,7 @@ export type RouteConfig = {
 
 export type RedirectTarget =
   | string
-  | { url: string; locales?: LocaleCode[] }
+  | { url: string; locales?: LocaleCode[]; status?: RedirectStatusCode }
 
 export type RedirectConfig = Record<string, RedirectTarget>
 

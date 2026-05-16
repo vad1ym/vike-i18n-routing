@@ -15,6 +15,11 @@ function redirect(url: string, i18n: I18nConfig) {
   return createI18nRouter(url, ctx).routeConfig.redirectTo
 }
 
+function route(url: string, i18n: I18nConfig, host = 'site.com') {
+  const ctx = makeCtx(i18n, host)
+  return createI18nRouter(url, ctx).routeConfig
+}
+
 const baseConfig: I18nConfig = {
   defaultLocale: 'en',
   locales: ['en', 'ru'],
@@ -56,6 +61,10 @@ describe('config redirects', () => {
 
     it('does not redirect unrelated paths', () => {
       expect(redirect('/en/specialities/driver', config)).toBeUndefined()
+    })
+
+    it('defaults config redirects to 302', () => {
+      expect(route('/en/specialities/diver', config).redirectStatus).toBe(302)
     })
   })
 
@@ -115,6 +124,36 @@ describe('config redirects', () => {
 
     it('does not redirect for excluded locale', () => {
       expect(redirect('/ru/about-old', config)).toBeUndefined()
+    })
+  })
+
+  describe('redirect status override', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      redirects: {
+        '/about-old': {
+          url: '/about',
+          status: 301,
+        },
+        '/preview': {
+          url: '/about',
+          status: 302,
+        },
+      },
+    }
+
+    it('uses 301 when configured', () => {
+      const routeConfig = route('/en/about-old', config)
+
+      expect(routeConfig.redirectTo).toBe('/en/about')
+      expect(routeConfig.redirectStatus).toBe(301)
+    })
+
+    it('keeps 302 when configured explicitly', () => {
+      const routeConfig = route('/en/preview', config)
+
+      expect(routeConfig.redirectTo).toBe('/en/about')
+      expect(routeConfig.redirectStatus).toBe(302)
     })
   })
 
@@ -233,6 +272,23 @@ describe('domain redirects', () => {
     // ru.site.com has its own /old-global redirect pointing to domain-level /about
     // which uses domain routes where /about for ru = /o-sajte
     expect(redirectOnDomain('/old-global', config, 'ru.site.com')).toBe('/o-sajte')
+  })
+
+  it('preserves domain redirect status overrides', () => {
+    const configWithStatus: I18nConfig = {
+      ...config,
+      domains: {
+        ...config.domains,
+        'ru.site.com': {
+          ...config.domains!['ru.site.com'],
+          redirects: {
+            '/old-global': { url: '/about', status: 301 },
+          },
+        },
+      },
+    }
+
+    expect(route('/old-global', configWithStatus, 'ru.site.com').redirectStatus).toBe(301)
   })
 
 })
