@@ -1,5 +1,6 @@
 import { getI18nConfig } from './pageContext'
 import { createI18nRouter, localizeCanonicalPath } from './router'
+import { buildRoutePath } from './route-patterns'
 import type {
   I18nPageContext,
   I18nRoute,
@@ -103,11 +104,42 @@ export function useI18nRoute(
       const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
       const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
       const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
-      const paramVariants = getParamVariants()
-      const queryVariants = getQueryVariants()
-      const canonicalPath = createI18nRouter(routeKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
 
-      return localizeCanonicalPath(
+      // Merge inline variants (scoped to this call) on top of globally registered ones
+      const paramVariants = getParamVariants()
+      if (resolvedOptions?.paramVariants) {
+        for (const [name, variants] of Object.entries(resolvedOptions.paramVariants)) {
+          paramVariants.set(name, { variants })
+        }
+      }
+      const queryVariants = getQueryVariants()
+      if (resolvedOptions?.queryVariants) {
+        for (const [name, variants] of Object.entries(resolvedOptions.queryVariants)) {
+          queryVariants.set(name, { variants })
+        }
+      }
+
+      // Interpolate params into the route key before passing to the router.
+      // If paramVariants are provided, derive canonical param values from the defaultLocale variant
+      // so the route pattern gets filled in automatically.
+      const defaultLocale = pageContext.i18nRoute.localeConfig.defaultLocale
+      const variantParams = resolvedOptions?.paramVariants
+        ? Object.fromEntries(
+            Object.entries(resolvedOptions.paramVariants).map(([name, variants]) => [
+              name,
+              variants[defaultLocale] ?? Object.values(variants)[0],
+            ]),
+          )
+        : undefined
+      const interpolatedParams = { ...variantParams, ...resolvedOptions?.params }
+      const hasParams = Object.keys(interpolatedParams).length > 0
+      const resolvedRouteKey = hasParams
+        ? buildRoutePath(routeKey, interpolatedParams)
+        : routeKey
+
+      const canonicalPath = createI18nRouter(resolvedRouteKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
+
+      const localizedPath = localizeCanonicalPath(
         i18n.routes,
         paramVariants,
         canonicalPath,
@@ -116,6 +148,26 @@ export function useI18nRoute(
         pageContext.i18nRoute.localeConfig,
         resolvedOptions,
       )
+
+      if (!resolvedOptions?.query) return localizedPath
+
+      // Localize query values via queryVariants, then append as search string
+      const localeConfig = pageContext.i18nRoute.localeConfig
+      const searchParams = new URLSearchParams()
+      for (const [key, value] of Object.entries(resolvedOptions.query)) {
+        const variants = queryVariants.get(key)?.variants
+        const localized = variants?.[targetLocale] && variants[localeConfig.defaultLocale] === value
+          ? variants[targetLocale]
+          : variants
+            ? Object.values(variants).includes(value)
+              ? variants[targetLocale] ?? value
+              : value
+            : value
+        searchParams.set(key, localized)
+      }
+
+      const search = searchParams.toString()
+      return search ? `${localizedPath}?${search}` : localizedPath
     },
   }
 }

@@ -330,6 +330,63 @@ describe('advanced features', () => {
     expect(i18nRoute.localizePath('/about?focus=frontend', 'ru')).toBe('/ru/o-nas?focus=frontend')
   })
 
+  it('localizes path with inline paramVariants without mutating global state', () => {
+    const pc = makePageContext('/en/services/web-development', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/services/web-development', pc),
+    } as any)
+
+    const result = i18nRoute.localizePath('/services/:category', 'ru', {
+      paramVariants: {
+        category: { en: 'web-development', ru: 'veb-razrabotka' },
+      },
+    })
+
+    expect(result).toBe('/ru/uslugi/veb-razrabotka')
+    // Global state must be untouched
+    expect(i18nRoute.routeConfig.paramVariants).not.toHaveProperty('category')
+  })
+
+  it('localizes path with inline queryVariants', () => {
+    const pc = makePageContext('/en/about', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/about', pc),
+    } as any)
+
+    const result = i18nRoute.localizePath('/about', 'ru', {
+      query: { category: 'electronics' },
+      queryVariants: {
+        category: { en: 'electronics', ru: 'elektronika' },
+      },
+    })
+
+    expect(result).toBe('/ru/o-nas?category=elektronika')
+  })
+
+  it('inline variants take precedence over globally registered ones', () => {
+    const pc = makePageContext('/en/services/web-development', domainConfig, { headers: { host: 'site.com' } })
+    const i18nRoute = useI18nRoute({
+      ...pc,
+      i18nRoute: createI18nRouter('/en/services/web-development', pc),
+    } as any)
+
+    // Register global variant
+    i18nRoute.setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
+
+    // Call with a different inline variant — should win
+    const result = i18nRoute.localizePath('/services/:category', 'ru', {
+      paramVariants: {
+        category: { en: 'design', ru: 'dizajn' },
+      },
+    })
+
+    expect(result).toBe('/ru/uslugi/dizajn')
+    // Global state still has original value
+    expect(i18nRoute.routeConfig.paramVariants.category.variants.ru).toBe('veb-razrabotka')
+  })
+
   it('builds alternates from the shared resolver', () => {
     expect(createI18nRouter('/about', pageContext).routeConfig.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
@@ -402,6 +459,79 @@ describe('advanced features', () => {
       prefixDefaultLocale: true,
     })
     expect(Object.keys(resolved.locales)).toEqual(['ru', 'en'])
+  })
+
+  it('localizePath interpolates params into route pattern', () => {
+    const paramConfig: I18nConfig = {
+      defaultLocale: 'en',
+      locales: ['en', 'ru'],
+      prefixDefaultLocale: true,
+      routes: {
+        '/services/:item': {
+          en: '/services/:item',
+          ru: '/uslugi/:item',
+        },
+      },
+    }
+    const ctx = createPageContext('https://site.com/en/services/web', {
+      config: { i18n: paramConfig },
+      headers: { host: 'site.com' },
+    })
+    const routeResult = onBeforeRoute(ctx as any)
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: routeResult.pageContext.i18nRoute! } as any)
+
+    expect(i18nRoute.localizePath('/services/:item', 'ru', { params: { item: 'web-development' } }))
+      .toBe('/ru/uslugi/web-development')
+    expect(i18nRoute.localizePath('/services/:item', 'en', { params: { item: 'design' } }))
+      .toBe('/en/services/design')
+  })
+
+  it('localizePath appends query params', () => {
+    const ctx = createPageContext('https://site.com/en/about', {
+      config: { i18n: domainConfig },
+      headers: { host: 'site.com' },
+    })
+    const routeResult = onBeforeRoute(ctx as any)
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: routeResult.pageContext.i18nRoute! } as any)
+
+    expect(i18nRoute.localizePath('/about', 'ru', { query: { ref: 'banner' } }))
+      .toBe('/ru/o-nas?ref=banner')
+  })
+
+  it('localizePath localizes query values via queryVariants', () => {
+    const ctx = createPageContext('https://site.com/en/services/design', {
+      config: { i18n: domainConfig },
+      headers: { host: 'site.com' },
+    })
+    const routeResult = onBeforeRoute(ctx as any)
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: routeResult.pageContext.i18nRoute! } as any)
+    i18nRoute.setRouteQueryVariants('focus', { en: 'frontend', ru: 'frontend-ru' })
+
+    expect(i18nRoute.localizePath('/about', 'ru', { query: { focus: 'frontend' } }))
+      .toBe('/ru/o-nas?focus=frontend-ru')
+  })
+
+  it('localizePath handles params and query together', () => {
+    const paramConfig: I18nConfig = {
+      defaultLocale: 'en',
+      locales: ['en', 'ru'],
+      prefixDefaultLocale: true,
+      routes: {
+        '/search/:type': {
+          en: '/search/:type',
+          ru: '/poisk/:type',
+        },
+      },
+    }
+    const ctx = createPageContext('https://site.com/en/search/doctors', {
+      config: { i18n: paramConfig },
+      headers: { host: 'site.com' },
+    })
+    const routeResult = onBeforeRoute(ctx as any)
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: routeResult.pageContext.i18nRoute! } as any)
+
+    expect(i18nRoute.localizePath('/search/:type', 'ru', { params: { type: 'doctors' }, query: { page: '2' } }))
+      .toBe('/ru/poisk/doctors?page=2')
   })
 
   it('prefers the most specific wildcard domain config', () => {
