@@ -57,6 +57,10 @@ domainDetector(pageContext) {
 }
 ```
 
+## Locale detection per domain
+
+Each domain inherits the global `localeDetector`. To customize locale detection globally, see [Getting Current Locale](/guide/current-locale#localedetector).
+
 ## Per-domain routes
 
 Override route translations for a specific domain. Domain routes are merged with global routes — the domain entry wins on key conflicts.
@@ -92,16 +96,4 @@ domains: {
 
 See [Redirects](/guide/redirects) for full redirect pattern documentation.
 
-## Locale detection
-
-You can inject your own locale detection:
-
-```ts
-// +config
-localeDetector(pageContext) {
-  if (pageContext.session?.locale) return pageContext.session.locale
-  return null
-}
-```
-
-Next: [Redirects](/guide/redirects)
+Next: [useI18nRoute](/guide/use-i18n-route)

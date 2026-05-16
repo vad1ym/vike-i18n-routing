@@ -88,16 +88,6 @@ In the Solid version:
 
 `setRouteParamVariants()`, `setRouteQueryVariants()`, and `localizePath()` keep the same API shape.
 
-## Difference between native and framework exports
-
-Use `'vike-i18n-routing'` when you have a plain `pageContext`.
-
-Use `'vike-i18n-routing/vue'` when you want Vue-friendly computed values in components.
-
-Use `'vike-i18n-routing/react'` when you want React-friendly memoized values in components.
-
-Use `'vike-i18n-routing/solid'` when you want Solid-friendly memo accessors in components.
-
 ## `localizePath()` signatures
 
 ```ts

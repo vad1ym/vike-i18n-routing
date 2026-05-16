@@ -1,6 +1,11 @@
 # Params Translation
 
-Localized route patterns and translated param values are separate concerns.
+There are two separate layers to param localization:
+
+1. **Localized route pattern** — the URL shape itself changes per locale (e.g. `/services/:category` → `/uslugi/:category`). This is static and goes in `routes` config.
+2. **Param variants** — the dynamic value inside the param also changes per locale (e.g. `web-development` → `veb-razrabotka`). This is registered at runtime when you load the data.
+
+Both layers are independent. You can use either or both.
 
 ## Route param syntax
 
@@ -10,7 +15,7 @@ Use `@paramName` to declare dynamic segments:
 '/services/@category/@slug'
 ```
 
-This is the preferred syntax. `@` is an alias for `:` — under the hood the pattern is passed to [path-to-regexp](https://github.com/pillarjs/path-to-regexp), so all its syntax works too:
+This is the preferred syntax. `@` is an alias provided by this library — it gets rewritten to `:` before being passed to [path-to-regexp](https://github.com/pillarjs/path-to-regexp), so all standard path-to-regexp syntax works too:
 
 ```ts
 '/services/:category/:slug'    // same as above
@@ -110,4 +115,4 @@ After registration, the router can:
 
 This fits filter-link pages especially well.
 
-Next: [useI18nRoute](/guide/use-i18n-route)
+Next: [Redirects](/guide/redirects)

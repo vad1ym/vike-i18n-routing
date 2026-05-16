@@ -12,15 +12,7 @@ function onBeforeRender(pageContext: Vike.PageContext) {
 
 ## Through `useI18nRoute()`
 
-Root version:
-
-```ts
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { locale } = useI18nRoute(pageContext)
-```
-
-Vue version:
+In components, use the framework-specific export. For example in Vue:
 
 ```ts
 import { usePageContext } from 'vike-vue/usePageContext'
@@ -28,33 +20,10 @@ import { useI18nRoute } from 'vike-i18n-routing/vue'
 
 const pageContext = usePageContext()
 const { locale } = useI18nRoute(pageContext)
+// locale is a computed ref in the Vue export
 ```
 
-In the Vue export, `locale` is a computed ref. In the root export, `locale` is a plain string getter.
-
-React version:
-
-```ts
-import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
-
-const pageContext = usePageContext()
-const { locale } = useI18nRoute(pageContext)
-```
-
-In the React export, `locale` is a plain value.
-
-Solid version:
-
-```ts
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
-
-const pageContext = usePageContext()
-const { locale } = useI18nRoute(pageContext)
-```
-
-In the Solid export, `locale` is a memo accessor, so read it with `locale()`.
+See [useI18nRoute](/guide/use-i18n-route) for the React, Solid, and root export variants.
 
 ## `localeDetector`
 

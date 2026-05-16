@@ -25,41 +25,31 @@ type I18nConfig = {
 
 ## `locales`
 
-Simple form:
+Simple form — locale code is also used as the URL prefix:
 
 ```ts
 // +config
 locales: ['en', 'ru', 'fr']
 ```
 
-Expanded form:
+Object form — use when the URL prefix should differ from the locale code:
 
 ```ts
 // +config
 locales: {
   en: { urlPrefix: 'en' },
-  ru: { urlPrefix: 'ru' },
-  fr: { urlPrefix: 'fr' },
+  'zh-Hans': { urlPrefix: 'zh' },  // /zh/... instead of /zh-Hans/...
 }
 ```
 
-Use object form when the URL prefix should be explicit.
-
 ## `routes`
 
-`routes` maps canonical route keys to localized public paths.
+`routes` maps canonical route keys to localized public paths. See [I18n Routes](/guide/i18n-routes) for full details.
 
 ```ts
 // +config
 routes: {
-  '/': {
-    en: '/',
-    ru: '/',
-  },
-  '/about': {
-    en: '/about',
-    ru: '/o-nas',
-  },
+  '/about': { en: '/about', ru: '/o-nas' },
 }
 ```
 
@@ -128,6 +118,6 @@ i18n: {
 }
 ```
 
-When `localeDetector` is a function, behavior stays the same as before.
+When `localeDetector` is a function, the built-in detection sources still run after it unless it returns a valid locale code.
 
 Next: [Getting Current Locale](/guide/current-locale)

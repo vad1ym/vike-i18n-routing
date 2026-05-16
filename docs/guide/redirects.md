@@ -15,7 +15,7 @@ i18n: {
 
 ## Locale-aware redirects
 
-When the redirect source matches a canonical route key (or a path that matches one), the redirect automatically applies to all locale variants of that route.
+When the redirect source matches a known route pattern, the redirect applies to all locale variants automatically.
 
 ```ts
 routes: {
@@ -29,12 +29,14 @@ redirects: {
 },
 ```
 
-This single entry covers both:
+| Incoming URL | Redirects to |
+| --- | --- |
+| `/en/specialities/diver` | `/en/specialities/driver` |
+| `/ru/specialnosti/diver` | `/ru/specialnosti/driver` |
 
-- `/en/specialities/diver` → `/en/specialities/driver`
-- `/ru/specialnosti/diver` → `/ru/specialnosti/driver`
+The source is matched against the canonical route pattern. The target is localized using the same route config — so `/specialities/driver` becomes `/ru/specialnosti/driver` for Russian.
 
-The redirect target is also localized automatically — if the target is a known route key, its locale-specific path is used.
+If the target does not match any route key, it is used as-is without localization.
 
 ## Param transfer
 
@@ -92,3 +94,5 @@ domains: {
 ```
 
 See [Domains](/guide/domains) for a full domain config example.
+
+Next: [Domains](/guide/domains)

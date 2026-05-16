@@ -25,6 +25,8 @@ Read it as:
 - Russian public URL `/o-nas`
 - French public URL `/a-propos`
 
+The `'/'` entry is required for the home route to be recognized. Without it, the root path won't participate in locale-prefix redirects and alternate URL generation.
+
 ## Canonical vs localized URL
 
 Incoming request:
@@ -63,7 +65,7 @@ Examples:
 
 ## Important rule
 
-Pass canonical paths to `localizePath()` whenever possible.
+Always pass canonical paths to `localizePath()`.
 
 Correct:
 
@@ -77,8 +79,10 @@ Wrong:
 localizePath('/ru/o-nas')
 ```
 
+Passing a localized path works as a best-effort fallback, but the router may not be able to resolve it back to the canonical form — especially across locales. Always use the route config key.
+
 ## Domain-level route overrides
 
 Individual domains can override route translations. See [Domains](/guide/domains#per-domain-routes).
 
-Next: [Redirects](/guide/redirects)
+Next: [Params Translation](/guide/params-translation)
