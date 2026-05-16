@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.1.14
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.13...v0.1.14)
+
+### 🚀 Enhancements
+
+- Support redirect status codes ([#37](https://github.com/vad1ym/vike-i18n-routing/pull/37))
+
+### 🔥 Performance
+
+- Optimize localizePath to not create route each time ([b73c3a9](https://github.com/vad1ym/vike-i18n-routing/commit/b73c3a9))
+
+### 🩹 Fixes
+
+- Add i18nRoute to passToClient for hydration ([1b041b9](https://github.com/vad1ym/vike-i18n-routing/commit/1b041b9))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.13
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.12...v0.1.13)
