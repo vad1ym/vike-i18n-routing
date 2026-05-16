@@ -1,6 +1,32 @@
 # Changelog
 
 
+## v0.1.13
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.12...v0.1.13)
+
+### 🔥 Performance
+
+- Cache locale detector config per i18n config instance ([bd3bb0d](https://github.com/vad1ym/vike-i18n-routing/commit/bd3bb0d))
+
+### 💅 Refactors
+
+- Simplify variant helpers and clean up router internals ([6471fbf](https://github.com/vad1ym/vike-i18n-routing/commit/6471fbf))
+
+### 📖 Documentation
+
+- Improve clarity, structure and consistency across all pages ([90083e7](https://github.com/vad1ym/vike-i18n-routing/commit/90083e7))
+- Rewrite README around solving Vike manual i18n boilerplate ([ab1b025](https://github.com/vad1ym/vike-i18n-routing/commit/ab1b025))
+
+### ✅ Tests
+
+- Reorganize test suite into focused files and add missing coverage ([b42bfe8](https://github.com/vad1ym/vike-i18n-routing/commit/b42bfe8))
+- Add createTestRouter helper ([e1114e4](https://github.com/vad1ym/vike-i18n-routing/commit/e1114e4))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.12
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.11...v0.1.12)
