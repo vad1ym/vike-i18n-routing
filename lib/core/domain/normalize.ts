@@ -27,6 +27,8 @@ export function resolveDomainConfig(
     locales,
     prefixDefaultLocale: domainConfig?.prefixDefaultLocale ?? i18n.prefixDefaultLocale !== false,
     meta: domainConfig?.meta,
+    routes: domainConfig?.routes,
+    redirects: domainConfig?.redirects,
   }
 }
 

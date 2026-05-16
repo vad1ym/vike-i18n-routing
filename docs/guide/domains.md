@@ -57,6 +57,41 @@ domainDetector(pageContext) {
 }
 ```
 
+## Per-domain routes
+
+Override route translations for a specific domain. Domain routes are merged with global routes — the domain entry wins on key conflicts.
+
+```ts
+domains: {
+  'ru.site.com': {
+    defaultLocale: 'ru',
+    locales: ['ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/about': { ru: '/o-sajte' },  // overrides global ru translation
+    },
+  },
+}
+```
+
+## Per-domain redirects
+
+Domains also accept `redirects`. Domain redirects are merged with global redirects — domain entries take priority on key conflicts.
+
+```ts
+domains: {
+  'ru.site.com': {
+    defaultLocale: 'ru',
+    locales: ['ru'],
+    redirects: {
+      '/legacy': '/about',
+    },
+  },
+}
+```
+
+See [Redirects](/guide/redirects) for full redirect pattern documentation.
+
 ## Locale detection
 
 You can inject your own locale detection:
@@ -69,4 +104,4 @@ localeDetector(pageContext) {
 }
 ```
 
-Next: [Params Translation](/guide/params-translation)
+Next: [Redirects](/guide/redirects)

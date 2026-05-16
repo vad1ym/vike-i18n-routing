@@ -77,4 +77,8 @@ Wrong:
 localizePath('/ru/o-nas')
 ```
 
-Next: [Domains](/guide/domains)
+## Domain-level route overrides
+
+Individual domains can override route translations. See [Domains](/guide/domains#per-domain-routes).
+
+Next: [Redirects](/guide/redirects)

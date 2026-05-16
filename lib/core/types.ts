@@ -17,6 +17,8 @@ export type DomainConfig = {
   locales?: LocaleConfigs
   prefixDefaultLocale?: boolean
   meta?: DomainMeta
+  routes?: I18nRoutes
+  redirects?: RedirectConfig
 }
 
 export type I18nPageContext = Partial<PageContext> & {
@@ -46,6 +48,8 @@ export type ResolvedDomainConfig = {
   locales: Record<LocaleCode, LocaleConfig>
   prefixDefaultLocale: boolean
   meta?: DomainMeta
+  routes?: I18nRoutes
+  redirects?: RedirectConfig
 }
 
 export type PageContextLocaleConfig = {
@@ -81,10 +85,17 @@ export type RouteConfig = {
   queryVariants: Record<string, QueryVariantConfig>
 }
 
+export type RedirectTarget =
+  | string
+  | { url: string; locales?: LocaleCode[] }
+
+export type RedirectConfig = Record<string, RedirectTarget>
+
 export type I18nConfig = {
   defaultLocale: LocaleCode
   locales: LocaleConfigs
   routes: I18nRoutes
+  redirects?: RedirectConfig
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined

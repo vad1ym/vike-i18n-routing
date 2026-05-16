@@ -33,6 +33,7 @@ export default defineConfig({
           { text: 'Getting Current Locale', link: '/guide/current-locale' },
           { text: 'Usage On Client', link: '/guide/client-usage' },
           { text: 'I18n Routes', link: '/guide/i18n-routes' },
+          { text: 'Redirects', link: '/guide/redirects' },
           { text: 'Domains', link: '/guide/domains' },
           { text: 'Params Translation', link: '/guide/params-translation' },
         ],
