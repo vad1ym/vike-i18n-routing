@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { createI18nRouter } from '../lib/core/router'
-import { createPageContext } from '../lib/core/pageContext'
-import { useI18nRoute } from '../lib/core/useI18nRoute'
-import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
+import { makePageContext, resolveRenderRedirect, createTestRouter } from './helpers/pageContext'
 import { baseConfig } from './helpers/config'
 
 describe('routes — translated paths', () => {
@@ -65,16 +62,11 @@ describe('routes — redirects', () => {
 
 describe('routes — integration (router + useI18nRoute)', () => {
   it('resolves canonicalUrl, localizes path, and builds alternateUrls', () => {
-    const pageContext = createPageContext('https://site.com/about', {
-      config: { i18n: baseConfig },
-      headers: { host: 'site.com' },
-    })
-    const i18nRouteData = createI18nRouter('/about', pageContext)
-    const i18nRoute = useI18nRoute({ ...pageContext, i18nRoute: i18nRouteData })
+    const route = createTestRouter('/en/about', baseConfig)
 
-    expect(i18nRoute.routeConfig.canonicalUrl).toBe('/about')
-    expect(i18nRoute.localizePath('/about', 'ru')).toBe('/ru/o-nas')
-    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+    expect(route.routeConfig.canonicalUrl).toBe('/about')
+    expect(route.localizePath('/about', 'ru')).toBe('/ru/o-nas')
+    expect(route.routeConfig.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
       { locale: 'ru', url: '/ru/o-nas' },
     ])

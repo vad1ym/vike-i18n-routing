@@ -1,5 +1,8 @@
 import { onBeforeRender } from '../../lib/vike/onBeforeRender'
 import { onBeforeRoute } from '../../lib/vike/onBeforeRoute'
+import { createPageContext } from '../../lib/core/pageContext'
+import { createI18nRouter } from '../../lib/core/router'
+import { useI18nRoute } from '../../lib/core/useI18nRoute'
 import type { I18nConfig } from '../../lib/core/types'
 
 export function makePageContext(
@@ -33,6 +36,12 @@ export function getRedirectUrl(error: unknown): string | null {
     return (error as any)._pageContextAbort._urlRedirect?.url ?? null
   }
   return null
+}
+
+export function createTestRouter(url: string, config: I18nConfig) {
+  const pageContext = createPageContext(url, { config: { i18n: config } })
+  const i18nRouteData = createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext)
+  return useI18nRoute({ ...pageContext, i18nRoute: i18nRouteData })
 }
 
 export function resolveRenderRedirect(pageContext: ReturnType<typeof makePageContext>): string | null {
