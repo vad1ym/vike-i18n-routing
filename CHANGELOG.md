@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.1.12
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.11...v0.1.12)
+
+### 🚀 Enhancements
+
+- LocalizePath params and query support ([#23](https://github.com/vad1ym/vike-i18n-routing/pull/23))
+- Inline paramVariants and queryVariants in localizePath ([#24](https://github.com/vad1ym/vike-i18n-routing/pull/24))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.11
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.10...v0.1.11)
