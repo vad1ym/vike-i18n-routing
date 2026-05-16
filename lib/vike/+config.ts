@@ -19,5 +19,5 @@ export default {
   // Writes Set-Cookie via headersResponse (only available during render, not in onBeforeRoute)
   onBeforeRender: 'import:vike-i18n-routing/__internal/onBeforeRender:onBeforeRender',
 
-  passToClient: ['locale', 'canonical', 'i18nParamVariants', 'i18nQueryVariants'],
+  passToClient: ['locale', 'canonical', 'i18nRoute', 'i18nParamVariants', 'i18nQueryVariants'],
 } satisfies Config
