@@ -435,6 +435,35 @@ function getVariantRedirectPath(
 // - domainConfig: domain-specific overrides (if multi-domain setup)
 // ────────────────────────────────────────────────────────────────
 
+// Cache effectiveRoutes per i18n config object × domain string.
+// The i18n object is stable (same reference) for a given page render cycle,
+// so a WeakMap keyed by it avoids any memory leak.
+const effectiveRoutesCache = new WeakMap<I18nConfig, Map<string, I18nRoutes>>()
+
+// Returns the effective routes for a given i18n config and optional domain key.
+// Result is memoized so repeated localizePath calls don't re-merge the routes object.
+export function getEffectiveRoutes(i18n: I18nConfig, domainKey: string | undefined): I18nRoutes {
+  let byDomain = effectiveRoutesCache.get(i18n)
+  if (!byDomain) {
+    byDomain = new Map()
+    effectiveRoutesCache.set(i18n, byDomain)
+  }
+
+  const cacheKey = domainKey ?? ''
+  const cached = byDomain.get(cacheKey)
+  if (cached) return cached
+
+  let routes: I18nRoutes
+  if (domainKey && i18n.domains?.[domainKey]?.routes) {
+    routes = { ...i18n.routes, ...i18n.domains[domainKey].routes }
+  } else {
+    routes = i18n.routes
+  }
+
+  byDomain.set(cacheKey, routes)
+  return routes
+}
+
 function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
   const domain = detectDomain(pageContext, i18n)
   const ctxWithDomain = domain ? { ...pageContext, domain } : pageContext
@@ -544,9 +573,7 @@ export function createI18nRouter(
   const { requestLocale, localeConfig, domainConfig, resolved } = resolveConfigs(pageContext, i18n)
 
   // Domain-level routes and redirects take priority over global ones
-  const effectiveRoutes = resolved.routes
-    ? { ...i18n.routes, ...resolved.routes }
-    : i18n.routes
+  const effectiveRoutes = getEffectiveRoutes(i18n, resolved.domain)
   const effectiveRedirects = resolved.redirects || i18n.redirects
     ? { ...i18n.redirects, ...resolved.redirects }
     : undefined
@@ -594,7 +621,7 @@ export function createI18nRouter(
 
     if (configRedirectTarget !== null) {
       const configRedirectUrl = buildUrl(
-        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget, queryVariants, currentLocale, localeConfig),
+        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget.url, queryVariants, currentLocale, localeConfig),
         localizeQueryParams(queryVariants, canonicalizeQueryParams(queryVariants, requestSearchParams, localeConfig), localeConfig, currentLocale),
       )
 
@@ -606,7 +633,8 @@ export function createI18nRouter(
           defaultLocaleUrl: configRedirectUrl,
           currentLocaleUrl: configRedirectUrl,
           redirectTo: configRedirectUrl,
-          canonicalUrl: configRedirectTarget,
+          redirectStatus: configRedirectTarget.status,
+          canonicalUrl: configRedirectTarget.url,
           i18nUrl: undefined,
           i18nUrlParams: {},
           alternateUrls: [],
@@ -682,6 +710,7 @@ export function createI18nRouter(
     defaultLocaleUrl,
     currentLocaleUrl,
     redirectTo,
+    redirectStatus: redirectTo ? 302 : undefined,
     canonicalUrl: buildUrl(canonicalPath, canonicalSearchParams),
     i18nUrl: routePattern,
     i18nUrlParams: params,

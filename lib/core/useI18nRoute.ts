@@ -1,5 +1,5 @@
 import { getI18nConfig } from './pageContext'
-import { createI18nRouter, localizeCanonicalPath } from './router'
+import { createI18nRouter, getEffectiveRoutes, localizeCanonicalPath } from './router'
 import { buildRoutePath } from './route-patterns'
 import type {
   I18nPageContext,
@@ -137,12 +137,14 @@ export function useI18nRoute(
         ? buildRoutePath(routeKey, interpolatedParams)
         : routeKey
 
-      const canonicalPath = createI18nRouter(resolvedRouteKey, pageContext, paramVariants, queryVariants).routeConfig.canonicalUrl
-
+      // Fast path: skip full createI18nRouter and call localizeCanonicalPath directly.
+      // resolvedRouteKey is already in canonical form (route key with params filled in),
+      // so we don't need the expensive route-matching + URL-building that createI18nRouter does.
+      const effectiveRoutes = getEffectiveRoutes(i18n, pageContext.i18nRoute.domainConfig.domain)
       const localizedPath = localizeCanonicalPath(
-        i18n.routes,
+        effectiveRoutes,
         paramVariants,
-        canonicalPath,
+        resolvedRouteKey,
         queryVariants,
         targetLocale,
         pageContext.i18nRoute.localeConfig,

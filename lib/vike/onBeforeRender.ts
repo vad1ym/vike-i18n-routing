@@ -8,7 +8,10 @@ export function onBeforeRender(pageContext: PageContext) {
   const locale = pageContext.locale
 
   if (pageContext.i18nRoute?.routeConfig?.redirectTo) {
-    throw redirect(pageContext.i18nRoute.routeConfig.redirectTo)
+    throw redirect(
+      pageContext.i18nRoute.routeConfig.redirectTo,
+      pageContext.i18nRoute.routeConfig.redirectStatus,
+    )
   }
 
   if (!i18n || !locale) return

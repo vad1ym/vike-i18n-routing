@@ -9,6 +9,7 @@ export type {
   DomainMeta,
   PageContextDomainConfig,
   PageContextLocaleConfig,
+  RedirectStatusCode,
   RouteConfig,
   RouteParamVariants,
   RouteQueryVariants,
