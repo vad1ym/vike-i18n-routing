@@ -32,10 +32,10 @@ type QueryVariants = Map<string, QueryVariantConfig>
 
 
 // ────────────────────────────────────────────────────────────────
-// Param variant helpers
+// Variant helpers (shared for both param and query variants)
 //
-// Param variants allow dynamic route params (like slugs) to have
-// locale-specific values. For example, a "category" param might be
+// Variants allow dynamic route params and query values to have
+// locale-specific forms. For example, a "category" param might be
 // "services" in English and "uslugi" in Russian.
 //
 // The system works by:
@@ -43,34 +43,28 @@ type QueryVariants = Map<string, QueryVariantConfig>
 // 2. localize: convert canonical value → target locale value
 // ────────────────────────────────────────────────────────────────
 
-// Returns the locale to use as the "canonical" source for a param's variant values.
+// Returns the locale whose variant acts as the canonical source.
 // Prefers defaultLocale if it has a variant, otherwise falls back to the first defined locale.
 function getDefaultVariantLocale(
-  paramVariants: ParamVariants,
-  paramName: string,
+  variants: Record<string, string>,
   localeConfig: PageContextLocaleConfig,
 ): string | undefined {
-  const variants = paramVariants.get(paramName)?.variants
-  if (!variants) return undefined
-
   return variants[localeConfig.defaultLocale]
     ? localeConfig.defaultLocale
     : Object.keys(variants)[0]
 }
 
-// Converts a locale-specific param value to its canonical (default locale) form.
+// Converts a locale-specific value to its canonical (default locale) form.
 // If rawValue matches any variant, returns the default variant. Otherwise returns rawValue as-is.
-function canonicalizeParamValue(
-  paramVariants: ParamVariants,
-  paramName: string,
+function canonicalizeVariantValue(
+  variants: Record<string, string> | undefined,
   rawValue: string,
   localeConfig: PageContextLocaleConfig,
 ): string {
-  const variants = paramVariants.get(paramName)?.variants
   if (!variants) return rawValue
 
-  const defaultVariantLocale = getDefaultVariantLocale(paramVariants, paramName, localeConfig)
-  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
+  const defaultLocale = getDefaultVariantLocale(variants, localeConfig)
+  const defaultValue = defaultLocale ? variants[defaultLocale] : undefined
 
   for (const variant of Object.values(variants)) {
     if (variant === rawValue) return defaultValue ?? rawValue
@@ -79,24 +73,15 @@ function canonicalizeParamValue(
   return rawValue
 }
 
-// Converts a canonical param value to its locale-specific form.
-// If the canonical value matches the default variant, returns the target locale's variant.
-function localizeParamValue(
-  paramVariants: ParamVariants,
-  paramName: string,
+// Converts a canonical value to its locale-specific form.
+// If canonicalValue matches any variant, returns the target locale's variant.
+function localizeVariantValue(
+  variants: Record<string, string> | undefined,
   canonicalValue: string,
   localeConfig: PageContextLocaleConfig,
   locale = localeConfig.defaultLocale,
 ): string {
-  const variants = paramVariants.get(paramName)?.variants
   if (!variants) return canonicalValue
-
-  const defaultVariantLocale = getDefaultVariantLocale(paramVariants, paramName, localeConfig)
-  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
-
-  if (defaultValue === canonicalValue && variants[locale]) {
-    return variants[locale]
-  }
 
   for (const variant of Object.values(variants)) {
     if (variant === canonicalValue) {
@@ -104,22 +89,26 @@ function localizeParamValue(
     }
   }
 
-  return variants[locale] && locale === localeConfig.defaultLocale && defaultValue === undefined
-    ? variants[locale]
-    : canonicalValue
+  return canonicalValue
 }
 
-function getDefaultQueryVariantLocale(
-  queryVariants: QueryVariants,
-  queryName: string,
+function canonicalizeParamValue(
+  paramVariants: ParamVariants,
+  paramName: string,
+  rawValue: string,
   localeConfig: PageContextLocaleConfig,
-): string | undefined {
-  const variants = queryVariants.get(queryName)?.variants
-  if (!variants) return undefined
+): string {
+  return canonicalizeVariantValue(paramVariants.get(paramName)?.variants, rawValue, localeConfig)
+}
 
-  return variants[localeConfig.defaultLocale]
-    ? localeConfig.defaultLocale
-    : Object.keys(variants)[0]
+function localizeParamValue(
+  paramVariants: ParamVariants,
+  paramName: string,
+  canonicalValue: string,
+  localeConfig: PageContextLocaleConfig,
+  locale = localeConfig.defaultLocale,
+): string {
+  return localizeVariantValue(paramVariants.get(paramName)?.variants, canonicalValue, localeConfig, locale)
 }
 
 function canonicalizeQueryValue(
@@ -128,17 +117,7 @@ function canonicalizeQueryValue(
   rawValue: string,
   localeConfig: PageContextLocaleConfig,
 ): string {
-  const variants = queryVariants.get(queryName)?.variants
-  if (!variants) return rawValue
-
-  const defaultVariantLocale = getDefaultQueryVariantLocale(queryVariants, queryName, localeConfig)
-  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
-
-  for (const variant of Object.values(variants)) {
-    if (variant === rawValue) return defaultValue ?? rawValue
-  }
-
-  return rawValue
+  return canonicalizeVariantValue(queryVariants.get(queryName)?.variants, rawValue, localeConfig)
 }
 
 function localizeQueryValue(
@@ -148,23 +127,7 @@ function localizeQueryValue(
   localeConfig: PageContextLocaleConfig,
   locale = localeConfig.defaultLocale,
 ): string {
-  const variants = queryVariants.get(queryName)?.variants
-  if (!variants) return canonicalValue
-
-  const defaultVariantLocale = getDefaultQueryVariantLocale(queryVariants, queryName, localeConfig)
-  const defaultValue = defaultVariantLocale ? variants[defaultVariantLocale] : undefined
-
-  if (defaultValue === canonicalValue) {
-    return variants[locale] ?? canonicalValue
-  }
-
-  for (const variant of Object.values(variants)) {
-    if (variant === canonicalValue) {
-      return variants[locale] ?? canonicalValue
-    }
-  }
-
-  return canonicalValue
+  return localizeVariantValue(queryVariants.get(queryName)?.variants, canonicalValue, localeConfig, locale)
 }
 
 function sanitizeRouteSearchParams(searchParams: URLSearchParams): URLSearchParams {
@@ -598,9 +561,11 @@ export function createI18nRouter(
     ([, config]) => config.urlPrefix === segments[0],
   )?.[0]
   const currentLocale = prefixedLocale ?? requestLocale ?? localeConfig.defaultLocale
-  const hasDefaultPrefixIntent = !localeConfig.prefixDefaultLocale
+  // True when the default locale was accessed via its prefix on a config that doesn't use one.
+  // This signals that a ?locale= redirect is needed to strip the prefix.
+  const defaultLocaleAccessedViaPrefix = !localeConfig.prefixDefaultLocale
     && prefixedLocale === localeConfig.defaultLocale
-  const hasDefaultQueryIntent = !localeConfig.prefixDefaultLocale
+  const defaultLocaleAccessedViaQuery = !localeConfig.prefixDefaultLocale
     && explicitLocaleQuery === localeConfig.defaultLocale
   const localizedRequestUrl = prefixedLocale
     ? normalizePathname(`/${segments.slice(1).join('/')}`)
@@ -697,11 +662,11 @@ export function createI18nRouter(
       ? currentLocaleUrl
       : undefined
 
-  const redirectTo = hasDefaultPrefixIntent
+  const redirectTo = defaultLocaleAccessedViaPrefix
     ? normalizedRedirect
       ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
       : buildSetLocaleRedirect(currentLocaleUrl, localeConfig.defaultLocale)
-    : hasDefaultQueryIntent
+    : defaultLocaleAccessedViaQuery
       ? normalizedRedirect
         ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
         : undefined

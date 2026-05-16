@@ -1,14 +1,5 @@
+import { parseCookies } from './locale/detector'
 import type { I18nConfig, I18nPageContext } from './types'
-
-function parseCookies(cookieHeader: string): Record<string, string> {
-  return Object.fromEntries(
-    cookieHeader
-      .split(';')
-      .map((part) => part.trim().split('='))
-      .filter(([key]) => key)
-      .map(([key, ...rest]) => [key.trim(), decodeURIComponent(rest.join('=').trim())]),
-  )
-}
 
 export function createPageContext(
   urlOriginal: string,
