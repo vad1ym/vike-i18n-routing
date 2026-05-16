@@ -107,6 +107,47 @@ localizePath(routeKey, options)
 localizePath(routeKey, locale, options)
 ```
 
+### Options
+
+```ts
+type LocalizedPathOptions = {
+  prefix?: boolean             // force-include or exclude the locale prefix
+  params?: Record<string, string>  // interpolated into the route pattern before localization
+  query?: Record<string, string>   // appended as search string, values localized via queryVariants
+}
+```
+
+### `params`
+
+Interpolate named route params directly in `localizePath` without pre-building the URL:
+
+```ts
+localizePath('/services/:item', 'ru', { params: { item: 'web-development' } })
+// → '/ru/uslugi/web-development'
+```
+
+Param values are filled into the pattern, then the resulting path goes through the normal localization pipeline (param variants, locale prefix).
+
+### `query`
+
+Append query string parameters. Values registered via `setRouteQueryVariants` are automatically localized for the target locale:
+
+```ts
+localizePath('/about', 'ru', { query: { ref: 'banner' } })
+// → '/ru/o-nas?ref=banner'
+
+// with setRouteQueryVariants('focus', { en: 'frontend', ru: 'frontend-ru' })
+localizePath('/about', 'ru', { query: { focus: 'frontend' } })
+// → '/ru/o-nas?focus=frontend-ru'
+```
+
+### `params` and `query` together
+
+```ts
+localizePath('/search/:type', 'ru', { params: { type: 'doctors' }, query: { page: '2' } })
+// → '/ru/poisk/doctors?page=2'
+```
+
 ## Return shape
 
 ```ts
