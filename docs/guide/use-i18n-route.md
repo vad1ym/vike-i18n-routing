@@ -111,9 +111,11 @@ localizePath(routeKey, locale, options)
 
 ```ts
 type LocalizedPathOptions = {
-  prefix?: boolean             // force-include or exclude the locale prefix
-  params?: Record<string, string>  // interpolated into the route pattern before localization
-  query?: Record<string, string>   // appended as search string, values localized via queryVariants
+  prefix?: boolean                                     // force-include or exclude the locale prefix
+  params?: Record<string, string>                      // interpolated into the route pattern before localization
+  query?: Record<string, string>                       // appended as search string, values localized via queryVariants
+  paramVariants?: Record<string, RouteParamVariants>   // inline param variants, scoped to this call
+  queryVariants?: Record<string, RouteQueryVariants>   // inline query variants, scoped to this call
 }
 ```
 
@@ -147,6 +149,37 @@ localizePath('/about', 'ru', { query: { focus: 'frontend' } })
 localizePath('/search/:type', 'ru', { params: { type: 'doctors' }, query: { page: '2' } })
 // → '/ru/poisk/doctors?page=2'
 ```
+
+### `paramVariants`
+
+Pass slug variant maps inline for a single `localizePath` call, without registering them globally via `setRouteParamVariants`. Useful when building lists where each item has its own slug map:
+
+```ts
+localizePath('/services/:service', 'ru', {
+  paramVariants: {
+    service: { en: 'web-development', ru: 'veb-razrabotka' },
+  },
+})
+// → '/ru/uslugi/veb-razrabotka'
+```
+
+The canonical value (defaultLocale variant) is used to fill the route pattern, then the target-locale variant is applied. Inline variants take precedence over globally registered ones for this call only — global state is not mutated.
+
+### `queryVariants`
+
+Pass query value variant maps inline:
+
+```ts
+localizePath('/about', 'ru', {
+  query: { category: 'electronics' },
+  queryVariants: {
+    category: { en: 'electronics', ru: 'elektronika' },
+  },
+})
+// → '/ru/o-nas?category=elektronika'
+```
+
+Inline `queryVariants` merge with globally registered ones for this call, with inline taking precedence.
 
 ## Return shape
 
