@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**I18n routing for Vike with localized URLs, canonical route mapping, translated params, and domain-aware locale config**
+**Add multiple languages to your Vike app without duplicating pages**
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/banner-dark.png">
@@ -18,49 +18,71 @@
 
 </div>
 
-## Overview
+---
 
-`vike-i18n-routing` lets you keep canonical routes in code while exposing localized public URLs:
+## The problem
 
-- `/en/about`
-- `/ru/o-nas`
-- `/fr/a-propos`
+Vike's official i18n guide shows the manual approach — write `onBeforeRoute` yourself to extract the locale from the URL:
 
-It resolves localized requests back to canonical routes, normalizes invalid locale/path combinations, and provides helpers to generate localized URLs at runtime.
+```ts
+// pages/+onBeforeRoute.js
+function onBeforeRoute(pageContext) {
+  const { urlWithoutLocale, locale } = extractLocale(pageContext.urlParsed)
+  return {
+    pageContext: {
+      locale,
+      urlLogical: urlWithoutLocale,
+    }
+  }
+}
+```
 
-## Features
+This works for simple cases, but leaves everything else to you: locale detection from cookies and headers, redirecting wrong-locale URLs, building localized links, translated URL slugs, SEO alternates, multi-domain configs, and the boilerplate that grows with every new locale and route.
 
-- Canonical route mapping with localized public URLs
-- Locale prefixes with optional unprefixed default locale
-- Dynamic route patterns with `@param` syntax (alias for `path-to-regexp` `:param`)
-- Translated route params with automatic URL normalization
-- Translated query-string variants for localized filters and links
-- Locale detection from URL, query, cookies, session, and `Accept-Language`
-- Per-domain locale configuration with domain-level route and redirect overrides
-- Locale-aware redirects with `path-to-regexp` pattern support
-- Runtime helpers for localized links, alternates, and route metadata
+## The solution
 
-## Installation
+`vike-i18n-routing` replaces that manual `onBeforeRoute` with a fully-featured plugin. You declare your routes and locales in config — the plugin handles everything else.
+
+```ts
+// pages/+config.ts
+i18n: {
+  defaultLocale: 'en',
+  locales: ['en', 'ru'],
+  routes: {
+    '/about': { en: '/about', ru: '/o-nas' },
+  },
+}
+```
+
+The plugin:
+
+- Resolves `/ru/o-nas` → page `about`, locale `ru`
+- Resolves `/en/about` → page `about`, locale `en`
+- Redirects `/about` → `/en/about` (missing prefix)
+- Redirects `/ru/about` → `/ru/o-nas` (wrong-locale URL)
+- Detects locale from URL, query param, cookie, session, `Accept-Language`
+- Provides `localizePath()` for building locale-aware links
+- Generates `alternateUrls` for SEO hreflang tags
+
+Your page files stay at canonical paths — one file per page, no duplication:
+
+```
+pages/
+  about/+Page.vue     ← serves /en/about AND /ru/o-nas
+```
+
+## Setup
+
+Install:
 
 ```bash
-# npm
-npm install vike-i18n-routing
-
-# yarn
-yarn add vike-i18n-routing
-
-# pnpm
 pnpm add vike-i18n-routing
 ```
 
-Peer dependency:
-
-- `vike >= 0.4.259`
-
-## Quick Start
+Add to your Vike config:
 
 ```ts
-// +config
+// pages/+config.ts
 import vikeVue from 'vike-vue/config'
 import vikeI18n from 'vike-i18n-routing/config'
 import type { Config } from 'vike/types'
@@ -81,189 +103,104 @@ export default {
 } satisfies Config
 ```
 
-With this config:
+## Using locale in components
 
-- `/en/about` resolves to canonical `/about`
-- `/ru/o-nas` resolves to canonical `/about`
-- `/about` redirects to `/en/about`
-- `/ru/about` redirects to `/ru/o-nas`
+In components, read the current locale and build links:
 
-## Runtime Example
-
-Vue:
+**Vue:**
 
 ```ts
-import { useI18nRoute } from 'vike-i18n-routing/vue'
 import { usePageContext } from 'vike-vue/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/vue'
 
 const pageContext = usePageContext()
-const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
-
-localizePath('/about')
-localizePath(routeConfig.value.canonicalUrl, 'ru')
+const { locale, localizePath } = useI18nRoute(pageContext)
+// locale is a computed ref
 ```
 
-React:
+```html
+<!-- Always pass the canonical route key, not the localized URL -->
+<a :href="localizePath('/about')">About</a>
+<a :href="localizePath('/about', 'ru')">О нас</a>
+```
 
-```ts
-import { useI18nRoute } from 'vike-i18n-routing/react'
+**React:**
+
+```tsx
 import { usePageContext } from 'vike-react/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/react'
 
 const pageContext = usePageContext()
-const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
-
-localizePath('/about')
-localizePath(routeConfig.canonicalUrl, 'ru')
+const { locale, localizePath } = useI18nRoute(pageContext)
 ```
 
-Solid:
+**Solid:**
 
-```ts
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+```tsx
 import { usePageContext } from 'vike-solid/usePageContext'
+import { useI18nRoute } from 'vike-i18n-routing/solid'
 
 const pageContext = usePageContext()
-const { locale, routeConfig, localizePath } = useI18nRoute(pageContext)
-
-localizePath('/about')
-localizePath(routeConfig().canonicalUrl, 'ru')
+const { locale, localizePath } = useI18nRoute(pageContext)
+// locale is a memo accessor — read it as locale()
 ```
 
-## Params And Query Translation
+> This package handles routing only. For translating text content use `vue-i18n`, `react-intl`, or any other i18n library alongside it.
 
-Route patterns and translated param values are configured separately.
+## More features
+
+**Translated URL slugs** — not just the path shape, but the param values too:
 
 ```ts
-// +config
+// config
 routes: {
-  '/services/@item': {
-    en: '/services/@item',
-    ru: '/uslugi/@item',
+  '/services/:category': {
+    en: '/services/:category',
+    ru: '/uslugi/:category',
   },
+}
+
+// in data loader — register per-item slug variants
+setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
+// /ru/uslugi/web-development now auto-redirects to /ru/uslugi/veb-razrabotka
+```
+
+**Config-level redirects** — locale-aware, supports `path-to-regexp` patterns:
+
+```ts
+redirects: {
+  '/old-about': '/about',                    // applies to all locales
+  '/medicines/:country': '/drugs/:country',  // transfers named params
+  '/old-page': { url: '/about', locales: ['en'] },  // locale-scoped
 }
 ```
 
-```ts
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { setRouteParamVariants } = useI18nRoute(pageContext)
-
-setRouteParamVariants('item', {
-  en: 'web-development',
-  ru: 'veb-razrabotka',
-})
-```
-
-When variants are registered during data loading, URL normalization happens automatically.
-
-```ts
-const { setRouteQueryVariants } = useI18nRoute(pageContext)
-
-setRouteQueryVariants('focus', {
-  en: 'frontend',
-  ru: 'frontend-ru',
-})
-```
-
-This keeps query filters localized across redirects and locale switches.
-
-## Redirects
-
-Declare redirects in config. Source patterns support `path-to-regexp` syntax — named params are transferred to the target, and named wildcards (`{*rest}`) are silently dropped when not referenced in the target.
-
-```ts
-// +config
-i18n: {
-  routes: {
-    '/specialities/:speciality': {
-      en: '/specialities/:speciality',
-      ru: '/specialnosti/:speciality',
-    },
-    '/drugs/:country': {
-      en: '/drugs/:country',
-      ru: '/preparaty/:country',
-    },
-  },
-  redirects: {
-    // Single entry covers all locale variants automatically:
-    //   /specialities/diver  →  /specialities/driver  (en)
-    //   /specialnosti/diver  →  /specialnosti/driver  (ru)
-    '/specialities/diver': '/specialities/driver',
-
-    // Param transfer — wildcard tail is stripped:
-    //   /medicines/ua/extra/path  →  /drugs/ua
-    '/medicines/:country/{*rest}': '/drugs/:country',
-
-    // Locale-scoped redirect (only fires for listed locales):
-    '/old-page': { url: '/about', locales: ['en'] },
-  },
-}
-```
-
-The redirect target is automatically localized for the current locale. If the target is a known route key, its localized variant is used (e.g. `/drugs/ua` becomes `/preparaty/ua` for Russian).
-
-## Domains
-
-```ts
-// +config
-i18n: {
-  defaultLocale: 'en',
-  locales: ['en', 'ru', 'fr'],
-  domains: {
-    'site.com': {
-      defaultLocale: 'en',
-      locales: ['en', 'ru'],
-    },
-    'site.fr': {
-      defaultLocale: 'fr',
-      locales: ['fr', 'en'],
-      prefixDefaultLocale: false,
-    },
-  },
-}
-```
-
-Domains also support `routes` and `redirects` overrides that are merged with global config. Domain-level values take priority:
+**Multi-domain** — different locale sets and default locales per domain:
 
 ```ts
 domains: {
-  'ru.site.com': {
-    defaultLocale: 'ru',
-    locales: ['ru'],
-    prefixDefaultLocale: false,
-    // Override route translation for this domain only
-    routes: {
-      '/about': { ru: '/o-sajte' },
-    },
-    // Add or override redirects for this domain only
-    redirects: {
-      '/legacy': '/about',
-    },
-  },
+  'site.com': { defaultLocale: 'en', locales: ['en', 'ru'] },
+  'site.fr':  { defaultLocale: 'fr', locales: ['fr', 'en'], prefixDefaultLocale: false },
 }
 ```
 
-## Static Generation
+**Locale detection** — automatically from URL prefix, query param (`?locale=ru`), cookie, session, or `Accept-Language` header.
 
-`generateStaticPaths()` currently supports only static routes.
-
-```ts
-import { generateStaticPaths } from 'vike-i18n-routing'
-
-export { onBeforePrerenderStart }
-
-async function onBeforePrerenderStart() {
-  return await generateStaticPaths(i18nConfig)
-}
-```
-
-Dynamic routes are skipped with a warning for now. If `domains` is configured, it is also ignored with a warning because static output for domain-based routing is not supported yet.
+**SEO** — `routeConfig.alternateUrls` gives you all locale URLs for `<link rel="alternate" hreflang>` tags.
 
 ## Documentation
 
-- Docs: `pnpm docs:dev`
-- Build: `pnpm docs:build`
-- Site: https://vad1ym.github.io/vike-i18n-routing/
+Full docs with API reference, all config options, and recipes:
+
+**[vad1ym.github.io/vike-i18n-routing](https://vad1ym.github.io/vike-i18n-routing/)**
+
+- [Quick Start](https://vad1ym.github.io/vike-i18n-routing/guide/quick-start)
+- [I18n Routes](https://vad1ym.github.io/vike-i18n-routing/guide/i18n-routes)
+- [Params Translation](https://vad1ym.github.io/vike-i18n-routing/guide/params-translation)
+- [Redirects](https://vad1ym.github.io/vike-i18n-routing/guide/redirects)
+- [Domains](https://vad1ym.github.io/vike-i18n-routing/guide/domains)
+- [useI18nRoute API](https://vad1ym.github.io/vike-i18n-routing/guide/use-i18n-route)
+- [Recipes](https://vad1ym.github.io/vike-i18n-routing/guide/recipes/)
 
 ## License
 
