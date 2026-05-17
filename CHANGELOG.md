@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.16
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.15...v0.1.16)
+
+### 💅 Refactors
+
+- Remove framework wrappers, use core useI18nRoute directly ([9ff0e62](https://github.com/vad1ym/vike-i18n-routing/commit/9ff0e62))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.15
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.14...v0.1.15)
