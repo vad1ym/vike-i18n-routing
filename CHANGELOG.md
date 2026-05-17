@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.15
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.14...v0.1.15)
+
+### 🔥 Performance
+
+- Cache localized path lookups, 20x faster localizePath without linear degradation ([d1bd08b](https://github.com/vad1ym/vike-i18n-routing/commit/d1bd08b))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.14
 
 [compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.13...v0.1.14)
