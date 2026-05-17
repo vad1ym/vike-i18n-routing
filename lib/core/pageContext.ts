@@ -14,7 +14,7 @@ export function createPageContext(
   }
 }
 
-export function getRequestUrl(pageContext: I18nPageContext): string {
+function getRequestUrl(pageContext: I18nPageContext): string {
   return pageContext.urlOriginal
 }
 
@@ -30,9 +30,6 @@ export function getParsedUrl(pageContext: I18nPageContext): URL {
   return new URL(getRequestUrl(pageContext), 'http://localhost')
 }
 
-export function getPathname(pageContext: I18nPageContext): string {
-  return getParsedUrl(pageContext).pathname
-}
 
 export function getHeaders(pageContext: I18nPageContext): Record<string, string | string[] | undefined> {
   return pageContext.headers ?? {}

@@ -143,6 +143,16 @@ describe('localizePath — params option', () => {
       .toBe('/en/services/design')
   })
 
+  it('formats dynamic route descriptor directly', () => {
+    const ctx = makeCtx('/en/services/web')
+    const routeResult = onBeforeRoute(ctx as any)
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: routeResult.pageContext.i18nRoute! } as any)
+    const service = i18nRoute.route('/services/:item')
+
+    expect(service.to('ru', { params: { item: 'web-development' } }))
+      .toBe('/ru/uslugi/web-development')
+  })
+
   it('handles params and query together', () => {
     const searchConfig: I18nConfig = {
       defaultLocale: 'en',

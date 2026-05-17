@@ -10,6 +10,7 @@ export type {
   PageContextDomainConfig,
   PageContextLocaleConfig,
   RedirectStatusCode,
+  RouteDescriptor,
   RouteConfig,
   RouteParamVariants,
   RouteQueryVariants,

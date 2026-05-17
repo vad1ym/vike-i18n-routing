@@ -13,7 +13,13 @@ const routePatternCache = new Map<string, CompiledRoutePattern>()
 export function normalizePathname(pathname: string): string {
   if (!pathname || pathname === '/') return '/'
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
-  return normalized.length > 1 ? normalized.replace(/\/+$/, '') : normalized
+  if (normalized.length <= 1) return normalized
+  // Fast path: no trailing slash — skip regex
+  if (normalized[normalized.length - 1] !== '/') return normalized
+  // Trim trailing slashes
+  let end = normalized.length - 1
+  while (end > 0 && normalized[end] === '/') end--
+  return normalized.slice(0, end + 1)
 }
 
 // Converts vike-style @param syntax to path-to-regexp :param syntax.

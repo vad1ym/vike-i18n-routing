@@ -71,4 +71,22 @@ describe('routes — integration (router + useI18nRoute)', () => {
       { locale: 'ru', url: '/ru/o-nas' },
     ])
   })
+
+  it('builds localized URLs through route descriptor helper', () => {
+    const route = createTestRouter('/en/about', baseConfig)
+    const about = route.route('/about')
+
+    expect(about.key).toBe('/about')
+    expect(about.to('ru')).toBe('/ru/o-nas')
+    expect(route.localizePath(about, 'ru')).toBe('/ru/o-nas')
+  })
+
+  it('uses descriptor for repeated static localization without changing output', () => {
+    const route = createTestRouter('/en/about', baseConfig)
+    const about = route.route('/about')
+
+    expect(about.to('en')).toBe('/en/about')
+    expect(about.to('ru')).toBe('/ru/o-nas')
+    expect(route.localizePath(about, 'en')).toBe('/en/about')
+  })
 })
