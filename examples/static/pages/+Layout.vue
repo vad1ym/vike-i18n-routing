@@ -1,15 +1,15 @@
 <script setup>
 import { computed } from 'vue'
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { getMessages } from '../messages'
 
 const pageContext = usePageContext()
-const { locale: currentLocale, localeConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
 
-const currentPath = computed(() => routeConfig.value.canonicalUrl)
-const locales = computed(() => Object.keys(localeConfig.value.locales))
-const messages = computed(() => getMessages(currentLocale.value))
+const currentPath = computed(() => routeConfig.canonicalUrl)
+const locales = computed(() => Object.keys(localeConfig.locales))
+const messages = computed(() => getMessages(pageContext.locale))
 
 function switchLocale(targetLocale) {
   return localizePath(currentPath.value, targetLocale, { prefix: true })
@@ -35,7 +35,7 @@ function switchLocale(targetLocale) {
           v-for="targetLocale in locales"
           :key="targetLocale"
           :href="switchLocale(targetLocale)"
-          :class="{ active: targetLocale === currentLocale }"
+          :class="{ active: targetLocale === pageContext.locale }"
         >
           {{ targetLocale.toUpperCase() }}
         </a>

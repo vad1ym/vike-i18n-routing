@@ -19,9 +19,6 @@
   },
   "exports": {
     ".": "./lib/index.ts",
-    "./react": "./lib/react/useI18nRoute.ts",
-    "./solid": "./lib/solid/useI18nRoute.ts",
-    "./vue": "./lib/vue/useI18nRoute.ts",
     "./core/useI18nRoute": "./lib/core/useI18nRoute.ts",
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
@@ -70,8 +67,7 @@
     "vue": "^3.5.34"
   },
   "peerDependencies": {
-    "vike": ">=0.4.259",
-    "vike-vue": "^0.9.11"
+    "vike": ">=0.4.259"
   },
   "packageManager": "pnpm@10.11.0",
   "dependencies": {

@@ -1,10 +1,11 @@
 <script setup>
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { getMessages } from '../../messages'
 
-const { locale, localizePath } = useI18nRoute(usePageContext())
-const messages = getMessages(locale.value)
+const pageContext = usePageContext()
+const { localizePath } = useI18nRoute(pageContext)
+const messages = getMessages(pageContext.locale)
 </script>
 
 <template>

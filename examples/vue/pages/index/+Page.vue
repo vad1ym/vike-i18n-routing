@@ -1,10 +1,12 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 const { t } = useI18n({ useScope: 'global' })
-const { locale, localizePath } = useI18nRoute(usePageContext())
+const pageContext = usePageContext()
+const { localizePath } = useI18nRoute(pageContext)
+const locale = pageContext.locale
 </script>
 
 <template>

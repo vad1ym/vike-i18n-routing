@@ -1,18 +1,18 @@
 import { For, createMemo, type JSX } from 'solid-js'
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { createTranslator } from '../i18n'
 
 export { Layout }
 
 function Layout(props: { children: JSX.Element }) {
   const pageContext = usePageContext()
-  const { locale, localeConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
-  const locales = createMemo(() => Object.keys(localeConfig().locales))
-  const t = createTranslator(locale)
+  const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
+  const locales = createMemo(() => Object.keys(localeConfig.locales))
+  const t = createTranslator(() => pageContext.locale)
 
   function switchLocale(nextLocale: string) {
-    return localizePath(routeConfig().canonicalUrl, nextLocale, { prefix: true })
+    return localizePath(routeConfig.canonicalUrl, nextLocale, { prefix: true })
   }
 
   return (
@@ -35,7 +35,7 @@ function Layout(props: { children: JSX.Element }) {
             {(supportedLocale) => (
               <a
                 href={switchLocale(supportedLocale)}
-                style={supportedLocale === locale() ? activeLocaleStyle : undefined}
+                style={supportedLocale === pageContext.locale ? activeLocaleStyle : undefined}
               >
                 {supportedLocale.toUpperCase()}
               </a>
@@ -47,7 +47,7 @@ function Layout(props: { children: JSX.Element }) {
       <main style={contentStyle}>{props.children}</main>
 
       <footer>
-        <pre>{JSON.stringify(routeConfig(), null, 2)}</pre>
+        <pre>{JSON.stringify(routeConfig, null, 2)}</pre>
       </footer>
     </div>
   )

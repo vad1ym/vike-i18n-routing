@@ -105,17 +105,15 @@ export default {
 
 ## Using locale in components
 
-In components, read the current locale and build links:
+In components, get `pageContext` from your framework's hook and pass it to `useI18nRoute`:
 
 **Vue:**
 
 ```ts
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localizePath } = useI18nRoute(pageContext)
-// locale is a computed ref
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
 ```html
@@ -128,21 +126,18 @@ const { locale, localizePath } = useI18nRoute(pageContext)
 
 ```tsx
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
 **Solid:**
 
 ```tsx
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localizePath } = useI18nRoute(pageContext)
-// locale is a memo accessor — read it as locale()
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
 > This package handles routing only. For translating text content use `vue-i18n`, `react-intl`, or any other i18n library alongside it.

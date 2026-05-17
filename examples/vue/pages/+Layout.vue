@@ -2,17 +2,17 @@
 import { computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const pageContext = usePageContext()
-const { locale: currentLocale, localeConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
 
-const currentPath = computed(() => routeConfig.value.canonicalUrl)
-const locales = computed(() => Object.keys(localeConfig.value.locales))
+const currentPath = computed(() => routeConfig.canonicalUrl)
+const locales = computed(() => Object.keys(localeConfig.locales))
 
 watchEffect(() => {
-  locale.value = currentLocale.value
+  locale.value = pageContext.locale
 })
 
 function switchLocale(l) {
@@ -38,7 +38,7 @@ function switchLocale(l) {
           v-for="locale in locales"
           :key="locale"
           :href="switchLocale(locale)"
-          :class="{ active: locale === currentLocale }"
+          :class="{ active: locale === pageContext.locale }"
         >
           {{ locale.toUpperCase() }}
         </a>

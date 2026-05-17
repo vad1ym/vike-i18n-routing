@@ -1,10 +1,6 @@
 # useI18nRoute
 
-`useI18nRoute()` is the main runtime API.
-
-## Root export
-
-Use the root export when you already have `pageContext` in a hook, loader, or server-side handler.
+`useI18nRoute()` is the main runtime API. Import it from `vike-i18n-routing` and pass `pageContext` directly.
 
 ```ts
 import { useI18nRoute } from 'vike-i18n-routing'
@@ -22,71 +18,39 @@ const {
 
 `locale`, `localeConfig`, `domainConfig`, and `routeConfig` are plain getters on the returned object.
 
-## Vue export
+## In components
 
-Use the Vue export in components.
+Get `pageContext` from your framework's hook and pass it directly:
+
+**Vue:**
 
 ```ts
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localeConfig, domainConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-In the Vue version:
-
-- `locale` is a computed ref
-- `localeConfig` is a computed ref
-- `domainConfig` is a computed ref
-- `routeConfig` is a computed ref
-
-`setRouteParamVariants()`, `setRouteQueryVariants()`, and `localizePath()` keep the same API shape.
-
-When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
-When `setRouteQueryVariants()` is used during data loading, translated query values are normalized automatically too.
-
-## React export
-
-Use the React export in components.
+**React:**
 
 ```ts
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localeConfig, domainConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-In the React version:
-
-- `locale` is a plain value
-- `localeConfig` is a memoized object
-- `domainConfig` is a memoized object
-- `routeConfig` is a memoized object
-
-`setRouteParamVariants()`, `setRouteQueryVariants()`, and `localizePath()` keep the same API shape.
-
-## Solid export
-
-Use the Solid export in components.
+**Solid:**
 
 ```ts
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localeConfig, domainConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-In the Solid version:
-
-- `locale` is a memo accessor
-- `localeConfig` is a memo accessor
-- `domainConfig` is a memo accessor
-- `routeConfig` is a memo accessor
-
-`setRouteParamVariants()`, `setRouteQueryVariants()`, and `localizePath()` keep the same API shape.
+When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
+When `setRouteQueryVariants()` is used during data loading, translated query values are normalized automatically too.
 
 ## `localizePath()` signatures
 

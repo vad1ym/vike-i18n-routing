@@ -11,11 +11,11 @@ The example app syncs the resolved route locale with `vue-i18n`.
 import { watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 const { locale } = useI18n({ useScope: 'global' })
-const pageContext = usePageContext()
-const { locale: currentLocale, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
+const currentLocale = i18nRoute.localeConfig.currentLocale
 
 watchEffect(() => {
   locale.value = currentLocale.value
@@ -78,14 +78,13 @@ function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-Use the React wrapper inside components:
+Use `useI18nRoute` inside components:
 
 ```tsx
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
 ## Solid + simple translator
@@ -94,12 +93,11 @@ The Solid example keeps text translation intentionally small and SSR-safe.
 
 ```tsx
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { createTranslator } from '../i18n'
 
-const pageContext = usePageContext()
-const { locale, localizePath } = useI18nRoute(pageContext)
-const t = createTranslator(locale)
+const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
+const t = createTranslator(i18nRoute.localeConfig.currentLocale)
 ```
 
 Next: [I18n Routes](/guide/i18n-routes)

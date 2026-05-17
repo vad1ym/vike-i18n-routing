@@ -1,7 +1,7 @@
 import { For } from 'solid-js'
 import { useData } from 'vike-solid/useData'
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { createTranslator } from '../../i18n'
 import type { SpecialityFocusFilter, SpecialityRecord } from './data'
 
@@ -15,11 +15,12 @@ type PageData = {
 
 function Page() {
   const data = useData<PageData>()
-  const { locale, localizePath } = useI18nRoute(usePageContext())
-  const t = createTranslator(locale)
+  const pageContext = usePageContext()
+  const { localizePath } = useI18nRoute(pageContext)
+  const t = createTranslator(() => pageContext.locale)
 
   function filterHref(filter: PageData['filters'][number]) {
-    return localizePath(`/specialities?focus=${filter.variants[locale()]}`)
+    return localizePath(`/specialities?focus=${filter.variants[pageContext.locale]}`)
   }
 
   return (
@@ -50,10 +51,10 @@ function Page() {
         <For each={data.specialities}>
           {(item) => (
             <li>
-              <a href={localizePath(`/specialities/${item.variants.speciality[locale()]}`)}>
-                {item.title[locale() as 'en' | 'ru']}
+              <a href={localizePath(`/specialities/${item.variants.speciality[pageContext.locale]}`)}>
+                {item.title[pageContext.locale as 'en' | 'ru']}
               </a>
-              <p>{item.description[locale() as 'en' | 'ru']}</p>
+              <p>{item.description[pageContext.locale as 'en' | 'ru']}</p>
             </li>
           )}
         </For>
