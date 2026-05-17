@@ -125,6 +125,10 @@ export type LocalizedPathOptions = {
   queryVariants?: Record<string, RouteQueryVariants>
 }
 
+export type RouteDescriptor = {
+  key: string
+}
+
 export type I18nRoute = {
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig

@@ -22,6 +22,7 @@
     "./react": "./lib/react/useI18nRoute.ts",
     "./solid": "./lib/solid/useI18nRoute.ts",
     "./vue": "./lib/vue/useI18nRoute.ts",
+    "./core/useI18nRoute": "./lib/core/useI18nRoute.ts",
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRender": "./lib/vike/onBeforeRender.ts",
@@ -48,7 +49,11 @@
     "example:solid": "pnpm --filter example-solid dev",
     "example:solid:build": "pnpm --filter example-solid build",
     "example:static": "pnpm --filter example-static dev",
-    "example:static:build": "pnpm --filter example-static build"
+    "example:static:build": "pnpm --filter example-static build",
+    "example:medicines": "pnpm --filter example-medicines dev",
+    "example:medicines:build": "pnpm --filter example-medicines build",
+    "example:perf": "pnpm --filter example-perf dev",
+    "example:perf:build": "pnpm --filter example-perf build"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
@@ -65,7 +70,8 @@
     "vue": "^3.5.34"
   },
   "peerDependencies": {
-    "vike": ">=0.4.259"
+    "vike": ">=0.4.259",
+    "vike-vue": "^0.9.11"
   },
   "packageManager": "pnpm@10.11.0",
   "dependencies": {
