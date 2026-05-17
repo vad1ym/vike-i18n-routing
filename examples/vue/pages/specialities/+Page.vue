@@ -2,14 +2,16 @@
 import { useI18n } from 'vue-i18n'
 import { useData } from 'vike-vue/useData'
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 const { t } = useI18n({ useScope: 'global' })
 const data = useData()
-const { locale, localizePath } = useI18nRoute(usePageContext())
+const pageContext = usePageContext()
+const { localizePath } = useI18nRoute(pageContext)
+const locale = pageContext.locale
 
 function filterHref(filter) {
-  return localizePath(`/specialities?focus=${filter.variants[locale.value]}`)
+  return localizePath(`/specialities?focus=${filter.variants[locale]}`)
 }
 </script>
 

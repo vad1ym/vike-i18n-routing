@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { IntlProvider, useIntl } from 'react-intl'
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 import { messages } from '../messages'
 
 export { Layout }
@@ -20,7 +20,7 @@ function Layout({ children }: { children: ReactNode }) {
 function LayoutContent({ children }: { children: ReactNode }) {
   const intl = useIntl()
   const pageContext = usePageContext()
-  const { locale, localeConfig, routeConfig, localizePath } = useI18nRoute(pageContext)
+  const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
   const locales = Object.keys(localeConfig.locales)
 
   function switchLocale(nextLocale: string) {
@@ -47,7 +47,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
             <a
               key={supportedLocale}
               href={switchLocale(supportedLocale)}
-              style={supportedLocale === locale ? activeLocaleStyle : undefined}
+              style={supportedLocale === pageContext.locale ? activeLocaleStyle : undefined}
             >
               {supportedLocale.toUpperCase()}
             </a>

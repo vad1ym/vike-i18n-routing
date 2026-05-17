@@ -1,13 +1,12 @@
 <script setup>
 import { usePageContext } from 'vike-vue/usePageContext'
 import { useData } from 'vike-vue/useData'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
 import { computed } from 'vue'
 import { getMessages } from '../../messages'
 
-const { locale } = useI18nRoute(usePageContext())
+const pageContext = usePageContext()
 const data = useData()
-const messages = computed(() => getMessages(locale.value))
+const messages = computed(() => getMessages(pageContext.locale))
 </script>
 
 <template>
@@ -17,8 +16,8 @@ const messages = computed(() => getMessages(locale.value))
 
     <ul class="list">
       <li v-for="item in data.specialities" :key="item.title.en">
-        <strong>{{ item.title[locale] }}</strong>
-        <p>{{ item.description[locale] }}</p>
+        <strong>{{ item.title[pageContext.locale] }}</strong>
+        <p>{{ item.description[pageContext.locale] }}</p>
       </li>
     </ul>
   </section>

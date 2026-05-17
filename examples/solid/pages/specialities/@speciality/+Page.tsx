@@ -1,6 +1,5 @@
 import { useData } from 'vike-solid/useData'
 import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/solid'
 import { createTranslator } from '../../../i18n'
 
 export { Page }
@@ -13,8 +12,7 @@ type PageData = {
 function Page() {
   const data = useData<PageData>()
   const pageContext = usePageContext()
-  const { locale } = useI18nRoute(pageContext)
-  const t = createTranslator(locale)
+  const t = createTranslator(() => pageContext.locale)
 
   return (
     <div>

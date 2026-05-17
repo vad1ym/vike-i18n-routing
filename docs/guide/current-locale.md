@@ -12,18 +12,17 @@ function onBeforeRender(pageContext: Vike.PageContext) {
 
 ## Through `useI18nRoute()`
 
-In components, use the framework-specific export. For example in Vue:
+In components, pass `pageContext` directly:
 
 ```ts
 import { usePageContext } from 'vike-vue/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/vue'
+import { useI18nRoute } from 'vike-i18n-routing'
 
-const pageContext = usePageContext()
-const { locale } = useI18nRoute(pageContext)
-// locale is a computed ref in the Vue export
+const { i18nRoute } = useI18nRoute(usePageContext())
+const locale = i18nRoute.localeConfig.currentLocale
 ```
 
-See [useI18nRoute](/guide/use-i18n-route) for the React, Solid, and root export variants.
+See [useI18nRoute](/guide/use-i18n-route) for the full API.
 
 ## `localeDetector`
 
