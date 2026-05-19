@@ -1,5 +1,6 @@
 import { normalizeLocales } from './locale/normalize'
 import { normalizePathname, normalizeRoutePattern } from './route-patterns'
+import { normalizeRoutes } from './routes'
 import type { I18nConfig, LocaleCode } from './types'
 
 export async function generateStaticPaths(
@@ -15,8 +16,9 @@ export async function generateStaticPaths(
   const localeCodes = Object.keys(locales)
   const paths = new Set<string>()
   const prefixDefaultLocale = config.prefixDefaultLocale !== false
+  const routes = normalizeRoutes(config.routes)
 
-  for (const [canonicalPattern, localizedPatterns] of Object.entries(config.routes)) {
+  for (const [canonicalPattern, localizedPatterns] of Object.entries(routes)) {
     const isDynamicRoute = normalizeRoutePattern(canonicalPattern).includes(':')
 
     if (!isDynamicRoute) {

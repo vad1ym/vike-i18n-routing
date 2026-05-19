@@ -1,6 +1,6 @@
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
 import type {
-  I18nRoutes,
+  FlatI18nRoutes,
   LocaleCode,
   PageContextLocaleConfig,
   RedirectConfig,
@@ -24,7 +24,7 @@ type ResolvedConfigRedirect = {
 function getLocaleAwareSourcePattern(
   sourcePattern: string,
   currentLocale: LocaleCode,
-  routes: I18nRoutes,
+  routes: FlatI18nRoutes,
 ): string | null {
   // Case 1: direct route key match
   const directEntry = routes[sourcePattern]
@@ -60,7 +60,7 @@ export function resolveConfigRedirect(
   redirects: RedirectConfig,
   localizedRequestUrl: string,
   currentLocale: LocaleCode,
-  routes: I18nRoutes,
+  routes: FlatI18nRoutes,
   localeConfig: PageContextLocaleConfig,
 ): ResolvedConfigRedirect | null {
   const normalizedRequest = normalizePathname(localizedRequestUrl)
