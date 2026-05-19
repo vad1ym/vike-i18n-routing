@@ -18,6 +18,9 @@
 
 </div>
 
+> [!WARNING]
+> This library is already usable in real projects, but it is still not battle-tested across a wide range of production setups. Use it deliberately and validate the behavior against your routing, i18n, and deployment edge cases.
+
 ---
 
 ## The problem

@@ -55,7 +55,10 @@
     "example:perf:build": "pnpm --filter example-perf build"
   },
   "changelog": {
-    "output": false
+    "output": false,
+    "types": {
+      "chore": false
+    }
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
