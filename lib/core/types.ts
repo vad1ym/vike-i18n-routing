@@ -21,6 +21,8 @@ export type I18nRoutes = I18nRouteTree
 
 export type FlatI18nRoutes = Record<string, I18nRouteLeaf>
 
+export type TrailingSlash = 'never' | 'always' | 'preserve'
+
 export type DomainMeta = Record<string, any>
 
 export type DomainConfig = {
@@ -31,6 +33,7 @@ export type DomainConfig = {
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  trailingSlash?: TrailingSlash
 }
 
 export type I18nPageContext = Partial<PageContext> & {
@@ -63,6 +66,8 @@ export type ResolvedDomainConfig = {
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  trailingSlash: TrailingSlash
+  trailingSlashRedirect: number | false
 }
 
 export type PageContextLocaleConfig = {
@@ -121,6 +126,8 @@ export type I18nConfig = {
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
   localeDetector?: ((pageContext: I18nPageContext) => string | null | undefined) | LocaleDetectorConfig
   localeCookie?: string | false
+  trailingSlash?: TrailingSlash
+  trailingSlashRedirect?: number | false
 }
 
 export type RouteParamVariants = Record<LocaleCode, string>
@@ -141,6 +148,7 @@ export type LocalizedPathOptions = {
   query?: Record<string, string>
   paramVariants?: Record<string, RouteParamVariants>
   queryVariants?: Record<string, RouteQueryVariants>
+  trailingSlash?: TrailingSlash
 }
 
 export type StaticRouteParams = Record<string, string | undefined>

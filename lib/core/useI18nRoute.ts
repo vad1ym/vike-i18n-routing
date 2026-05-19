@@ -1,4 +1,6 @@
 import { getI18nConfig } from './pageContext'
+import { resolveDomainConfigForDomain } from './domain/normalize'
+import { applyTrailingSlash } from './format'
 import { createI18nRouter, createRouteDescriptor, getCompiledDomainRouting, localizeCanonicalPath, localizeCanonicalPathCached, localizeRouteDescriptor, localizeRouteDescriptorCached, localizeRouteKey, rebuildI18nRouteWithVariants } from './router'
 import { buildRoutePath } from './route-patterns'
 import { localizeNamedQueryValue } from './variants'
@@ -14,6 +16,7 @@ import type {
   RouteKey,
   RouteQueryVariants,
   RouteParamVariants,
+  TrailingSlash,
 } from './types'
 
 // O(1) check for non-empty object without allocating Object.keys()
@@ -214,6 +217,11 @@ function getDeclaredRouteDescriptor(
   return createBoundRouteDescriptor(pageContext, routeKey, effectiveRoutes)
 }
 
+function resolvedTrailingSlash(pageContext: PageContextWithI18nRoute): TrailingSlash {
+  const i18n = getI18nConfig(pageContext)
+  return resolveDomainConfigForDomain(i18n, pageContext.i18nRoute.domainConfig.domain).trailingSlash
+}
+
 function isParamsOnlyOptions(options: LocalizedPathOptions | undefined): boolean {
   if (!options) return false
   if (options.prefix !== undefined) return false
@@ -221,6 +229,7 @@ function isParamsOnlyOptions(options: LocalizedPathOptions | undefined): boolean
   if (options.query) return false
   if (options.paramVariants) return false
   if (options.queryVariants) return false
+  if (options.trailingSlash !== undefined) return false
   return true
 }
 
@@ -266,18 +275,21 @@ function finalizeLocalizedUrl(
   inputWasAbsolute: boolean,
   inputOrigin?: string,
 ): string {
+  const effectiveTrailingSlash = options?.trailingSlash ?? resolvedTrailingSlash(pageContext)
+  const slashedPath = applyTrailingSlash(localizedPath, effectiveTrailingSlash)
+
   const forceAbsolute = options?.absolute
   const shouldReturnAbsolute = forceAbsolute ?? inputWasAbsolute
 
-  if (!shouldReturnAbsolute) return localizedPath
+  if (!shouldReturnAbsolute) return slashedPath
 
   const baseUrl = getTargetBaseUrl(pageContext, targetLocale)
   if (baseUrl) {
-    return new URL(localizedPath, baseUrl).toString()
+    return new URL(slashedPath, baseUrl).toString()
   }
 
   if (inputOrigin) {
-    return new URL(localizedPath, inputOrigin).toString()
+    return new URL(slashedPath, inputOrigin).toString()
   }
 
   if (forceAbsolute === true) {
@@ -286,7 +298,7 @@ function finalizeLocalizedUrl(
     )
   }
 
-  return localizedPath
+  return slashedPath
 }
 
 function parseAbsoluteUrl(url: string): URL | null {
@@ -398,8 +410,8 @@ function localizePathOnly(
     ? getDescriptorForTargetRouteIndex(targetRouteIndex, descriptor) ?? descriptor
     : undefined
 
-  // Hot path: no options, no variants — use result cache
-  if (!resolvedOptions && hasNoResolvedVariants(pageContext, undefined)) {
+  // Hot path: no options, no variants — use result cache (only when trailingSlash is default 'never')
+  if (!resolvedOptions && hasNoResolvedVariants(pageContext, undefined) && resolvedTrailingSlash(pageContext) === 'never') {
     if (targetDescriptor) {
       const direct = localizeRouteDescriptorCached(
         targetDescriptor,

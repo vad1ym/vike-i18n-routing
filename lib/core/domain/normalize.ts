@@ -45,6 +45,12 @@ export function resolveDomainConfigForDomain(
     meta: domainConfig?.meta,
     routes: domainConfig?.routes,
     redirects: domainConfig?.redirects,
+    trailingSlash: domainConfig?.trailingSlash ?? i18n.trailingSlash ?? 'never',
+    trailingSlashRedirect: domainConfig?.trailingSlash !== undefined && i18n.trailingSlashRedirect === undefined
+      ? 301
+      : i18n.trailingSlashRedirect !== undefined
+        ? i18n.trailingSlashRedirect
+        : 301,
   }
 
   cachedByDomain.set(cacheKey, resolved)
