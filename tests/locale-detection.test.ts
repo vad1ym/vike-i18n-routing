@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
@@ -23,6 +23,10 @@ const config: I18nConfig = {
     },
   },
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('locale detection — cookie', () => {
   it('detects locale from cookie and redirects to localized path', () => {
@@ -121,5 +125,44 @@ describe('locale detection — custom function', () => {
         }),
       ),
     ).toBe('/en/about')
+  })
+})
+
+describe('locale detection — debug log', () => {
+  it('logs the winning detection source and skipped sources when debug is enabled', () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {})
+
+    resolveRenderRedirect(
+      makePageContext('/about', {
+        ...config,
+        debug: true,
+        localeDetector: () => null,
+      }, {
+        headers: { host: 'site.com', cookie: 'locale=ru' },
+      }),
+    )
+
+    expect(info.mock.calls).toEqual([
+      ['[vike-i18n-routing] locale resolved: ru'],
+      ['[vike-i18n-routing]   ✗ localeDetector fn -> null'],
+      ['[vike-i18n-routing]   ✗ query ?locale -> not present'],
+      ['[vike-i18n-routing]   ✗ query ?lang -> not present'],
+      ["[vike-i18n-routing]   ✓ cookie 'locale' -> 'ru'"],
+    ])
+  })
+
+  it('does not log when debug is disabled', () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {})
+
+    resolveRenderRedirect(
+      makePageContext('/about', {
+        ...config,
+        debug: false,
+      }, {
+        headers: { host: 'site.com', cookie: 'locale=ru' },
+      }),
+    )
+
+    expect(info).not.toHaveBeenCalled()
   })
 })

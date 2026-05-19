@@ -71,6 +71,7 @@ The plugin:
 - Redirects `/about` → `/en/about` (missing prefix)
 - Redirects `/ru/about` → `/ru/o-nas` (wrong-locale URL)
 - Detects locale from URL, query param, cookie, session, `Accept-Language`
+- Can log locale negotiation decisions in `debug` mode
 - Provides `localizePath()` for building locale-aware links
 - Generates `alternateUrls` for SEO hreflang tags
 
