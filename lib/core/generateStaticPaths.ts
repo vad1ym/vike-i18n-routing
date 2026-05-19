@@ -1,11 +1,14 @@
 import { normalizeLocales } from './locale/normalize'
 import { normalizePathname, normalizeRoutePattern } from './route-patterns'
 import { normalizeRoutes } from './routes'
+import { validateI18nConfig } from './validate'
 import type { I18nConfig, LocaleCode } from './types'
 
 export async function generateStaticPaths(
   config: I18nConfig,
 ): Promise<string[]> {
+  validateI18nConfig(config)
+
   if (config.domains) {
     console.warn(
       'generateStaticPaths() ignores config.domains. Static output for domain-based routing is not supported.',

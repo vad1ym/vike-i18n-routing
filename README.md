@@ -74,6 +74,7 @@ The plugin:
 - Can log locale negotiation decisions in `debug` mode
 - Provides `localizePath()` for building locale-aware links
 - Generates `alternateUrls` for SEO hreflang tags
+- Validates i18n config early with friendly errors and warnings
 
 Large route maps can stay inside `routes` and be grouped by canonical prefix:
 
