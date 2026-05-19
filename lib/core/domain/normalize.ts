@@ -1,5 +1,5 @@
 import { getDomain } from '../pageContext'
-import { normalizeLocales } from '../locale/normalize'
+import { mergeLocales, normalizeLocales } from '../locale/normalize'
 import type { DomainConfig, I18nConfig, I18nPageContext, ResolvedDomainConfig } from '../types'
 
 export function detectDomain(pageContext: I18nPageContext, i18n: I18nConfig): string | undefined {
@@ -14,22 +14,40 @@ export function resolveDomainConfig(
   pageContext: I18nPageContext,
 ): ResolvedDomainConfig {
   const domain = detectDomain(pageContext, i18n)
+  return resolveDomainConfigForDomain(i18n, domain)
+}
+
+const resolvedDomainConfigCache = new WeakMap<I18nConfig, Map<string, ResolvedDomainConfig>>()
+
+export function resolveDomainConfigForDomain(
+  i18n: I18nConfig,
+  domain: string | undefined,
+): ResolvedDomainConfig {
+  let cachedByDomain = resolvedDomainConfigCache.get(i18n)
+  if (!cachedByDomain) {
+    cachedByDomain = new Map()
+    resolvedDomainConfigCache.set(i18n, cachedByDomain)
+  }
+
+  const cacheKey = domain ?? ''
+  const cached = cachedByDomain.get(cacheKey)
+  if (cached) return cached
+
   const domainConfig = domain ? resolveMatchingDomainConfig(domain, i18n.domains) : undefined
   const baseLocales = normalizeLocales(i18n.locales)
-  const locales = domainConfig?.locales
-    ? normalizeLocales(domainConfig.locales)
-    : baseLocales
-  const defaultLocale = domainConfig?.defaultLocale ?? i18n.defaultLocale
-
-  return {
+  const locales = mergeLocales(baseLocales, domainConfig?.locales)
+  const resolved: ResolvedDomainConfig = {
     domain: domainConfig ? domain : undefined,
-    defaultLocale,
+    defaultLocale: domainConfig?.defaultLocale ?? i18n.defaultLocale,
     locales,
     prefixDefaultLocale: domainConfig?.prefixDefaultLocale ?? i18n.prefixDefaultLocale !== false,
     meta: domainConfig?.meta,
     routes: domainConfig?.routes,
     redirects: domainConfig?.redirects,
   }
+
+  cachedByDomain.set(cacheKey, resolved)
+  return resolved
 }
 
 function resolveMatchingDomainConfig(

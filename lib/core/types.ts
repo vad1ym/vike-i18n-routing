@@ -2,13 +2,24 @@ import type { PageContext } from "vike/types"
 
 export type LocaleCode = string
 
+export type LocaleMeta = Record<string, any>
+
 export type LocaleConfig = {
   urlPrefix: string
+  meta?: LocaleMeta
 }
 
 export type LocaleConfigs = Record<LocaleCode, LocaleConfig> | LocaleCode[]
 
-export type I18nRoutes = Record<string, Record<LocaleCode, string>>
+export type I18nRouteLeaf = Record<LocaleCode, string>
+
+export interface I18nRouteTree {
+  [route: string]: I18nRouteLeaf | I18nRouteTree
+}
+
+export type I18nRoutes = I18nRouteTree
+
+export type FlatI18nRoutes = Record<string, I18nRouteLeaf>
 
 export type DomainMeta = Record<string, any>
 
@@ -56,6 +67,7 @@ export type PageContextLocaleConfig = {
   defaultLocale: LocaleCode
   locales: Record<LocaleCode, LocaleConfig>
   currentLocale: LocaleCode
+  currentLocaleMeta?: LocaleMeta
   prefixDefaultLocale: boolean
 }
 
@@ -123,6 +135,10 @@ export type LocalizedPathOptions = {
   query?: Record<string, string>
   paramVariants?: Record<string, RouteParamVariants>
   queryVariants?: Record<string, RouteQueryVariants>
+}
+
+export type RouteDescriptor = {
+  key: string
 }
 
 export type I18nRoute = {

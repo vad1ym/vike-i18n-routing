@@ -62,6 +62,84 @@ describe('domains — basic resolution', () => {
   })
 })
 
+describe('domains — locale metadata', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: {
+      en: {
+        urlPrefix: 'en',
+        meta: { currency: 'USD', region: 'global', dateFormat: 'MM/DD/YYYY' },
+      },
+      de: {
+        urlPrefix: 'de',
+        meta: { currency: 'EUR', region: 'global', dateFormat: 'DD.MM.YYYY' },
+      },
+    },
+    routes: {
+      '/about': { en: '/about', de: '/uber' },
+    },
+    domains: {
+      'site.de': {
+        defaultLocale: 'de',
+        locales: {
+          de: {
+            urlPrefix: 'de',
+            meta: { region: 'de' },
+          },
+          en: {
+            urlPrefix: 'en',
+            meta: { region: 'eu' },
+          },
+        },
+      },
+    },
+  }
+
+  it('merges domain locale meta with base locale config', () => {
+    const result = onBeforeRoute(createPageContext('https://site.de/de/uber', {
+      config: { i18n: config },
+      headers: { host: 'site.de' },
+    }) as any)
+
+    expect(result.pageContext.i18nRoute!.localeConfig.currentLocaleMeta).toEqual({
+      currency: 'EUR',
+      region: 'de',
+      dateFormat: 'DD.MM.YYYY',
+    })
+    expect(result.pageContext.i18nRoute!.localeConfig.locales.en.meta).toEqual({
+      currency: 'USD',
+      region: 'eu',
+      dateFormat: 'MM/DD/YYYY',
+    })
+  })
+
+  it('keeps base locale meta when domain uses locale array subset', () => {
+    const arraySubsetConfig: I18nConfig = {
+      ...config,
+      domains: {
+        'site.de': {
+          defaultLocale: 'de',
+          locales: ['de'],
+        },
+      },
+    }
+
+    const resolved = resolveDomainConfig(
+      arraySubsetConfig,
+      createPageContext('https://site.de/de/uber', {
+        config: { i18n: arraySubsetConfig },
+        headers: { host: 'site.de' },
+      }),
+    )
+
+    expect(resolved.locales.de.meta).toEqual({
+      currency: 'EUR',
+      region: 'global',
+      dateFormat: 'DD.MM.YYYY',
+    })
+  })
+})
+
 describe('domains — wildcard matching', () => {
   const wildcardConfig: I18nConfig = {
     ...domainConfig,

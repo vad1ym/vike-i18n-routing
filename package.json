@@ -1,6 +1,6 @@
 {
   "name": "vike-i18n-routing",
-  "version": "0.1.12",
+  "version": "0.1.17",
   "description": "Vike plugin for i18n routing with locale prefixes and translated URLs",
   "type": "module",
   "license": "MIT",
@@ -19,9 +19,7 @@
   },
   "exports": {
     ".": "./lib/index.ts",
-    "./react": "./lib/react/useI18nRoute.ts",
-    "./solid": "./lib/solid/useI18nRoute.ts",
-    "./vue": "./lib/vue/useI18nRoute.ts",
+    "./core/useI18nRoute": "./lib/core/useI18nRoute.ts",
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRender": "./lib/vike/onBeforeRender.ts",
@@ -48,7 +46,11 @@
     "example:solid": "pnpm --filter example-solid dev",
     "example:solid:build": "pnpm --filter example-solid build",
     "example:static": "pnpm --filter example-static dev",
-    "example:static:build": "pnpm --filter example-static build"
+    "example:static:build": "pnpm --filter example-static build",
+    "example:medicines": "pnpm --filter example-medicines dev",
+    "example:medicines:build": "pnpm --filter example-medicines build",
+    "example:perf": "pnpm --filter example-perf dev",
+    "example:perf:build": "pnpm --filter example-perf build"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",

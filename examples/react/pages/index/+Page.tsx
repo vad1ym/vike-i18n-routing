@@ -1,12 +1,14 @@
 import { useIntl } from 'react-intl'
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 
 export { Page }
 
 function Page() {
   const intl = useIntl()
-  const { locale, localizePath } = useI18nRoute(usePageContext())
+  const pageContext = usePageContext()
+  const { localizePath } = useI18nRoute(pageContext)
+  const locale = pageContext.locale
 
   return (
     <div>

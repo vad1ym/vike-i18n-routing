@@ -1,6 +1,6 @@
 import { getCookies, getHeaders, getSearchParams, getSession } from '../pageContext'
 import { resolveDomainConfig } from '../domain/normalize'
-import type { I18nConfig, I18nPageContext, LocaleCode, LocaleDetectorConfig } from '../types'
+import type { I18nConfig, I18nPageContext, LocaleCode, LocaleDetectorConfig, ResolvedDomainConfig } from '../types'
 
 // Parses a Cookie header string into a name/value map.
 export function parseCookies(cookieHeader: string): Record<string, string> {
@@ -48,47 +48,45 @@ export function resolveCookieLocale(
 export function detectRequestLocale(
   pageContext: I18nPageContext,
   i18n: I18nConfig,
+  preResolved?: ResolvedDomainConfig,
 ): LocaleCode {
-  const resolvedDomain = resolveDomainConfig(i18n, pageContext)
+  const resolvedDomain = preResolved ?? resolveDomainConfig(i18n, pageContext)
   const locales = resolvedDomain.locales
 
-  const validate = (locale: string | null | undefined): LocaleCode | null => {
-    if (locale && locales[locale]) return locale
-    return null
-  }
-
-  const candidates: Array<string | null | undefined> = []
   const detectorConfig = getLocaleDetectorConfig(i18n)
 
+  let candidate: string | null | undefined
+
   if (typeof i18n.localeDetector === 'function') {
-    candidates.push(i18n.localeDetector(pageContext))
+    candidate = i18n.localeDetector(pageContext)
+    if (candidate && locales[candidate]) return candidate
   }
 
   const searchParams = getSearchParams(pageContext)
   if (detectorConfig.queryParams !== false) {
-    candidates.push(
-      searchParams.get('locale'),
-      searchParams.get('lang'),
-    )
+    candidate = searchParams.get('locale')
+    if (candidate && locales[candidate]) return candidate
+    candidate = searchParams.get('lang')
+    if (candidate && locales[candidate]) return candidate
   }
 
   if (detectorConfig.localeCookie !== false) {
-    candidates.push(resolveCookieLocale(pageContext, i18n))
+    candidate = resolveCookieLocale(pageContext, i18n)
+    if (candidate && locales[candidate]) return candidate
   }
 
   if (detectorConfig.session !== false) {
-    candidates.push(getSession(pageContext)?.locale)
+    candidate = getSession(pageContext)?.locale
+    if (candidate && locales[candidate]) return candidate
   }
 
   if (detectorConfig.acceptLanguageHeader !== false) {
     const acceptLanguage = getHeaders(pageContext)['accept-language']
     const headerValue = Array.isArray(acceptLanguage) ? acceptLanguage[0] : acceptLanguage
-    candidates.push(...parseAcceptLanguage(headerValue))
-  }
-
-  for (const candidate of candidates) {
-    const detected = validate(candidate)
-    if (detected) return detected
+    const parsed = parseAcceptLanguage(headerValue)
+    for (const lang of parsed) {
+      if (locales[lang]) return lang
+    }
   }
 
   return resolvedDomain.defaultLocale

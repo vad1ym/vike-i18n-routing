@@ -7,8 +7,9 @@
 ```ts
 type PageContextLocaleConfig = {
   defaultLocale: string
-  locales: Record<string, { urlPrefix: string }>
+  locales: Record<string, { urlPrefix: string; meta?: Record<string, any> }>
   currentLocale: string
+  currentLocaleMeta?: Record<string, any>
   prefixDefaultLocale: boolean
 }
 ```
@@ -16,8 +17,9 @@ type PageContextLocaleConfig = {
 ## Fields
 
 - `defaultLocale`: fallback locale for the current domain
-- `locales`: active locale map with `urlPrefix`
+- `locales`: active locale map with `urlPrefix` and optional `meta`
 - `currentLocale`: resolved locale for the current request
+- `currentLocaleMeta`: metadata of the resolved locale, if configured
 - `prefixDefaultLocale`: whether the default locale should appear in the URL
 
 ## Example
@@ -26,8 +28,10 @@ type PageContextLocaleConfig = {
 const { localeConfig } = useI18nRoute(pageContext)
 
 localeConfig.currentLocale
+localeConfig.currentLocaleMeta?.currency
 localeConfig.defaultLocale
 Object.keys(localeConfig.locales)
+localeConfig.locales.en.meta?.region
 localeConfig.prefixDefaultLocale
 ```
 

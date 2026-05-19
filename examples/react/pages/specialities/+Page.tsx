@@ -1,7 +1,7 @@
 import { useIntl } from 'react-intl'
 import { useData } from 'vike-react/useData'
 import { usePageContext } from 'vike-react/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing/react'
+import { useI18nRoute } from 'vike-i18n-routing'
 import type { SpecialityFocusFilter, SpecialityRecord } from './data'
 
 export { Page }
@@ -15,7 +15,9 @@ type PageData = {
 function Page() {
   const intl = useIntl()
   const data = useData<PageData>()
-  const { locale, localizePath } = useI18nRoute(usePageContext())
+  const pageContext = usePageContext()
+  const { localizePath } = useI18nRoute(pageContext)
+  const locale = pageContext.locale
 
   function filterHref(filter: PageData['filters'][number]) {
     return localizePath(`/specialities?focus=${filter.variants[locale]}`)
