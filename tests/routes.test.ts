@@ -89,4 +89,18 @@ describe('routes — integration (router + useI18nRoute)', () => {
     expect(about.to('ru')).toBe('/ru/o-nas')
     expect(route.localizePath(about, 'en')).toBe('/en/about')
   })
+
+  it('resolves route keys from localized, canonical, and absolute URLs', () => {
+    const route = createTestRouter('/en/about', baseConfig)
+
+    expect(route.resolveRouteKey('/ru/o-nas')).toBe('/about')
+    expect(route.resolveRouteKey('/en/about')).toBe('/about')
+    expect(route.resolveRouteKey('https://site.com/ru/o-nas')).toBe('/about')
+  })
+
+  it('returns null for unknown URLs', () => {
+    const route = createTestRouter('/en/about', baseConfig)
+
+    expect(route.resolveRouteKey('/unknown')).toBeNull()
+  })
 })
