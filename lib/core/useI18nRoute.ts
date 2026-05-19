@@ -3,6 +3,7 @@ import { createI18nRouter, createRouteDescriptor, getCompiledDomainRouting, loca
 import { buildRoutePath } from './route-patterns'
 import { localizeNamedQueryValue } from './variants'
 import type {
+  I18nConfig,
   I18nPageContext,
   I18nRoute,
   LocaleCode,
@@ -10,6 +11,7 @@ import type {
   ParamVariantConfig,
   QueryVariantConfig,
   RouteDescriptor,
+  RouteKey,
   RouteQueryVariants,
   RouteParamVariants,
 } from './types'
@@ -53,10 +55,22 @@ export type UseI18nRouteResult = {
   }
 }
 
-export type BoundRouteDescriptor = RouteDescriptor & {
+export type BoundRouteDescriptor<TKey extends string = string> = Omit<RouteDescriptor, 'key'> & {
+  key: TKey
   to: {
     (locale?: LocaleCode, options?: LocalizedPathOptions): string
     (options?: LocalizedPathOptions): string
+  }
+}
+
+export type TypedUseI18nRouteResult<TConfig extends I18nConfig> = Omit<
+  UseI18nRouteResult,
+  'route' | 'localizePath'
+> & {
+  route: (routeKey: RouteKey<TConfig>) => BoundRouteDescriptor<RouteKey<TConfig>>
+  localizePath: {
+    (routeKey: RouteKey<TConfig> | RouteDescriptor, locale?: LocaleCode, options?: LocalizedPathOptions): string
+    (routeKey: RouteKey<TConfig> | RouteDescriptor, options?: LocalizedPathOptions): string
   }
 }
 
@@ -514,5 +528,15 @@ export function useI18nRoute(
     localizePath(routeKey: string | RouteDescriptor, localeOrOptions?: LocaleCode | LocalizedPathOptions, options?: LocalizedPathOptions): string {
       return localizePath(pageContext, routeKey, localeOrOptions, options)
     },
+  }
+}
+
+export function createUseI18nRoute<TConfig extends I18nConfig>(
+  _config: TConfig,
+): (
+  pageContext: PageContextWithI18nRoute,
+) => TypedUseI18nRouteResult<TConfig> {
+  return function useTypedI18nRoute(pageContext: PageContextWithI18nRoute): TypedUseI18nRouteResult<TConfig> {
+    return useI18nRoute(pageContext) as unknown as TypedUseI18nRouteResult<TConfig>
   }
 }
