@@ -6,6 +6,7 @@ export type {
   I18nRoute,
   LocaleCode,
   LocaleConfig,
+  LocaleMeta,
   DomainMeta,
   PageContextDomainConfig,
   PageContextLocaleConfig,

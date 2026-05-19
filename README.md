@@ -47,11 +47,21 @@ This works for simple cases, but leaves everything else to you: locale detection
 // pages/+config.ts
 i18n: {
   defaultLocale: 'en',
-  locales: ['en', 'ru'],
+  locales: {
+    en: { urlPrefix: 'en', meta: { currency: 'USD', region: 'us' } },
+    ru: { urlPrefix: 'ru', meta: { currency: 'UAH', region: 'ua' } },
+  },
   routes: {
     '/about': { en: '/about', ru: '/o-nas' },
   },
 }
+```
+
+```ts
+const { localeConfig } = useI18nRoute(pageContext)
+
+localeConfig.currentLocaleMeta?.currency
+localeConfig.locales.en.meta?.region
 ```
 
 The plugin:

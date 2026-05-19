@@ -20,6 +20,7 @@ import { useI18nRoute } from 'vike-i18n-routing'
 
 const { i18nRoute } = useI18nRoute(usePageContext())
 const locale = i18nRoute.localeConfig.currentLocale
+const localeCurrency = i18nRoute.localeConfig.currentLocaleMeta?.currency
 ```
 
 See [useI18nRoute](/guide/use-i18n-route) for the full API.
