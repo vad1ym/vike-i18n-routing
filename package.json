@@ -1,6 +1,6 @@
 {
   "name": "vike-i18n-routing",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "Vike plugin for i18n routing with locale prefixes and translated URLs",
   "type": "module",
   "license": "MIT",
@@ -51,6 +51,9 @@
     "example:medicines:build": "pnpm --filter example-medicines build",
     "example:perf": "pnpm --filter example-perf dev",
     "example:perf:build": "pnpm --filter example-perf build"
+  },
+  "changelog": {
+    "output": false
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
