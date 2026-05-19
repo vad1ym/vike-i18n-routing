@@ -588,12 +588,16 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
   const domainConfig = resolved.domain
     ? {
         domain: resolved.domain,
+        baseUrl: resolved.baseUrl,
         defaultLocale: resolved.defaultLocale,
         locales: resolved.locales,
         prefixDefaultLocale: resolved.prefixDefaultLocale,
         meta: resolved.meta,
       }
-    : { domain: undefined as string | undefined }
+    : {
+        domain: undefined as string | undefined,
+        baseUrl: resolved.baseUrl,
+      }
 
   return { requestLocale, domainConfig, localeConfig, domain, resolved, compiled }
 }

@@ -123,6 +123,66 @@ function getEffectiveRouteIndex(pageContext: PageContextWithI18nRoute) {
   return getCompiledDomainRouting(i18n, pageContext.i18nRoute.domainConfig.domain).routeIndex
 }
 
+function createLocaleConfigForTarget(
+  pageContext: PageContextWithI18nRoute,
+  targetLocale: LocaleCode,
+  domain: string | undefined,
+) {
+  const i18n = getI18nConfig(pageContext)
+  const compiled = getCompiledDomainRouting(i18n, domain)
+
+  return {
+    domain,
+    baseUrl: compiled.resolved.baseUrl,
+    routeIndex: compiled.routeIndex,
+    localeConfig: {
+      defaultLocale: compiled.resolved.defaultLocale,
+      locales: compiled.resolved.locales,
+      currentLocale: targetLocale,
+      currentLocaleMeta: compiled.resolved.locales[targetLocale]?.meta,
+      prefixDefaultLocale: compiled.resolved.prefixDefaultLocale,
+    } satisfies I18nRoute['localeConfig'],
+  }
+}
+
+function getLocalizationTarget(
+  pageContext: PageContextWithI18nRoute,
+  targetLocale: LocaleCode,
+) {
+  const i18n = getI18nConfig(pageContext)
+  const currentDomain = pageContext.i18nRoute.domainConfig.domain
+  const currentTarget = createLocaleConfigForTarget(pageContext, targetLocale, currentDomain)
+
+  if (currentTarget.localeConfig.locales[targetLocale]) {
+    return currentTarget
+  }
+
+  for (const domain of Object.keys(i18n.domains ?? {})) {
+    if (domain === currentDomain || domain.startsWith('*.')) continue
+
+    const target = createLocaleConfigForTarget(pageContext, targetLocale, domain)
+    if (target.localeConfig.locales[targetLocale]) {
+      return target
+    }
+  }
+
+  const rootTarget = createLocaleConfigForTarget(pageContext, targetLocale, undefined)
+  if (rootTarget.localeConfig.locales[targetLocale]) {
+    return rootTarget
+  }
+
+  return currentTarget
+}
+
+function getDescriptorForTargetRouteIndex(
+  routeIndex: ReturnType<typeof getEffectiveRouteIndex>,
+  descriptorOrKey: RouteDescriptor | string,
+): RouteDescriptor | undefined {
+  const routeKey = typeof descriptorOrKey === 'string' ? descriptorOrKey : descriptorOrKey.key
+  if (!routeIndex.routes[routeKey]) return undefined
+  return createRouteDescriptor(routeIndex, routeKey)
+}
+
 function createBoundRouteDescriptor(
   pageContext: PageContextWithI18nRoute,
   routeKey: string,
@@ -157,6 +217,7 @@ function getDeclaredRouteDescriptor(
 function isParamsOnlyOptions(options: LocalizedPathOptions | undefined): boolean {
   if (!options) return false
   if (options.prefix !== undefined) return false
+  if (options.absolute !== undefined) return false
   if (options.query) return false
   if (options.paramVariants) return false
   if (options.queryVariants) return false
@@ -188,6 +249,92 @@ function buildLocalizedQueryString(
     )
   }
   return searchParams.toString()
+}
+
+function getTargetBaseUrl(
+  pageContext: PageContextWithI18nRoute,
+  targetLocale: LocaleCode,
+): string | undefined {
+  return getLocalizationTarget(pageContext, targetLocale).baseUrl
+}
+
+function finalizeLocalizedUrl(
+  pageContext: PageContextWithI18nRoute,
+  localizedPath: string,
+  targetLocale: LocaleCode,
+  options: LocalizedPathOptions | undefined,
+  inputWasAbsolute: boolean,
+  inputOrigin?: string,
+): string {
+  const forceAbsolute = options?.absolute
+  const shouldReturnAbsolute = forceAbsolute ?? inputWasAbsolute
+
+  if (!shouldReturnAbsolute) return localizedPath
+
+  const baseUrl = getTargetBaseUrl(pageContext, targetLocale)
+  if (baseUrl) {
+    return new URL(localizedPath, baseUrl).toString()
+  }
+
+  if (inputOrigin) {
+    return new URL(localizedPath, inputOrigin).toString()
+  }
+
+  if (forceAbsolute === true) {
+    console.warn(
+      '[vike-i18n] localizePath(..., { absolute: true }) requires i18n.baseUrl or domains[*].baseUrl. Returning a path-only URL.',
+    )
+  }
+
+  return localizedPath
+}
+
+function parseAbsoluteUrl(url: string): URL | null {
+  try {
+    return new URL(url)
+  } catch {
+    return null
+  }
+}
+
+function parseLocalizePathInput(
+  pageContext: PageContextWithI18nRoute,
+  routeKeyOrDescriptor: string | RouteDescriptor,
+): {
+  routeKeyOrDescriptor: string | RouteDescriptor
+  inputWasAbsolute: boolean
+  inputOrigin?: string
+} {
+  if (typeof routeKeyOrDescriptor !== 'string') {
+    return {
+      routeKeyOrDescriptor,
+      inputWasAbsolute: false,
+    }
+  }
+
+  const absoluteUrl = parseAbsoluteUrl(routeKeyOrDescriptor)
+  if (absoluteUrl) {
+    return {
+      routeKeyOrDescriptor: createI18nRouter(
+        `${absoluteUrl.pathname}${absoluteUrl.search}`,
+        pageContext,
+      ).routeConfig.canonicalUrl,
+      inputWasAbsolute: true,
+      inputOrigin: absoluteUrl.origin,
+    }
+  }
+
+  if (routeKeyOrDescriptor.includes('?')) {
+    return {
+      routeKeyOrDescriptor: createI18nRouter(routeKeyOrDescriptor, pageContext).routeConfig.canonicalUrl,
+      inputWasAbsolute: false,
+    }
+  }
+
+  return {
+    routeKeyOrDescriptor,
+    inputWasAbsolute: false,
+  }
 }
 
 export function setRouteParamVariants(
@@ -230,7 +377,7 @@ export function setRouteQueryVariants(
   pageContext.i18nRoute.localeConfig = next.localeConfig
 }
 
-export function localizePath(
+function localizePathOnly(
   pageContext: PageContextWithI18nRoute,
   routeKeyOrDescriptor: string | RouteDescriptor,
   localeOrOptions?: LocaleCode | LocalizedPathOptions,
@@ -244,36 +391,41 @@ export function localizePath(
   const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
   const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
   const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
+  const localizationTarget = getLocalizationTarget(pageContext, targetLocale)
+  const targetLocaleConfig = localizationTarget.localeConfig
+  const targetRouteIndex = localizationTarget.routeIndex
+  const targetDescriptor = descriptor
+    ? getDescriptorForTargetRouteIndex(targetRouteIndex, descriptor) ?? descriptor
+    : undefined
 
   // Hot path: no options, no variants — use result cache
   if (!resolvedOptions && hasNoResolvedVariants(pageContext, undefined)) {
-    if (descriptor) {
+    if (targetDescriptor) {
       const direct = localizeRouteDescriptorCached(
-        descriptor,
+        targetDescriptor,
         targetLocale,
-        pageContext.i18nRoute.localeConfig,
+        targetLocaleConfig,
       )
       if (direct) return direct
     }
 
-    const effectiveRoutes = getEffectiveRouteIndex(pageContext)
     return localizeCanonicalPathCached(
-      effectiveRoutes,
+      targetRouteIndex,
       routeKey,
       targetLocale,
-      pageContext.i18nRoute.localeConfig,
+      targetLocaleConfig,
     )
   }
 
   if (hasNoResolvedVariants(pageContext, resolvedOptions) && isParamsOnlyOptions(resolvedOptions)) {
-    const fastDescriptor = descriptor ?? getDeclaredRouteDescriptor(pageContext, routeKey)
+    const fastDescriptor = targetDescriptor ?? getDescriptorForTargetRouteIndex(targetRouteIndex, routeKey)
     if (fastDescriptor) {
       const direct = localizeRouteDescriptor(
         EMPTY_PARAM_VARIANTS_MAP,
         fastDescriptor,
         resolvedOptions?.params ?? {},
         targetLocale,
-        pageContext.i18nRoute.localeConfig,
+        targetLocaleConfig,
         resolvedOptions,
       )
       if (direct) return direct
@@ -285,28 +437,27 @@ export function localizePath(
     resolvedOptions?.query &&
     !resolvedOptions.prefix
   ) {
-    const fastDescriptor = descriptor ?? getDeclaredRouteDescriptor(pageContext, routeKey)
+    const fastDescriptor = targetDescriptor ?? getDescriptorForTargetRouteIndex(targetRouteIndex, routeKey)
     const direct = localizeRouteDescriptor(
       EMPTY_PARAM_VARIANTS_MAP,
       fastDescriptor ?? { key: routeKey },
       resolvedOptions?.params ?? {},
       targetLocale,
-      pageContext.i18nRoute.localeConfig,
+      targetLocaleConfig,
       resolvedOptions,
     )
-    const effectiveRoutes = getEffectiveRouteIndex(pageContext)
     const localizedPath = direct ?? localizeCanonicalPathCached(
-      effectiveRoutes,
+      targetRouteIndex,
       resolvedOptions.params
         ? buildRoutePath(routeKey, resolvedOptions.params)
         : routeKey,
       targetLocale,
-      pageContext.i18nRoute.localeConfig,
+      targetLocaleConfig,
     )
     const search = buildLocalizedQueryString(
       resolvedOptions.query,
       EMPTY_QUERY_VARIANTS_MAP,
-      pageContext.i18nRoute.localeConfig,
+      targetLocaleConfig,
       targetLocale,
     )
     return search ? `${localizedPath}?${search}` : localizedPath
@@ -340,29 +491,29 @@ export function localizePath(
   const effectiveRoutes = getEffectiveRouteIndex(pageContext)
   const directLocalizedPath = localizeRouteDescriptor(
     paramVariants,
-    descriptor ?? { key: routeKey },
+    targetDescriptor ?? { key: routeKey },
     interpolatedParams,
     targetLocale,
-    pageContext.i18nRoute.localeConfig,
+    targetLocaleConfig,
     resolvedOptions,
   ) ?? localizeRouteKey(
-    effectiveRoutes,
+    targetRouteIndex,
     paramVariants,
     routeKey,
     interpolatedParams,
     targetLocale,
-    pageContext.i18nRoute.localeConfig,
+    targetLocaleConfig,
     resolvedOptions,
   )
   const localizedPath = directLocalizedPath ?? localizeCanonicalPath(
-    effectiveRoutes,
+    targetRouteIndex,
     paramVariants,
     Object.keys(interpolatedParams).length > 0
       ? buildRoutePath(routeKey, interpolatedParams)
       : routeKey,
     queryVariants,
     targetLocale,
-    pageContext.i18nRoute.localeConfig,
+    targetLocaleConfig,
     resolvedOptions,
   )
 
@@ -371,10 +522,37 @@ export function localizePath(
   const search = buildLocalizedQueryString(
     resolvedOptions.query,
     queryVariants,
-    pageContext.i18nRoute.localeConfig,
+    targetLocaleConfig,
     targetLocale,
   )
   return search ? `${localizedPath}?${search}` : localizedPath
+}
+
+export function localizePath(
+  pageContext: PageContextWithI18nRoute,
+  routeKeyOrDescriptor: string | RouteDescriptor,
+  localeOrOptions?: LocaleCode | LocalizedPathOptions,
+  options?: LocalizedPathOptions,
+): string {
+  const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
+  const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
+  const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
+  const parsed = parseLocalizePathInput(pageContext, routeKeyOrDescriptor)
+  const localizedPath = localizePathOnly(
+    pageContext,
+    parsed.routeKeyOrDescriptor,
+    localeOrOptions,
+    options,
+  )
+
+  return finalizeLocalizedUrl(
+    pageContext,
+    localizedPath,
+    targetLocale,
+    resolvedOptions,
+    parsed.inputWasAbsolute,
+    parsed.inputOrigin,
+  )
 }
 
 export function resolveRouteKey(
@@ -393,38 +571,60 @@ function localizeDescriptorPath(
   const resolvedLocale = typeof localeOrOptions === 'string' ? localeOrOptions : undefined
   const resolvedOptions = typeof localeOrOptions === 'object' ? localeOrOptions : options
   const targetLocale = resolvedLocale ?? pageContext.i18nRoute.localeConfig.currentLocale
-  const localeConfig = pageContext.i18nRoute.localeConfig
+  const localizationTarget = getLocalizationTarget(pageContext, targetLocale)
+  const localeConfig = localizationTarget.localeConfig
+  const targetDescriptor = getDescriptorForTargetRouteIndex(localizationTarget.routeIndex, descriptor) ?? descriptor
 
   const pv = pageContext.i18nRoute.routeConfig.paramVariants
   const qv = pageContext.i18nRoute.routeConfig.queryVariants
   if (!resolvedOptions && !hasAnyKey(pv) && !hasAnyKey(qv)) {
     const direct = localizeRouteDescriptorCached(
-      descriptor,
+      targetDescriptor,
       targetLocale,
       localeConfig,
     )
-    if (direct) return direct
+    if (direct) {
+      return finalizeLocalizedUrl(
+        pageContext,
+        direct,
+        targetLocale,
+        resolvedOptions,
+        false,
+      )
+    }
 
-    const i18n = getI18nConfig(pageContext)
-    const { routeIndex } = getCompiledDomainRouting(i18n, pageContext.i18nRoute.domainConfig.domain)
-    return localizeCanonicalPathCached(
-      routeIndex,
-      descriptor.key,
+    return finalizeLocalizedUrl(
+      pageContext,
+      localizeCanonicalPathCached(
+        localizationTarget.routeIndex,
+        targetDescriptor.key,
+        targetLocale,
+        localeConfig,
+      ),
       targetLocale,
-      localeConfig,
+      resolvedOptions,
+      false,
     )
   }
 
   if (!hasAnyKey(pv) && !hasAnyKey(qv) && isParamsOnlyOptions(resolvedOptions)) {
     const direct = localizeRouteDescriptor(
       EMPTY_PARAM_VARIANTS_MAP,
-      descriptor,
+      targetDescriptor,
       resolvedOptions?.params ?? {},
       targetLocale,
       localeConfig,
       resolvedOptions,
     )
-    if (direct) return direct
+    if (direct) {
+      return finalizeLocalizedUrl(
+        pageContext,
+        direct,
+        targetLocale,
+        resolvedOptions,
+        false,
+      )
+    }
   }
 
   const paramVariants = new Map(getParamVariants(pageContext))
@@ -453,30 +653,36 @@ function localizeDescriptorPath(
 
   const directLocalizedPath = localizeRouteDescriptor(
     paramVariants,
-    descriptor,
+    targetDescriptor,
     interpolatedParams,
     targetLocale,
-    pageContext.i18nRoute.localeConfig,
+    localeConfig,
     resolvedOptions,
   )
 
   const localizedPath = directLocalizedPath ?? (() => {
-    const i18n = getI18nConfig(pageContext)
-    const { routeIndex } = getCompiledDomainRouting(i18n, pageContext.i18nRoute.domainConfig.domain)
     return localizeCanonicalPath(
-      routeIndex,
+      localizationTarget.routeIndex,
       paramVariants,
       Object.keys(interpolatedParams).length > 0
-        ? buildRoutePath(descriptor.key, interpolatedParams)
-        : descriptor.key,
+        ? buildRoutePath(targetDescriptor.key, interpolatedParams)
+        : targetDescriptor.key,
       queryVariants,
       targetLocale,
-      pageContext.i18nRoute.localeConfig,
+      localeConfig,
       resolvedOptions,
     )
   })()
 
-  if (!resolvedOptions?.query) return localizedPath
+  if (!resolvedOptions?.query) {
+    return finalizeLocalizedUrl(
+      pageContext,
+      localizedPath,
+      targetLocale,
+      resolvedOptions,
+      false,
+    )
+  }
 
   const searchParams = new URLSearchParams()
   for (const [key, value] of Object.entries(resolvedOptions.query)) {
@@ -487,7 +693,13 @@ function localizeDescriptorPath(
   }
 
   const search = searchParams.toString()
-  return search ? `${localizedPath}?${search}` : localizedPath
+  return finalizeLocalizedUrl(
+    pageContext,
+    search ? `${localizedPath}?${search}` : localizedPath,
+    targetLocale,
+    resolvedOptions,
+    false,
+  )
 }
 
 export function useI18nRoute(
