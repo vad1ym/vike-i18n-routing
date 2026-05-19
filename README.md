@@ -96,15 +96,6 @@ import { useI18nRoute } from 'vike-i18n-routing'
 const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-**Solid:**
-
-```tsx
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-```
-
 > This package handles routing only. For translating text content use `vue-i18n`, `react-intl`, or any other i18n library alongside it.
 
 ## More features

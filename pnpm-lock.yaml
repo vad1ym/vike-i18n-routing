@@ -36,6 +36,15 @@ importers:
       vike:
         specifier: ^0.4.259
         version: 0.4.259(hono@4.12.19)(react-streaming@0.4.17(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(srvx@0.11.15)(vite@8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0))
+      vike-react:
+        specifier: ^0.6.23
+        version: 0.6.23(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vike@0.4.259(hono@4.12.19)(react-streaming@0.4.17(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(srvx@0.11.15)(vite@8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0)))
+      vike-solid:
+        specifier: ^0.7.20
+        version: 0.7.20(solid-js@1.9.13)(vike@0.4.259(hono@4.12.19)(react-streaming@0.4.17(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(srvx@0.11.15)(vite@8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0)))(vite@8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0))
+      vike-vue:
+        specifier: ^0.9.11
+        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.12.19)(react-streaming@0.4.17(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(srvx@0.11.15)(vite@8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0)))(vue@3.5.34(typescript@6.0.3))
       vite:
         specifier: ^8.0.12
         version: 8.0.12(@types/node@25.7.0)(esbuild@0.28.0)(jiti@2.7.0)

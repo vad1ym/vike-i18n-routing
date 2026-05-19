@@ -24,7 +24,10 @@
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRender": "./lib/vike/onBeforeRender.ts",
     "./__internal/onHydrationEnd": "./lib/vike/onHydrationEnd.ts",
-    "./middleware": "./lib/middleware.ts"
+    "./middleware": "./lib/middleware.ts",
+    "./vue/Link": "./lib/vue/Link.vue",
+    "./react/Link": "./lib/react/Link.tsx",
+    "./solid/Link": "./lib/solid/Link.tsx"
   },
   "files": [
     "lib"
@@ -69,6 +72,9 @@
     "solid-js": "^1.9.9",
     "typescript": "^6.0.3",
     "vike": "^0.4.259",
+    "vike-react": "^0.6.23",
+    "vike-solid": "^0.7.20",
+    "vike-vue": "^0.9.11",
     "vite": "^8.0.12",
     "vitepress": "^1.6.4",
     "vitest": "^4.1.6",
