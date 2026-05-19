@@ -575,6 +575,7 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
     defaultLocale: resolved.defaultLocale,
     locales: resolved.locales,
     currentLocale: requestLocale,
+    currentLocaleMeta: resolved.locales[requestLocale]?.meta,
     prefixDefaultLocale: resolved.prefixDefaultLocale,
   }
 
@@ -836,7 +837,11 @@ function buildResolvedRoute(
       : undefined
 
   return {
-    localeConfig: { ...localeConfig, currentLocale: requestState.currentLocale },
+    localeConfig: {
+      ...localeConfig,
+      currentLocale: requestState.currentLocale,
+      currentLocaleMeta: localeConfig.locales[requestState.currentLocale]?.meta,
+    },
     domainConfig,
     routeConfig: {
       requestUrl: requestState.requestUrl,
@@ -963,7 +968,11 @@ export function createI18nRouter(
       )
 
       return {
-        localeConfig: { ...localeConfig, currentLocale },
+        localeConfig: {
+          ...localeConfig,
+          currentLocale,
+          currentLocaleMeta: localeConfig.locales[currentLocale]?.meta,
+        },
         domainConfig,
         routeConfig: {
           requestUrl: requestState.requestUrl,

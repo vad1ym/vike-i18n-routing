@@ -61,6 +61,32 @@ domainDetector(pageContext) {
 
 Each domain inherits the global `localeDetector`. To customize locale detection globally, see [Getting Current Locale](/guide/current-locale#localedetector).
 
+## Per-domain locale metadata
+
+Domain `locales` can override or extend the base locale entries. Locale objects are merged per locale code, and `meta` is merged shallowly.
+
+```ts
+locales: {
+  en: { urlPrefix: 'en', meta: { currency: 'USD', region: 'global' } },
+  de: { urlPrefix: 'de', meta: { currency: 'EUR', region: 'global' } },
+},
+domains: {
+  'site.de': {
+    defaultLocale: 'de',
+    locales: {
+      de: { urlPrefix: 'de', meta: { region: 'de' } },
+      en: { urlPrefix: 'en', meta: { region: 'eu' } },
+    },
+  },
+}
+```
+
+Resolved values on `site.de`:
+
+- `localeConfig.locales.de.meta.currency` -> `EUR`
+- `localeConfig.locales.de.meta.region` -> `de`
+- `localeConfig.currentLocaleMeta` -> metadata of the active locale
+
 ## Per-domain routes
 
 Override route translations for a specific domain. Domain routes are merged with global routes — the domain entry wins on key conflicts.

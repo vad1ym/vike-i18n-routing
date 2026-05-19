@@ -2,8 +2,11 @@ import type { PageContext } from "vike/types"
 
 export type LocaleCode = string
 
+export type LocaleMeta = Record<string, any>
+
 export type LocaleConfig = {
   urlPrefix: string
+  meta?: LocaleMeta
 }
 
 export type LocaleConfigs = Record<LocaleCode, LocaleConfig> | LocaleCode[]
@@ -64,6 +67,7 @@ export type PageContextLocaleConfig = {
   defaultLocale: LocaleCode
   locales: Record<LocaleCode, LocaleConfig>
   currentLocale: LocaleCode
+  currentLocaleMeta?: LocaleMeta
   prefixDefaultLocale: boolean
 }
 

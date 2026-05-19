@@ -1,5 +1,5 @@
 import { getDomain } from '../pageContext'
-import { normalizeLocales } from '../locale/normalize'
+import { mergeLocales, normalizeLocales } from '../locale/normalize'
 import type { DomainConfig, I18nConfig, I18nPageContext, ResolvedDomainConfig } from '../types'
 
 export function detectDomain(pageContext: I18nPageContext, i18n: I18nConfig): string | undefined {
@@ -35,9 +35,7 @@ export function resolveDomainConfigForDomain(
 
   const domainConfig = domain ? resolveMatchingDomainConfig(domain, i18n.domains) : undefined
   const baseLocales = normalizeLocales(i18n.locales)
-  const locales = domainConfig?.locales
-    ? normalizeLocales(domainConfig.locales)
-    : baseLocales
+  const locales = mergeLocales(baseLocales, domainConfig?.locales)
   const resolved: ResolvedDomainConfig = {
     domain: domainConfig ? domain : undefined,
     defaultLocale: domainConfig?.defaultLocale ?? i18n.defaultLocale,

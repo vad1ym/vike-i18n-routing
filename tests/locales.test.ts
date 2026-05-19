@@ -15,8 +15,8 @@ const arrayConfig: I18nConfig = {
 const objectConfig: I18nConfig = {
   defaultLocale: 'en',
   locales: {
-    en: { urlPrefix: 'en' },
-    ru: { urlPrefix: 'ru' },
+    en: { urlPrefix: 'en', meta: { currency: 'USD', region: 'us' } },
+    ru: { urlPrefix: 'ru', meta: { currency: 'UAH', region: 'ua' } },
   },
   routes: arrayConfig.routes,
 }
@@ -54,6 +54,19 @@ describe('locales — object form', () => {
     expect(arrayResult.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe(
       objectResult.pageContext.i18nRoute!.routeConfig.canonicalUrl,
     )
+  })
+
+  it('exposes locale meta on localeConfig and locale entries', () => {
+    const result = onBeforeRoute(makePageContext('/ru/o-nas', objectConfig) as any)
+
+    expect(result.pageContext.i18nRoute!.localeConfig.currentLocaleMeta).toEqual({
+      currency: 'UAH',
+      region: 'ua',
+    })
+    expect(result.pageContext.i18nRoute!.localeConfig.locales.ru.meta).toEqual({
+      currency: 'UAH',
+      region: 'ua',
+    })
   })
 
   it('redirects same as array form', () => {

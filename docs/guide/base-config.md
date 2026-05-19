@@ -6,7 +6,7 @@ Everything lives in `i18n` inside `pages/+config.ts`.
 // +config
 type I18nConfig = {
   defaultLocale: string
-  locales: string[] | Record<string, { urlPrefix: string }>
+  locales: string[] | Record<string, { urlPrefix: string; meta?: Record<string, any> }>
   routes: Record<string, Record<string, string> | I18nRoutes>
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
@@ -39,6 +39,16 @@ Object form — use when the URL prefix should differ from the locale code:
 locales: {
   en: { urlPrefix: 'en' },
   'zh-Hans': { urlPrefix: 'zh' },  // /zh/... instead of /zh-Hans/...
+}
+```
+
+Locale entries can also carry arbitrary metadata:
+
+```ts
+// +config
+locales: {
+  en: { urlPrefix: 'en', meta: { currency: 'USD', region: 'us' } },
+  de: { urlPrefix: 'de', meta: { currency: 'EUR', region: 'de' } },
 }
 ```
 
