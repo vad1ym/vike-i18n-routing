@@ -41,7 +41,29 @@ describe('generateStaticPaths', () => {
     ])
   })
 
-  it('skips dynamic routes and warns that they are not supported yet', async () => {
+  it('generates localized paths for dynamic routes when routeParams are provided', async () => {
+    const paths = await generateStaticPaths(baseConfig, {
+      routeParams: {
+        '/specialities/:speciality': [
+          { speciality: 'driver' },
+          { speciality: 'diver' },
+        ],
+      },
+    })
+
+    expect(paths).toEqual([
+      '/en',
+      '/ru',
+      '/en/about',
+      '/ru/o-nas',
+      '/en/specialities/driver',
+      '/ru/specialnosti/driver',
+      '/en/specialities/diver',
+      '/ru/specialnosti/diver',
+    ])
+  })
+
+  it('skips dynamic routes without routeParams and warns', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const paths = await generateStaticPaths(baseConfig)
@@ -53,7 +75,27 @@ describe('generateStaticPaths', () => {
       '/ru/o-nas',
     ])
     expect(warn).toHaveBeenCalledWith(
-      'generateStaticPaths() currently supports only static routes. Dynamic route "/specialities/:speciality" was skipped.',
+      'generateStaticPaths() skipped dynamic route "/specialities/:speciality" because no routeParams were provided for it.',
+    )
+  })
+
+  it('throws for unknown dynamic route keys in routeParams', async () => {
+    await expect(() => generateStaticPaths(baseConfig, {
+      routeParams: {
+        '/missing/:slug': [{ slug: 'test' }],
+      },
+    })).rejects.toThrow(
+      '[vike-i18n] generateStaticPaths() received params for unknown route key "/missing/:slug".',
+    )
+  })
+
+  it('throws when params are missing for a dynamic route', async () => {
+    await expect(() => generateStaticPaths(baseConfig, {
+      routeParams: {
+        '/specialities/:speciality': [{}],
+      },
+    })).rejects.toThrow(
+      '[vike-i18n] generateStaticPaths() could not build route "/specialities/:speciality" for locale "en" with params {}:',
     )
   })
 

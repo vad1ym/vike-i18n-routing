@@ -138,6 +138,12 @@ export type LocalizedPathOptions = {
   queryVariants?: Record<string, RouteQueryVariants>
 }
 
+export type StaticRouteParams = Record<string, string | undefined>
+
+export type GenerateStaticPathsOptions = {
+  routeParams?: Record<string, StaticRouteParams[]>
+}
+
 type JoinRouteKey<Parent extends string, Child extends string> = Parent extends '/'
   ? Child
   : Child extends '/'
