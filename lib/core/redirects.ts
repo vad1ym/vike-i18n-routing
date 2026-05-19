@@ -12,6 +12,57 @@ type ResolvedConfigRedirect = {
   status: RedirectStatusCode
 }
 
+function getRedirectTargetUrl(target: RedirectConfig[string]): string {
+  return typeof target === 'string' ? target : target.url
+}
+
+export function validateRedirectConfig(
+  redirects: RedirectConfig,
+  context?: { domain?: string },
+): void {
+  const normalizedRedirects = new Map<string, string>()
+
+  for (const [sourcePattern, target] of Object.entries(redirects)) {
+    const normalizedSource = normalizePathname(sourcePattern)
+    const normalizedTarget = normalizePathname(getRedirectTargetUrl(target))
+
+    if (normalizedSource === normalizedTarget) continue
+
+    normalizedRedirects.set(normalizedSource, normalizedTarget)
+  }
+
+  const label = context?.domain
+    ? ` for domain "${context.domain}"`
+    : ''
+
+  for (const sourcePattern of normalizedRedirects.keys()) {
+    const visited = new Map<string, number>()
+    const chain: string[] = []
+    let current: string | undefined = sourcePattern
+
+    while (current) {
+      const loopIndex = visited.get(current)
+      if (loopIndex != null) {
+        const loop = [...chain.slice(loopIndex), current].join(' -> ')
+        throw new Error(
+          `Redirect loop detected${label}: ${loop}. Remove one of the redirects to break the cycle.`,
+        )
+      }
+
+      visited.set(current, chain.length)
+      chain.push(current)
+
+      current = normalizedRedirects.get(current)
+    }
+
+    if (chain.length > 2) {
+      console.warn(
+        `Redirect chain detected${label}: ${chain.join(' -> ')}. Redirect targets should resolve directly to the final URL.`,
+      )
+    }
+  }
+}
+
 // Finds the localized variant of a source pattern for the given locale.
 //
 // Two cases:
@@ -66,7 +117,7 @@ export function resolveConfigRedirect(
   const normalizedRequest = normalizePathname(localizedRequestUrl)
 
   for (const [sourcePattern, target] of Object.entries(redirects)) {
-    const targetUrl = typeof target === 'string' ? target : target.url
+    const targetUrl = getRedirectTargetUrl(target)
     const allowedLocales = typeof target === 'object' ? target.locales : undefined
     const status = typeof target === 'object' ? (target.status ?? 302) : 302
 
