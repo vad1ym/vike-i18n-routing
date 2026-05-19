@@ -19,6 +19,7 @@ type I18nConfig = {
         queryParams?: boolean
         session?: boolean
       }
+  debug?: boolean
   localeCookie?: string | false
 }
 ```
@@ -144,6 +145,17 @@ i18n: {
   },
 }
 ```
+
+Enable locale negotiation logs during development:
+
+```ts
+// +config
+i18n: {
+  debug: true,
+}
+```
+
+By default, locale negotiation logging is enabled on the dev server. Set `debug: false` to silence it.
 
 When `localeDetector` is a function, the built-in detection sources still run after it unless it returns a valid locale code.
 

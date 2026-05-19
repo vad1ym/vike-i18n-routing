@@ -59,6 +59,26 @@ i18n: {
 
 Flags default to `true`. Setting a flag to `false` skips that source.
 
+## `debug`
+
+Locale negotiation logging is enabled by default on the dev server. Set `debug: true` to force it on, or `debug: false` to force it off.
+
+```ts
+// +config
+i18n: {
+  debug: true,
+}
+```
+
+Example output:
+
+```text
+[vike-i18n-routing] locale resolved: ru
+[vike-i18n-routing]   ✗ localeDetector fn -> null
+[vike-i18n-routing]   ✗ query ?locale -> not present
+[vike-i18n-routing]   ✓ cookie 'i18n-locale' -> 'ru'
+```
+
 ## Detection order
 
 For requests without an explicit locale prefix, locale resolution checks:

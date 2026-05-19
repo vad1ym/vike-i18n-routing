@@ -110,6 +110,7 @@ export type I18nConfig = {
   defaultLocale: LocaleCode
   locales: LocaleConfigs
   routes: I18nRoutes
+  debug?: boolean
   redirects?: RedirectConfig
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
