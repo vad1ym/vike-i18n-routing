@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.13
+
+[compare changes](https://github.com/vad1ym/vike-i18n-routing/compare/v0.1.12...v0.1.13)
+
+### 🚀 Enhancements
+
+- Allow grouped route definitions inside `routes` ([#25](https://github.com/vad1ym/vike-i18n-routing/issues/25))
+
 
 ## v0.1.16
 
@@ -252,4 +260,3 @@
 ### ❤️ Contributors
 
 - Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
-

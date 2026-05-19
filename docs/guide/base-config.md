@@ -7,7 +7,7 @@ Everything lives in `i18n` inside `pages/+config.ts`.
 type I18nConfig = {
   defaultLocale: string
   locales: string[] | Record<string, { urlPrefix: string }>
-  routes: Record<string, Record<string, string>>
+  routes: Record<string, Record<string, string> | I18nRoutes>
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext) => string | null | undefined
@@ -54,6 +54,23 @@ routes: {
 ```
 
 The key on the left is what your app works with internally.
+
+You can also group related routes by canonical prefix:
+
+```ts
+// +config
+routes: {
+  '/blog': {
+    '/:slug': { en: '/:slug', ru: '/:slug' },
+    '/category/:category': {
+      en: '/category/:category',
+      ru: '/kategoriya/:category',
+    },
+  },
+}
+```
+
+Grouped route values are relative to the group prefix, so `/blog` + `/:slug` becomes the canonical route `/blog/:slug`.
 
 ## `prefixDefaultLocale`
 

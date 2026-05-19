@@ -27,6 +27,52 @@ Read it as:
 
 The `'/'` entry is required for the home route to be recognized. Without it, the root path won't participate in locale-prefix redirects and alternate URL generation.
 
+## Group routes by prefix
+
+Large apps can keep the same `routes` API and organize entries by canonical prefix:
+
+```ts
+routes: {
+  '/blog': {
+    '/:slug': {
+      en: '/:slug',
+      ru: '/:slug',
+    },
+    '/category/:category': {
+      en: '/category/:category',
+      ru: '/kategoriya/:category',
+    },
+  },
+  '/shop': {
+    '/cart': {
+      en: '/cart',
+      ru: '/korzina',
+    },
+  },
+}
+```
+
+This is equivalent to:
+
+```ts
+routes: {
+  '/blog/:slug': {
+    en: '/blog/:slug',
+    ru: '/blog/:slug',
+  },
+  '/blog/category/:category': {
+    en: '/blog/category/:category',
+    ru: '/blog/kategoriya/:category',
+  },
+  '/shop/cart': {
+    en: '/shop/cart',
+    ru: '/shop/korzina',
+  },
+}
+```
+
+Grouped route values are relative to the group prefix. If you need completely custom per-locale parent segments, use the flat form.
+
 ## Canonical vs localized URL
 
 Incoming request:
