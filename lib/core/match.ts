@@ -5,7 +5,7 @@ import {
   type ParamVariants,
 } from './variants'
 import type {
-  I18nRoutes,
+  FlatI18nRoutes,
   LocaleCode,
   PageContextLocaleConfig,
 } from './types'
@@ -58,7 +58,7 @@ export type LocaleCacheEntry = Record<string, string> & {
 }
 
 export type RouteIndex = {
-  routes: I18nRoutes
+  routes: FlatI18nRoutes
   static: Map<string, RouteEntry>
   staticByLocalized: Map<string, RouteEntry>
   dynamicBySegments: Map<number, IndexedRouteEntry[]>
@@ -401,7 +401,7 @@ function findDynamicTrieMatch(
   return null
 }
 
-export function buildRouteIndex(routes: I18nRoutes): RouteIndex {
+export function buildRouteIndex(routes: FlatI18nRoutes): RouteIndex {
   const staticMap = new Map<string, RouteEntry>()
   const staticByLocalized = new Map<string, RouteEntry>()
   const dynamic: RouteEntry[] = []

@@ -16,6 +16,7 @@ import {
 import { getI18nConfig } from './pageContext'
 import { resolveConfigRedirect } from './redirects'
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
+import { normalizeRoutes } from './routes'
 import {
   canonicalizeParamValue,
   canonicalizeQueryParams,
@@ -541,9 +542,10 @@ export function getCompiledDomainRouting(
   if (cached) return cached
 
   const resolved = resolveDomainConfigForDomain(i18n, domainKey)
+  const baseRoutes = normalizeRoutes(i18n.routes)
   const routes = resolved.routes
-    ? { ...i18n.routes, ...resolved.routes }
-    : i18n.routes
+    ? { ...baseRoutes, ...normalizeRoutes(resolved.routes) }
+    : baseRoutes
   const redirects = resolved.redirects || i18n.redirects
     ? { ...i18n.redirects, ...resolved.redirects }
     : undefined

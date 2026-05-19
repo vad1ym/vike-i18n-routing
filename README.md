@@ -64,6 +64,29 @@ The plugin:
 - Provides `localizePath()` for building locale-aware links
 - Generates `alternateUrls` for SEO hreflang tags
 
+Large route maps can stay inside `routes` and be grouped by canonical prefix:
+
+```ts
+routes: {
+  '/': { en: '/', ru: '/' },
+  '/blog': {
+    '/:slug': {},
+    '/category/:category': {
+      en: '/category/:category',
+      ru: '/kategoriya/:category',
+    },
+  },
+  '/shop': {
+    '/cart': {
+      en: '/cart',
+      ru: '/korzina',
+    },
+  },
+}
+```
+
+Grouped route values are relative to the group prefix, so `/shop` + `/cart` becomes `/shop/cart`.
+
 Your page files stay at canonical paths — one file per page, no duplication:
 
 ```
