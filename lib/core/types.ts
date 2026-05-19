@@ -24,6 +24,7 @@ export type FlatI18nRoutes = Record<string, I18nRouteLeaf>
 export type DomainMeta = Record<string, any>
 
 export type DomainConfig = {
+  baseUrl?: string
   defaultLocale?: LocaleCode
   locales?: LocaleConfigs
   prefixDefaultLocale?: boolean
@@ -55,6 +56,7 @@ export type LocaleDetectorConfig = {
 
 export type ResolvedDomainConfig = {
   domain?: string
+  baseUrl?: string
   defaultLocale: LocaleCode
   locales: Record<LocaleCode, LocaleConfig>
   prefixDefaultLocale: boolean
@@ -73,6 +75,7 @@ export type PageContextLocaleConfig = {
 
 export type PageContextDomainConfig = {
   domain?: string
+  baseUrl?: string
   defaultLocale?: LocaleCode
   locales?: Record<LocaleCode, LocaleConfig>
   prefixDefaultLocale?: boolean
@@ -107,6 +110,7 @@ export type RedirectTarget =
 export type RedirectConfig = Record<string, RedirectTarget>
 
 export type I18nConfig = {
+  baseUrl?: string
   defaultLocale: LocaleCode
   locales: LocaleConfigs
   routes: I18nRoutes
@@ -132,6 +136,7 @@ export type QueryVariantConfig = {
 
 export type LocalizedPathOptions = {
   prefix?: boolean
+  absolute?: boolean
   params?: Record<string, string>
   query?: Record<string, string>
   paramVariants?: Record<string, RouteParamVariants>

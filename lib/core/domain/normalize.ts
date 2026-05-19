@@ -38,6 +38,7 @@ export function resolveDomainConfigForDomain(
   const locales = mergeLocales(baseLocales, domainConfig?.locales)
   const resolved: ResolvedDomainConfig = {
     domain: domainConfig ? domain : undefined,
+    baseUrl: domainConfig?.baseUrl ?? i18n.baseUrl,
     defaultLocale: domainConfig?.defaultLocale ?? i18n.defaultLocale,
     locales,
     prefixDefaultLocale: domainConfig?.prefixDefaultLocale ?? i18n.prefixDefaultLocale !== false,

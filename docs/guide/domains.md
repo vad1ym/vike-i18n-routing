@@ -7,15 +7,18 @@ Use `domains` when locale sets or default locale differ by host.
 ```ts
 // +config
 i18n: {
+  baseUrl: 'https://site.com',
   defaultLocale: 'en',
   locales: ['en', 'ru', 'fr'],
   prefixDefaultLocale: true,
   domains: {
     'site.com': {
+      baseUrl: 'https://site.com',
       defaultLocale: 'en',
       locales: ['en', 'ru'],
     },
     'site.fr': {
+      baseUrl: 'https://site.fr',
       defaultLocale: 'fr',
       locales: ['fr', 'en'],
       prefixDefaultLocale: false,
@@ -43,6 +46,7 @@ For `site.fr`:
 - active locales are `fr` and `en`
 - default locale is `fr`
 - default locale can be unprefixed
+- `localizePath(..., { absolute: true })` can use `https://site.fr`
 
 ## Domain detection
 
@@ -121,5 +125,22 @@ domains: {
 ```
 
 See [Redirects](/guide/redirects) for full redirect pattern documentation.
+
+## Per-domain `baseUrl`
+
+Set `baseUrl` per domain when you want `localizePath()` to build absolute cross-domain links:
+
+```ts
+localizePath('/about', 'fr')
+// → '/a-propos'
+
+localizePath('/about', 'fr', { absolute: true })
+// → 'https://site.fr/a-propos'
+
+localizePath('https://site.com/en/about', 'fr')
+// → 'https://site.fr/a-propos'
+```
+
+Without `absolute: true`, path input stays path-only even if the target locale belongs to another domain.
 
 Next: [useI18nRoute](/guide/use-i18n-route)
