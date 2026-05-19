@@ -1,5 +1,12 @@
 import { normalizePathname } from './route-patterns'
-import type { LocaleCode, LocalizedPathOptions, PageContextLocaleConfig } from './types'
+import type { LocaleCode, LocalizedPathOptions, PageContextLocaleConfig, TrailingSlash } from './types'
+
+export function applyTrailingSlash(pathname: string, mode: TrailingSlash): string {
+  if (pathname === '/') return '/'
+  if (mode === 'always') return pathname.endsWith('/') ? pathname : `${pathname}/`
+  if (mode === 'never') return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+  return pathname // 'preserve'
+}
 
 export function buildUrl(pathname: string, searchParams: URLSearchParams): string {
   const search = searchParams.toString()
@@ -11,6 +18,7 @@ export function applyLocalePrefix(
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
+  trailingSlash: TrailingSlash = 'never',
 ): string {
   const normalized = normalizePathname(pathname)
   const targetLocaleConfig = localeConfig.locales[locale]
@@ -20,11 +28,12 @@ export function applyLocalePrefix(
   }
 
   if (options?.prefix === false || (options?.prefix === undefined && locale === localeConfig.defaultLocale && !localeConfig.prefixDefaultLocale)) {
-    return normalized
+    return applyTrailingSlash(normalized, trailingSlash)
   }
 
   const prefix = `/${targetLocaleConfig.urlPrefix}`
-  return normalized === '/' ? prefix : `${prefix}${normalized}`
+  const prefixed = normalized === '/' ? prefix : `${prefix}${normalized}`
+  return applyTrailingSlash(prefixed, trailingSlash)
 }
 
 export function buildLocalizedUrl(
@@ -32,9 +41,10 @@ export function buildLocalizedUrl(
   searchParams: URLSearchParams,
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
+  trailingSlash: TrailingSlash = 'never',
 ): string {
   return buildUrl(
-    applyLocalePrefix(pathname, locale, localeConfig),
+    applyLocalePrefix(pathname, locale, localeConfig, undefined, trailingSlash),
     searchParams,
   )
 }

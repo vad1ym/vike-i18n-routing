@@ -23,101 +23,7 @@
 
 ---
 
-## The problem
-
-Vike's official i18n guide shows the manual approach — write `onBeforeRoute` yourself to extract the locale from the URL:
-
-```ts
-// pages/+onBeforeRoute.js
-function onBeforeRoute(pageContext) {
-  const { urlWithoutLocale, locale } = extractLocale(pageContext.urlParsed)
-  return {
-    pageContext: {
-      locale,
-      urlLogical: urlWithoutLocale,
-    }
-  }
-}
-```
-
-This works for simple cases, but leaves everything else to you: locale detection from cookies and headers, redirecting wrong-locale URLs, building localized links, translated URL slugs, SEO alternates, multi-domain configs, and the boilerplate that grows with every new locale and route.
-
-## The solution
-
-`vike-i18n-routing` replaces that manual `onBeforeRoute` with a fully-featured plugin. You declare your routes and locales in config — the plugin handles everything else.
-
-```ts
-// pages/+config.ts
-i18n: {
-  defaultLocale: 'en',
-  locales: {
-    en: { urlPrefix: 'en', meta: { currency: 'USD', region: 'us' } },
-    ru: { urlPrefix: 'ru', meta: { currency: 'UAH', region: 'ua' } },
-  },
-  routes: {
-    '/about': { en: '/about', ru: '/o-nas' },
-  },
-}
-```
-
-```ts
-const { localeConfig } = useI18nRoute(pageContext)
-
-localeConfig.currentLocaleMeta?.currency
-localeConfig.locales.en.meta?.region
-```
-
-The plugin:
-
-- Resolves `/ru/o-nas` → page `about`, locale `ru`
-- Resolves `/en/about` → page `about`, locale `en`
-- Redirects `/about` → `/en/about` (missing prefix)
-- Redirects `/ru/about` → `/ru/o-nas` (wrong-locale URL)
-- Detects locale from URL, query param, cookie, session, `Accept-Language`
-- Can log locale negotiation decisions in `debug` mode
-- Provides `localizePath()` for building locale-aware links
-- Generates `alternateUrls` for SEO hreflang tags
-- Validates i18n config early with friendly errors and warnings
-
-Large route maps can stay inside `routes` and be grouped by canonical prefix:
-
-```ts
-routes: {
-  '/': { en: '/', ru: '/' },
-  '/blog': {
-    '/:slug': {},
-    '/category/:category': {
-      en: '/category/:category',
-      ru: '/kategoriya/:category',
-    },
-  },
-  '/shop': {
-    '/cart': {
-      en: '/cart',
-      ru: '/korzina',
-    },
-  },
-}
-```
-
-Grouped route values are relative to the group prefix, so `/shop` + `/cart` becomes `/shop/cart`.
-
-Your page files stay at canonical paths — one file per page, no duplication:
-
-```
-pages/
-  about/+Page.vue     ← serves /en/about AND /ru/o-nas
-```
-
-## Setup
-
-Install:
-
-```bash
-pnpm add vike-i18n-routing
-```
-
-Add to your Vike config:
+Declare your locales and routes in config — the plugin handles routing, redirects, locale detection, localized links, SEO alternates, and more.
 
 ```ts
 // pages/+config.ts
@@ -132,14 +38,35 @@ export default {
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'ru'],
-    prefixDefaultLocale: true,
     routes: {
-      '/': { en: '/', ru: '/' },
       '/about': { en: '/about', ru: '/o-nas' },
     },
   } satisfies I18nConfig,
 } satisfies Config
 ```
+
+- Resolves `/ru/o-nas` → page `about`, locale `ru`
+- Resolves `/en/about` → page `about`, locale `en`
+- Redirects `/about` → `/en/about` (missing prefix)
+- Redirects `/ru/about` → `/ru/o-nas` (wrong-locale URL)
+- Detects locale from URL, query param, cookie, session, `Accept-Language`
+- Provides `localizePath()` for building locale-aware links
+- Generates `alternateUrls` for SEO hreflang tags
+
+Your page files stay at canonical paths — one file per page, no duplication:
+
+```
+pages/
+  about/+Page.vue     ← serves /en/about AND /ru/o-nas
+```
+
+## Setup
+
+```bash
+pnpm add vike-i18n-routing
+```
+
+See [Quick Start](https://vad1ym.github.io/vike-i18n-routing/guide/quick-start) for full setup instructions.
 
 ## Using locale in components
 
@@ -169,15 +96,6 @@ import { useI18nRoute } from 'vike-i18n-routing'
 const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-**Solid:**
-
-```tsx
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-```
-
 > This package handles routing only. For translating text content use `vue-i18n`, `react-intl`, or any other i18n library alongside it.
 
 ## More features
@@ -185,14 +103,22 @@ const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 **Translated URL slugs** — not just the path shape, but the param values too:
 
 ```ts
-// config
-routes: {
-  '/services/:category': {
-    en: '/services/:category',
-    ru: '/uslugi/:category',
-  },
-}
+// pages/+config.ts
+export default {
+  // ...
+  i18n: {
+    // ...
+    routes: {
+      '/services/:category': {
+        en: '/services/:category',
+        ru: '/uslugi/:category',
+      },
+    },
+  } satisfies I18nConfig,
+} satisfies Config
+```
 
+```ts
 // in data loader — register per-item slug variants
 setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
 // /ru/uslugi/web-development now auto-redirects to /ru/uslugi/veb-razrabotka
@@ -201,20 +127,34 @@ setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' 
 **Config-level redirects** — locale-aware, supports `path-to-regexp` patterns:
 
 ```ts
-redirects: {
-  '/old-about': '/about',                    // applies to all locales
-  '/medicines/:country': '/drugs/:country',  // transfers named params
-  '/old-page': { url: '/about', locales: ['en'] },  // locale-scoped
-}
+// pages/+config.ts
+export default {
+  // ...
+  i18n: {
+    // ...
+    redirects: {
+      '/old-about': '/about',                                       // applies to all locales
+      '/medicines/:country': '/drugs/:country',                     // transfers named params
+      '/old-page': { url: '/about', locales: ['en'] },             // locale-scoped
+    },
+  } satisfies I18nConfig,
+} satisfies Config
 ```
 
 **Multi-domain** — different locale sets and default locales per domain:
 
 ```ts
-domains: {
-  'site.com': { defaultLocale: 'en', locales: ['en', 'ru'] },
-  'site.fr':  { defaultLocale: 'fr', locales: ['fr', 'en'], prefixDefaultLocale: false },
-}
+// pages/+config.ts
+export default {
+  // ...
+  i18n: {
+    // ...
+    domains: {
+      'site.com': { defaultLocale: 'en', locales: ['en', 'ru'] },
+      'site.fr':  { defaultLocale: 'fr', locales: ['fr', 'en'], prefixDefaultLocale: false },
+    },
+  } satisfies I18nConfig,
+} satisfies Config
 ```
 
 **Locale detection** — automatically from URL prefix, query param (`?locale=ru`), cookie, session, or `Accept-Language` header.

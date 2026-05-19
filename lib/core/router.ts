@@ -1,5 +1,5 @@
 import { detectDomain, resolveDomainConfigForDomain } from './domain/normalize'
-import { applyLocalePrefix, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl } from './format'
+import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl } from './format'
 import { detectRequestLocale } from './locale/detector'
 import {
   buildRouteIndex,
@@ -39,8 +39,10 @@ import type {
   ParamVariantConfig,
   QueryVariantConfig,
   RedirectConfig,
+  RedirectStatusCode,
   ResolvedDomainConfig,
   RouteDescriptor,
+  TrailingSlash,
 } from './types'
 
 function normalizeRoutingPathname(pathname: string): string {
@@ -100,9 +102,10 @@ export function localizeCanonicalPath(
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
+  trailingSlash: TrailingSlash = 'never',
 ): string {
   const qIndex = canonicalPath.indexOf('?')
-  return localizeCanonicalPathInner(index, paramVariants, canonicalPath, qIndex, queryVariants, locale, localeConfig, options)
+  return localizeCanonicalPathInner(index, paramVariants, canonicalPath, qIndex, queryVariants, locale, localeConfig, options, trailingSlash)
 }
 
 export function localizeRouteKey(
@@ -113,6 +116,7 @@ export function localizeRouteKey(
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
+  trailingSlash: TrailingSlash = 'never',
 ): string | null {
   const localizedPatterns = index.routes[routeKey]
   if (!localizedPatterns) return null
@@ -125,7 +129,7 @@ export function localizeRouteKey(
     locale,
   )
 
-  return applyLocalePrefix(localizedPath, locale, localeConfig, options)
+  return applyLocalePrefix(localizedPath, locale, localeConfig, options, trailingSlash)
 }
 
 type InternalRouteDescriptor = RouteDescriptor & {
@@ -183,6 +187,7 @@ export function localizeRouteDescriptor(
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
+  trailingSlash: TrailingSlash = 'never',
 ): string | null {
   const route = descriptor as InternalRouteDescriptor
   const localizedPatterns = route.localizedPatterns
@@ -199,7 +204,7 @@ export function localizeRouteDescriptor(
     locale,
   )
 
-  return applyLocalePrefix(localizedPath, locale, localeConfig, options)
+  return applyLocalePrefix(localizedPath, locale, localeConfig, options, trailingSlash)
 }
 
 export function localizeRouteDescriptorCached(
@@ -346,6 +351,7 @@ function localizeCanonicalPathInner(
   locale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   options?: LocalizedPathOptions,
+  trailingSlash: TrailingSlash = 'never',
 ): string {
   const hasQuery = qIndex !== -1
   const canonicalPathname = hasQuery
@@ -395,16 +401,17 @@ function localizeCanonicalPathInner(
   const prefixedPath = needsPrefix && targetLocaleConfig
     ? localizedPath === '/' ? `/${targetLocaleConfig.urlPrefix}` : `/${targetLocaleConfig.urlPrefix}${localizedPath}`
     : localizedPath
+  const finalPath = applyTrailingSlash(prefixedPath, trailingSlash)
 
   // Fast path: no query string and no query variants — skip URLSearchParams entirely
-  if (!hasQuery && queryVariants.size === 0) return prefixedPath
+  if (!hasQuery && queryVariants.size === 0) return finalPath
 
   const canonicalSearchParams = !hasQuery
     ? new URLSearchParams()
     : sanitizeRouteSearchParams(new URLSearchParams(canonicalPath.slice(qIndex + 1)))
 
   return buildUrl(
-    prefixedPath,
+    finalPath,
     localizeQueryParams(queryVariants, canonicalSearchParams, localeConfig, locale),
   )
 }
@@ -468,6 +475,7 @@ type CompiledDomainRouting = {
 
 type ResolvedRequestState = {
   explicitLocaleQuery: string | null
+  rawPathname: string
   requestPath: string
   requestSearchParams: URLSearchParams
   requestUrl: string
@@ -588,12 +596,16 @@ function resolveConfigs(pageContext: I18nPageContext, i18n: I18nConfig) {
   const domainConfig = resolved.domain
     ? {
         domain: resolved.domain,
+        baseUrl: resolved.baseUrl,
         defaultLocale: resolved.defaultLocale,
         locales: resolved.locales,
         prefixDefaultLocale: resolved.prefixDefaultLocale,
         meta: resolved.meta,
       }
-    : { domain: undefined as string | undefined }
+    : {
+        domain: undefined as string | undefined,
+        baseUrl: resolved.baseUrl,
+      }
 
   return { requestLocale, domainConfig, localeConfig, domain, resolved, compiled }
 }
@@ -610,10 +622,11 @@ function buildAlternateUrls(
   canonicalPath: string,
   queryVariants: QueryVariants,
   localeConfig: PageContextLocaleConfig,
+  trailingSlash: TrailingSlash = 'never',
 ): AlternateUrl[] {
   return Object.keys(localeConfig.locales).map((locale) => ({
     locale,
-    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, queryVariants, locale, localeConfig),
+    url: localizeCanonicalPath(routes, paramVariants, canonicalPath, queryVariants, locale, localeConfig, undefined, trailingSlash),
   }))
 }
 
@@ -643,8 +656,9 @@ function buildAlternateUrlsFromCanonical(
   canonicalPath: string,
   queryVariants: QueryVariants,
   localeConfig: PageContextLocaleConfig,
+  trailingSlash: TrailingSlash = 'never',
 ): AlternateUrl[] {
-  return buildAlternateUrls(routes, paramVariants, canonicalPath, queryVariants, localeConfig)
+  return buildAlternateUrls(routes, paramVariants, canonicalPath, queryVariants, localeConfig, trailingSlash)
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -729,11 +743,14 @@ function resolveRequestState(
   detectedLocale: string,
   prefixToLocale?: Record<string, LocaleCode>,
 ): ResolvedRequestState {
-  const requestPath = normalizeRoutingPathname(request.pathname)
+  const normalizedPath = normalizeRoutingPathname(request.pathname)
+  // Preserve raw pathname for trailing-slash detection; use normalized for routing logic
+  const requestPath = normalizedPath
+  const rawPathname = request.pathname === '' ? '/' : request.pathname
   const explicitLocaleQuery = request.explicitLocaleQuery
   const requestSearchParams = sanitizeRouteSearchParams(request.searchParams)
-  const requestUrl = buildUrl(requestPath, requestSearchParams)
-  const segments = requestPath.split('/').filter(Boolean)
+  const requestUrl = buildUrl(rawPathname, requestSearchParams)
+  const segments = normalizedPath.split('/').filter(Boolean)
 
   let prefixedLocale: string | undefined
   if (segments.length > 0) {
@@ -753,6 +770,7 @@ function resolveRequestState(
   const currentLocale = prefixedLocale ?? detectedLocale ?? localeConfig.defaultLocale
   return {
     explicitLocaleQuery,
+    rawPathname,
     requestPath,
     requestSearchParams,
     requestUrl,
@@ -777,6 +795,8 @@ function buildResolvedRoute(
   paramVariants: ParamVariants,
   queryVariants: QueryVariants,
   variantRedirectPath?: string,
+  trailingSlash: TrailingSlash = 'never',
+  trailingSlashRedirect: number | false = 301,
 ): I18nRoute {
   const canonicalSearchParams = canonicalizeQueryParams(queryVariants, requestState.requestSearchParams, localeConfig)
   const canonicalPath = routePattern
@@ -808,12 +828,14 @@ function buildResolvedRoute(
     currentLocaleSearchParams,
     requestState.currentLocale,
     localeConfig,
+    trailingSlash,
   )
   const defaultLocaleUrl = buildLocalizedUrl(
     defaultLocalePath,
     defaultLocaleSearchParams,
     localeConfig.defaultLocale,
     localeConfig,
+    trailingSlash,
   )
 
   const queryRedirect = requestState.requestSearchParams.toString() !== currentLocaleSearchParams.toString()
@@ -823,12 +845,22 @@ function buildResolvedRoute(
         currentLocaleSearchParams,
         requestState.currentLocale,
         localeConfig,
+        trailingSlash,
       )
     : requestState.requestUrl !== currentLocaleUrl
       ? currentLocaleUrl
       : undefined
 
-  const redirectTo = requestState.defaultLocaleAccessedViaPrefix
+  // True when the ONLY difference between requestUrl and currentLocaleUrl is a trailing slash
+  const rawPathname = requestState.rawPathname
+  const onlyTrailingSlashDiff = (url: string) =>
+    url.replace(/\/$/, '') === currentLocaleUrl.replace(/\/$/, '')
+  const suppressTrailingSlashRedirect = (target: string) =>
+    onlyTrailingSlashDiff(requestState.requestUrl) &&
+    onlyTrailingSlashDiff(target) &&
+    (trailingSlash === 'preserve' || trailingSlashRedirect === false)
+
+  const rawRedirectTo = requestState.defaultLocaleAccessedViaPrefix
     ? normalizedRedirect
       ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
       : buildSetLocaleRedirect(currentLocaleUrl, localeConfig.defaultLocale)
@@ -842,6 +874,24 @@ function buildResolvedRoute(
       ? currentLocaleUrl
       : undefined
 
+  const redirectTo = rawRedirectTo && suppressTrailingSlashRedirect(rawRedirectTo)
+    ? undefined
+    : rawRedirectTo
+
+  // Determine redirect status: use trailingSlashRedirect status when mismatch is only trailing slash
+  const trailingSlashMismatch = redirectTo !== undefined
+    && trailingSlash !== 'preserve'
+    && trailingSlashRedirect !== false
+    && rawPathname !== '/'
+    && (
+      (trailingSlash === 'never' && rawPathname.endsWith('/'))
+      || (trailingSlash === 'always' && !rawPathname.endsWith('/'))
+    )
+
+  const redirectStatus: RedirectStatusCode | undefined = redirectTo
+    ? (trailingSlashMismatch ? trailingSlashRedirect as RedirectStatusCode : 302)
+    : undefined
+
   return {
     localeConfig: {
       ...localeConfig,
@@ -854,7 +904,7 @@ function buildResolvedRoute(
       defaultLocaleUrl,
       currentLocaleUrl,
       redirectTo,
-      redirectStatus: redirectTo ? 302 : undefined,
+      redirectStatus,
       canonicalUrl: buildUrl(canonicalPath, canonicalSearchParams),
       i18nUrl: routePattern,
       i18nUrlParams: params,
@@ -864,6 +914,7 @@ function buildResolvedRoute(
         buildUrl(canonicalPath, canonicalSearchParams),
         queryVariants,
         localeConfig,
+        trailingSlash,
       ),
       paramVariants: serializeParamVariants(paramVariants),
       queryVariants: serializeQueryVariants(queryVariants),
@@ -880,6 +931,7 @@ export function rebuildI18nRouteWithVariants(
 ): I18nRoute {
   const i18n = getI18nConfig(pageContext)
   const { routeIndex } = getCompiledDomainRouting(i18n, currentRoute.domainConfig.domain)
+  const resolved = resolveDomainConfigForDomain(i18n, currentRoute.domainConfig.domain)
   const request = parsePathAndQuery(urlOriginal)
   const localeConfig = currentRoute.localeConfig
   const requestState = resolveRequestState(request, localeConfig, localeConfig.currentLocale)
@@ -922,6 +974,8 @@ export function rebuildI18nRouteWithVariants(
     paramVariants,
     queryVariants,
     variantRedirectPath,
+    resolved.trailingSlash,
+    resolved.trailingSlashRedirect,
   )
 }
 
@@ -938,6 +992,7 @@ export function createI18nRouter(
   const { requestLocale, localeConfig, domainConfig, compiled } = resolveConfigs(pageContext, i18n)
   const effectiveRoutes = compiled.routeIndex
   const effectiveRedirects = compiled.redirects
+  const { trailingSlash, trailingSlashRedirect } = compiled.resolved
 
   // Step 2: Extract locale from URL prefix
   const requestState = resolveRequestState(request, localeConfig, requestLocale, compiled.prefixToLocale)
@@ -964,7 +1019,7 @@ export function createI18nRouter(
 
     if (configRedirectTarget !== null) {
       const configRedirectUrl = buildUrl(
-        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget.url, queryVariants, currentLocale, localeConfig),
+        localizeCanonicalPath(effectiveRoutes, paramVariants, configRedirectTarget.url, queryVariants, currentLocale, localeConfig, undefined, trailingSlash),
         localizeQueryParams(
           queryVariants,
           canonicalizeQueryParams(queryVariants, requestState.requestSearchParams, localeConfig),
@@ -1014,5 +1069,7 @@ export function createI18nRouter(
     paramVariants,
     queryVariants,
     variantRedirectPath,
+    trailingSlash,
+    trailingSlashRedirect,
   )
 }

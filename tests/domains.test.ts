@@ -2,20 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { resolveDomainConfig } from '../lib/core/domain/normalize'
 import { createPageContext } from '../lib/core/pageContext'
 import { createI18nRouter } from '../lib/core/router'
+import { useI18nRoute } from '../lib/core/useI18nRoute'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
 const domainConfig: I18nConfig = {
+  baseUrl: 'https://site.com',
   defaultLocale: 'en',
   locales: ['en', 'ru', 'fr'],
   prefixDefaultLocale: true,
   domains: {
     'site.com': {
+      baseUrl: 'https://site.com',
       defaultLocale: 'en',
       locales: ['en', 'ru'],
     },
     'site.fr': {
+      baseUrl: 'https://site.fr',
       defaultLocale: 'fr',
       locales: ['fr', 'en'],
       prefixDefaultLocale: false,
@@ -58,7 +62,24 @@ describe('domains — basic resolution', () => {
 
   it('stores domain: undefined when no domain override matched', () => {
     const result = onBeforeRoute(makePageContext('/en/about', domainConfig) as any)
-    expect(result.pageContext.i18nRoute!.domainConfig).toEqual({ domain: undefined })
+    expect(result.pageContext.i18nRoute!.domainConfig).toMatchObject({ domain: undefined })
+  })
+
+  it('builds absolute cross-domain URLs for target locales on another domain', () => {
+    const pageContext = createPageContext('https://site.com/en/about', {
+      config: { i18n: domainConfig },
+      headers: { host: 'site.com' },
+    })
+    const route = useI18nRoute({
+      ...pageContext,
+      i18nRoute: createI18nRouter('/en/about', pageContext),
+    })
+
+    expect(route.localizePath('/about', 'fr')).toBe('/a-propos')
+    expect(route.localizePath('/about', 'fr', { absolute: true })).toBe('https://site.fr/a-propos')
+    expect(route.localizePath('https://site.com/en/about', 'fr')).toBe('https://site.fr/a-propos')
+    expect(route.localizePath('https://site.com/en/about', 'fr', { absolute: false })).toBe('/a-propos')
+    expect(route.route('/about').to('fr', { absolute: true })).toBe('https://site.fr/a-propos')
   })
 })
 

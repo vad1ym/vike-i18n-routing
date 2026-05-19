@@ -41,6 +41,7 @@ export default defineConfig({
       {
         text: 'Runtime API',
         items: [
+          { text: 'Link Component', link: '/guide/link-component' },
           { text: 'useI18nRoute', link: '/guide/use-i18n-route' },
           { text: 'routeConfig', link: '/guide/route-config' },
           { text: 'localeConfig', link: '/guide/locale-config' },

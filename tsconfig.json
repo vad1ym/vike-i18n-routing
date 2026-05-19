@@ -8,5 +8,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["lib/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+  "include": ["lib/**/*.ts", "tests/**/*.ts", "vitest.config.ts"],
+  "exclude": ["lib/react", "lib/solid"]
 }

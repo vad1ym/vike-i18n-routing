@@ -41,15 +41,6 @@ import { useI18nRoute } from 'vike-i18n-routing'
 const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-**Solid:**
-
-```ts
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-```
-
 When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
 When `setRouteQueryVariants()` is used during data loading, translated query values are normalized automatically too.
 
@@ -78,6 +69,7 @@ resolveRouteKey('/unknown')                     // null
 ```ts
 type LocalizedPathOptions = {
   prefix?: boolean                                     // force-include or exclude the locale prefix
+  absolute?: boolean                                   // force full URL or path-only output
   params?: Record<string, string>                      // interpolated into the route pattern before localization
   query?: Record<string, string>                       // appended as search string, values localized via queryVariants
   paramVariants?: Record<string, RouteParamVariants>   // inline param variants, scoped to this call
@@ -146,6 +138,30 @@ localizePath('/about', 'ru', {
 ```
 
 Inline `queryVariants` merge with globally registered ones for this call, with inline taking precedence.
+
+### `absolute`
+
+Control whether the result is a full URL or a plain path:
+
+```ts
+localizePath('/about', 'ru')
+// → '/ru/o-nas'
+
+localizePath('/about', 'ru', { absolute: true })
+// → 'https://site.com/ru/o-nas'
+
+localizePath('https://site.com/en/about', 'fr')
+// → 'https://site.fr/a-propos'
+
+localizePath('https://site.com/en/about', 'fr', { absolute: false })
+// → '/a-propos'
+```
+
+- `absolute: undefined` keeps the input form: path in -> path out, full URL in -> full URL out
+- `absolute: true` always returns a full URL using `i18n.baseUrl` or a matching domain `baseUrl`
+- `absolute: false` always returns a path-only URL
+
+If `absolute: true` is used without any configured `baseUrl`, the library warns and returns a path-only URL.
 
 ## Return shape
 

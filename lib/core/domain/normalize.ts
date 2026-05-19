@@ -38,12 +38,19 @@ export function resolveDomainConfigForDomain(
   const locales = mergeLocales(baseLocales, domainConfig?.locales)
   const resolved: ResolvedDomainConfig = {
     domain: domainConfig ? domain : undefined,
+    baseUrl: domainConfig?.baseUrl ?? i18n.baseUrl,
     defaultLocale: domainConfig?.defaultLocale ?? i18n.defaultLocale,
     locales,
     prefixDefaultLocale: domainConfig?.prefixDefaultLocale ?? i18n.prefixDefaultLocale !== false,
     meta: domainConfig?.meta,
     routes: domainConfig?.routes,
     redirects: domainConfig?.redirects,
+    trailingSlash: domainConfig?.trailingSlash ?? i18n.trailingSlash ?? 'never',
+    trailingSlashRedirect: domainConfig?.trailingSlash !== undefined && i18n.trailingSlashRedirect === undefined
+      ? 301
+      : i18n.trailingSlashRedirect !== undefined
+        ? i18n.trailingSlashRedirect
+        : 301,
   }
 
   cachedByDomain.set(cacheKey, resolved)

@@ -21,15 +21,19 @@ export type I18nRoutes = I18nRouteTree
 
 export type FlatI18nRoutes = Record<string, I18nRouteLeaf>
 
+export type TrailingSlash = 'never' | 'always' | 'preserve'
+
 export type DomainMeta = Record<string, any>
 
 export type DomainConfig = {
+  baseUrl?: string
   defaultLocale?: LocaleCode
   locales?: LocaleConfigs
   prefixDefaultLocale?: boolean
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  trailingSlash?: TrailingSlash
 }
 
 export type I18nPageContext = Partial<PageContext> & {
@@ -55,12 +59,15 @@ export type LocaleDetectorConfig = {
 
 export type ResolvedDomainConfig = {
   domain?: string
+  baseUrl?: string
   defaultLocale: LocaleCode
   locales: Record<LocaleCode, LocaleConfig>
   prefixDefaultLocale: boolean
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  trailingSlash: TrailingSlash
+  trailingSlashRedirect: number | false
 }
 
 export type PageContextLocaleConfig = {
@@ -73,6 +80,7 @@ export type PageContextLocaleConfig = {
 
 export type PageContextDomainConfig = {
   domain?: string
+  baseUrl?: string
   defaultLocale?: LocaleCode
   locales?: Record<LocaleCode, LocaleConfig>
   prefixDefaultLocale?: boolean
@@ -107,6 +115,7 @@ export type RedirectTarget =
 export type RedirectConfig = Record<string, RedirectTarget>
 
 export type I18nConfig = {
+  baseUrl?: string
   defaultLocale: LocaleCode
   locales: LocaleConfigs
   routes: I18nRoutes
@@ -117,6 +126,8 @@ export type I18nConfig = {
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined
   localeDetector?: ((pageContext: I18nPageContext) => string | null | undefined) | LocaleDetectorConfig
   localeCookie?: string | false
+  trailingSlash?: TrailingSlash
+  trailingSlashRedirect?: number | false
 }
 
 export type RouteParamVariants = Record<LocaleCode, string>
@@ -132,10 +143,12 @@ export type QueryVariantConfig = {
 
 export type LocalizedPathOptions = {
   prefix?: boolean
+  absolute?: boolean
   params?: Record<string, string>
   query?: Record<string, string>
   paramVariants?: Record<string, RouteParamVariants>
   queryVariants?: Record<string, RouteQueryVariants>
+  trailingSlash?: TrailingSlash
 }
 
 export type StaticRouteParams = Record<string, string | undefined>
