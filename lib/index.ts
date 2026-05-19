@@ -12,11 +12,12 @@ export type {
   PageContextLocaleConfig,
   RedirectStatusCode,
   RouteDescriptor,
+  RouteKey,
   RouteConfig,
   RouteParamVariants,
   RouteQueryVariants,
 } from './core/types'
 
 export { generateStaticPaths } from './core/generateStaticPaths'
-export { useI18nRoute } from './core/useI18nRoute'
-export type { UseI18nRouteResult } from './core/useI18nRoute'
+export { createUseI18nRoute, useI18nRoute } from './core/useI18nRoute'
+export type { TypedUseI18nRouteResult, UseI18nRouteResult } from './core/useI18nRoute'

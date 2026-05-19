@@ -48,6 +48,12 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Advanced',
+        items: [
+          { text: 'TypeScript', link: '/guide/advanced-typescript' },
+        ],
+      },
+      {
         text: 'Recipes',
         items: [
           { text: 'Overview', link: '/guide/recipes/' },

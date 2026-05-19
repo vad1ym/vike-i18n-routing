@@ -138,6 +138,24 @@ export type LocalizedPathOptions = {
   queryVariants?: Record<string, RouteQueryVariants>
 }
 
+type JoinRouteKey<Parent extends string, Child extends string> = Parent extends '/'
+  ? Child
+  : Child extends '/'
+    ? Parent
+    : `${Parent}${Child}`
+
+type RouteKeysFromRoutes<TRoutes extends I18nRoutes> = {
+  [TKey in Extract<keyof TRoutes, string>]:
+    TRoutes[TKey] extends I18nRouteLeaf
+      ? TKey
+      : TRoutes[TKey] extends I18nRouteTree
+        ? JoinRouteKey<TKey, RouteKeysFromRoutes<TRoutes[TKey]>>
+        : never
+}[Extract<keyof TRoutes, string>]
+
+export type RouteKey<TConfig extends Pick<I18nConfig, 'routes'>> =
+  RouteKeysFromRoutes<TConfig['routes']> & string
+
 export type RouteDescriptor = {
   key: string
 }
