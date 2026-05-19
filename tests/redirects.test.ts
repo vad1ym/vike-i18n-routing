@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createI18nRouter } from '../lib/core/router'
 import { createPageContext } from '../lib/core/pageContext'
 import type { I18nConfig } from '../lib/core/types'
@@ -19,6 +19,10 @@ function route(url: string, i18n: I18nConfig, host = 'site.com') {
   const ctx = makeCtx(i18n, host)
   return createI18nRouter(url, ctx).routeConfig
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 const baseConfig: I18nConfig = {
   defaultLocale: 'en',
@@ -215,6 +219,39 @@ describe('config redirects', () => {
       expect(redirect('/en/contact-old', config)).toBe('/en/about')
     })
   })
+
+  describe('redirect chain validation', () => {
+    it('warns when redirects form a chain', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const config: I18nConfig = {
+        ...baseConfig,
+        redirects: {
+          '/legacy-about': '/about-old',
+          '/about-old': '/about',
+        },
+      }
+
+      redirect('/en/legacy-about', config)
+
+      expect(warn).toHaveBeenCalledWith(
+        'Redirect chain detected: /legacy-about -> /about-old -> /about. Redirect targets should resolve directly to the final URL.',
+      )
+    })
+
+    it('throws when redirects form a loop', () => {
+      const config: I18nConfig = {
+        ...baseConfig,
+        redirects: {
+          '/a': '/b',
+          '/b': '/a',
+        },
+      }
+
+      expect(() => redirect('/en/a', config)).toThrow(
+        'Redirect loop detected: /a -> /b -> /a. Remove one of the redirects to break the cycle.',
+      )
+    })
+  })
 })
 
 describe('domain redirects', () => {
@@ -289,6 +326,23 @@ describe('domain redirects', () => {
     }
 
     expect(route('/old-global', configWithStatus, 'ru.site.com').redirectStatus).toBe(301)
+  })
+
+  it('warns for redirect chains created by domain merge', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const configWithChain: I18nConfig = {
+      ...config,
+      redirects: {
+        ...config.redirects,
+        '/legacy-global': '/old-global',
+      },
+    }
+
+    redirectOnDomain('/legacy-global', configWithChain, 'ru.site.com')
+
+    expect(warn).toHaveBeenCalledWith(
+      'Redirect chain detected for domain "ru.site.com": /legacy-global -> /old-global -> /about. Redirect targets should resolve directly to the final URL.',
+    )
   })
 
 })

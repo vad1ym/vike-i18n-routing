@@ -108,4 +108,13 @@ domains: {
 
 See [Domains](/guide/domains) for a full domain config example.
 
+## Redirect chain validation
+
+Redirects are validated when the routing config is compiled.
+
+- Redirect chains such as `/a -> /b -> /c` print a warning so you can flatten them to `/a -> /c`.
+- Redirect loops such as `/a -> /b -> /a` throw immediately.
+
+This validation runs after domain redirects are merged with global redirects, so domain-specific chains and loops are checked too.
+
 Next: [Domains](/guide/domains)

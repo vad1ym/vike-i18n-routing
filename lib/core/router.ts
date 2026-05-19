@@ -14,7 +14,7 @@ import {
   type RouteIndex,
 } from './match'
 import { getI18nConfig } from './pageContext'
-import { resolveConfigRedirect } from './redirects'
+import { resolveConfigRedirect, validateRedirectConfig } from './redirects'
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
 import { normalizeRoutes } from './routes'
 import {
@@ -549,6 +549,9 @@ export function getCompiledDomainRouting(
   const redirects = resolved.redirects || i18n.redirects
     ? { ...i18n.redirects, ...resolved.redirects }
     : undefined
+  if (redirects) {
+    validateRedirectConfig(redirects, { domain: resolved.domain })
+  }
   const prefixToLocale: Record<string, LocaleCode> = {}
   for (const locale in resolved.locales) {
     prefixToLocale[resolved.locales[locale].urlPrefix] = locale
