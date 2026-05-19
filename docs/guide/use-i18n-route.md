@@ -41,15 +41,6 @@ import { useI18nRoute } from 'vike-i18n-routing'
 const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-**Solid:**
-
-```ts
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing'
-
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-```
-
 When `setRouteParamVariants()` is used during data loading, translated-param redirects are applied automatically.
 When `setRouteQueryVariants()` is used during data loading, translated query values are normalized automatically too.
 

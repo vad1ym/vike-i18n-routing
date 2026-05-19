@@ -87,17 +87,4 @@ import { useI18nRoute } from 'vike-i18n-routing'
 const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
 ```
 
-## Solid + simple translator
-
-The Solid example keeps text translation intentionally small and SSR-safe.
-
-```tsx
-import { usePageContext } from 'vike-solid/usePageContext'
-import { useI18nRoute } from 'vike-i18n-routing'
-import { createTranslator } from '../i18n'
-
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-const t = createTranslator(i18nRoute.localeConfig.currentLocale)
-```
-
 Next: [I18n Routes](/guide/i18n-routes)

@@ -18,6 +18,7 @@ export type {
   RouteParamVariants,
   RouteQueryVariants,
   StaticRouteParams,
+  LocalizedPathOptions,
 } from './core/types'
 
 export { generateStaticPaths } from './core/generateStaticPaths'
