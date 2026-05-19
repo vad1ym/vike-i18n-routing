@@ -47,6 +47,8 @@
     "example:solid:build": "pnpm --filter example-solid build",
     "example:static": "pnpm --filter example-static dev",
     "example:static:build": "pnpm --filter example-static build",
+    "example:static-dynamic": "pnpm --filter example-static-dynamic dev",
+    "example:static-dynamic:build": "pnpm --filter example-static-dynamic build",
     "example:medicines": "pnpm --filter example-medicines dev",
     "example:medicines:build": "pnpm --filter example-medicines build",
     "example:perf": "pnpm --filter example-perf dev",

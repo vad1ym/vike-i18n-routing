@@ -11,11 +11,13 @@ export type {
   PageContextDomainConfig,
   PageContextLocaleConfig,
   RedirectStatusCode,
+  GenerateStaticPathsOptions,
   RouteDescriptor,
   RouteKey,
   RouteConfig,
   RouteParamVariants,
   RouteQueryVariants,
+  StaticRouteParams,
 } from './core/types'
 
 export { generateStaticPaths } from './core/generateStaticPaths'

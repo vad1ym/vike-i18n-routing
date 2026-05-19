@@ -60,6 +60,30 @@ describe('routes — grouped definitions', () => {
       '/ru/shop/korzina',
     ])
   })
+
+  it('generates static paths from grouped dynamic routes when routeParams are provided', async () => {
+    const paths = await generateStaticPaths(groupedRoutesConfig, {
+      routeParams: {
+        '/blog/:slug': [
+          { slug: 'hello-world' },
+        ],
+        '/blog/category/:category': [
+          { category: 'design' },
+        ],
+      },
+    })
+
+    expect(paths).toEqual([
+      '/en',
+      '/ru',
+      '/en/blog/hello-world',
+      '/ru/blog/hello-world',
+      '/en/blog/category/design',
+      '/ru/blog/kategoriya/design',
+      '/en/shop/cart',
+      '/ru/shop/korzina',
+    ])
+  })
 })
 
 describe('domains — grouped route overrides', () => {
