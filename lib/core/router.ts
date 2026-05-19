@@ -17,6 +17,7 @@ import { getI18nConfig } from './pageContext'
 import { resolveConfigRedirect } from './redirects'
 import { buildRoutePath, matchRoutePattern, normalizePathname } from './route-patterns'
 import { normalizeRoutes } from './routes'
+import { validateI18nConfig } from './validate'
 import {
   canonicalizeParamValue,
   canonicalizeQueryParams,
@@ -531,6 +532,8 @@ export function getCompiledDomainRouting(
   i18n: I18nConfig,
   domainKey: string | undefined,
 ): CompiledDomainRouting {
+  validateI18nConfig(i18n)
+
   let byDomain = compiledDomainRoutingCache.get(i18n)
   if (!byDomain) {
     byDomain = new Map()
