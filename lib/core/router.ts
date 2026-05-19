@@ -237,10 +237,10 @@ export function localizeCanonicalPathCached(
 ): string {
   // Check cache first — covers both static and dynamic on repeated calls
   const cached = index._localizeCache.get(canonicalPath)
-  if (cached !== undefined) 
+  if (cached !== undefined)
     return cached[locale] ?? (
-      cached._miss 
-        ? cached._miss(canonicalPath, locale, localeConfig) 
+      cached._miss
+        ? cached._miss(canonicalPath, locale, localeConfig)
         : applyLocalePrefix(normalizePathname(canonicalPath), locale, localeConfig)
     )
 
@@ -997,7 +997,6 @@ export function createI18nRouter(
         requestState.localizedRequestUrl, currentLocale, localeConfig,
       )
     : undefined
-
   return buildResolvedRoute(
     effectiveRoutes,
     domainConfig,
