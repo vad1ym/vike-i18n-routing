@@ -20,6 +20,9 @@ export type {
   StaticRouteParams,
   LocalizedPathOptions,
   TrailingSlash,
+  AliasValue,
+  AliasConfig,
+  LocalizedAliasValue,
 } from './core/types'
 
 export { generateStaticPaths } from './core/generateStaticPaths'
