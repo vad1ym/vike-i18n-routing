@@ -12,6 +12,7 @@ const {
   routeConfig,
   setRouteParamVariants,
   setRouteQueryVariants,
+  resolveRouteKey,
   localizePath,
 } = useI18nRoute(pageContext)
 ```
@@ -59,6 +60,17 @@ localizePath(routeKey)
 localizePath(routeKey, locale)
 localizePath(routeKey, options)
 localizePath(routeKey, locale, options)
+```
+
+## `resolveRouteKey()`
+
+Resolve any known localized URL back to its canonical route key:
+
+```ts
+resolveRouteKey('/ru/o-nas')                    // '/about'
+resolveRouteKey('/en/about')                    // '/about'
+resolveRouteKey('https://site.com/ru/o-nas')   // '/about'
+resolveRouteKey('/unknown')                     // null
 ```
 
 ### Options
@@ -145,6 +157,7 @@ type UseI18nRouteResult = {
   routeConfig
   setRouteParamVariants(paramName, variants)
   setRouteQueryVariants(paramName, variants)
+  resolveRouteKey(url)
   localizePath(routeKey, locale?, options?)
 }
 ```

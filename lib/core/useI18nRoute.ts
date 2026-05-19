@@ -48,6 +48,7 @@ export type UseI18nRouteResult = {
   routeConfig: I18nRoute['routeConfig']
   setRouteParamVariants: (paramName: string, variants: RouteParamVariants) => void
   setRouteQueryVariants: (paramName: string, variants: RouteQueryVariants) => void
+  resolveRouteKey: (url: string) => string | null
   route: (routeKey: string) => BoundRouteDescriptor
   localizePath: {
     (routeKey: string | RouteDescriptor, locale?: LocaleCode, options?: LocalizedPathOptions): string
@@ -67,6 +68,7 @@ export type TypedUseI18nRouteResult<TConfig extends I18nConfig> = Omit<
   UseI18nRouteResult,
   'route' | 'localizePath'
 > & {
+  resolveRouteKey: (url: string) => RouteKey<TConfig> | null
   route: (routeKey: RouteKey<TConfig>) => BoundRouteDescriptor<RouteKey<TConfig>>
   localizePath: {
     (routeKey: RouteKey<TConfig> | RouteDescriptor, locale?: LocaleCode, options?: LocalizedPathOptions): string
@@ -375,6 +377,13 @@ export function localizePath(
   return search ? `${localizedPath}?${search}` : localizedPath
 }
 
+export function resolveRouteKey(
+  pageContext: PageContextWithI18nRoute,
+  url: string,
+): string | null {
+  return createI18nRouter(url, pageContext).routeConfig.i18nUrl ?? null
+}
+
 function localizeDescriptorPath(
   pageContext: PageContextWithI18nRoute,
   descriptor: RouteDescriptor,
@@ -519,6 +528,10 @@ export function useI18nRoute(
 
     setRouteQueryVariants(paramName, variants) {
       setRouteQueryVariants(pageContext, paramName, variants)
+    },
+
+    resolveRouteKey(url: string): string | null {
+      return resolveRouteKey(pageContext, url)
     },
 
     route(routeKey: string): BoundRouteDescriptor {
