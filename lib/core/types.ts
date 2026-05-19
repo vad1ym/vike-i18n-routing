@@ -33,6 +33,7 @@ export type DomainConfig = {
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  aliases?: AliasConfig
   trailingSlash?: TrailingSlash
 }
 
@@ -66,6 +67,7 @@ export type ResolvedDomainConfig = {
   meta?: DomainMeta
   routes?: I18nRoutes
   redirects?: RedirectConfig
+  aliases?: AliasConfig
   trailingSlash: TrailingSlash
   trailingSlashRedirect: number | false
 }
@@ -100,6 +102,7 @@ export type RouteConfig = {
   currentLocaleUrl: string
   redirectTo?: string
   redirectStatus?: RedirectStatusCode
+  renderTo?: string
   canonicalUrl: string
   i18nUrl?: string
   i18nUrlParams: Record<string, string>
@@ -114,6 +117,14 @@ export type RedirectTarget =
 
 export type RedirectConfig = Record<string, RedirectTarget>
 
+// Simple string alias: '/company': '/about'
+// Localized alias: '/spain/about': { target: '/about', en: '/spain/about', ru: '/spain/o-nas' }
+export type LocalizedAliasValue = { target: string } & Record<LocaleCode, string>
+
+export type AliasValue = string | LocalizedAliasValue
+
+export type AliasConfig = Record<string, AliasValue>
+
 export type I18nConfig = {
   baseUrl?: string
   defaultLocale: LocaleCode
@@ -121,6 +132,7 @@ export type I18nConfig = {
   routes: I18nRoutes
   debug?: boolean
   redirects?: RedirectConfig
+  aliases?: AliasConfig
   prefixDefaultLocale?: boolean
   domains?: Record<string, DomainConfig>
   domainDetector?: (pageContext: I18nPageContext) => string | null | undefined

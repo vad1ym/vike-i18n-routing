@@ -45,6 +45,7 @@ export function resolveDomainConfigForDomain(
     meta: domainConfig?.meta,
     routes: domainConfig?.routes,
     redirects: domainConfig?.redirects,
+    aliases: domainConfig?.aliases ?? i18n.aliases,
     trailingSlash: domainConfig?.trailingSlash ?? i18n.trailingSlash ?? 'never',
     trailingSlashRedirect: domainConfig?.trailingSlash !== undefined && i18n.trailingSlashRedirect === undefined
       ? 301

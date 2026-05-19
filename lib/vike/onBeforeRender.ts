@@ -1,11 +1,15 @@
 import type { PageContext } from 'vike/types'
 import { createSetCookieHeader, resolveCookieAction } from '../core/cookies'
-import { redirect } from 'vike/abort'
+import { redirect, render } from 'vike/abort'
 
 // Vike render hook that persists the resolved locale in a cookie.
 export function onBeforeRender(pageContext: PageContext) {
   const i18n = pageContext.config.i18n
   const locale = pageContext.locale
+
+  if (pageContext.i18nRoute?.routeConfig?.renderTo) {
+    throw render(pageContext.i18nRoute.routeConfig.renderTo as `/${string}`)
+  }
 
   if (pageContext.i18nRoute?.routeConfig?.redirectTo) {
     throw redirect(

@@ -35,6 +35,7 @@ export default defineConfig({
           { text: 'I18n Routes', link: '/guide/i18n-routes' },
           { text: 'Params Translation', link: '/guide/params-translation' },
           { text: 'Redirects', link: '/guide/redirects' },
+          { text: 'Aliases', link: '/guide/aliases' },
           { text: 'Domains', link: '/guide/domains' },
         ],
       },

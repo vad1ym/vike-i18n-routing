@@ -141,6 +141,27 @@ export default {
 } satisfies Config
 ```
 
+**Route aliases** — serve a page at an additional URL without a redirect:
+
+```ts
+// pages/+config.ts
+export default {
+  // ...
+  i18n: {
+    // ...
+    aliases: {
+      '/company': '/about',                          // simple — renders /about at /company
+      '/spain/about': {                              // localized — own paths per locale
+        target: '/about',
+        en: '/spain/about',
+        ru: '/spain/o-nas',
+      },
+      '/blog/:country/:slug': '/blog/:slug',         // parametric — extra URL segment
+    },
+  } satisfies I18nConfig,
+} satisfies Config
+```
+
 **Multi-domain** — different locale sets and default locales per domain:
 
 ```ts
@@ -171,6 +192,7 @@ Full docs with API reference, all config options, and recipes:
 - [I18n Routes](https://vad1ym.github.io/vike-i18n-routing/guide/i18n-routes)
 - [Params Translation](https://vad1ym.github.io/vike-i18n-routing/guide/params-translation)
 - [Redirects](https://vad1ym.github.io/vike-i18n-routing/guide/redirects)
+- [Aliases](https://vad1ym.github.io/vike-i18n-routing/guide/aliases)
 - [Domains](https://vad1ym.github.io/vike-i18n-routing/guide/domains)
 - [useI18nRoute API](https://vad1ym.github.io/vike-i18n-routing/guide/use-i18n-route)
 - [Recipes](https://vad1ym.github.io/vike-i18n-routing/guide/recipes/)

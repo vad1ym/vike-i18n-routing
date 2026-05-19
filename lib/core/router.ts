@@ -1,3 +1,4 @@
+import { buildAliasIndex, buildAliasAlternateUrls, resolveAlias, type AliasIndex } from './aliases'
 import { detectDomain, resolveDomainConfigForDomain } from './domain/normalize'
 import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl } from './format'
 import { detectRequestLocale } from './locale/detector'
@@ -470,6 +471,7 @@ type CompiledDomainRouting = {
   resolved: ResolvedDomainConfig
   redirects?: RedirectConfig
   routeIndex: RouteIndex
+  aliasIndex?: AliasIndex
   prefixToLocale: Record<string, LocaleCode>
 }
 
@@ -568,10 +570,12 @@ export function getCompiledDomainRouting(
     prefixToLocale[resolved.locales[locale].urlPrefix] = locale
   }
 
+  const aliasesConfig = resolved.aliases
   const compiled = {
     resolved,
     redirects,
     routeIndex: buildRouteIndex(routes),
+    aliasIndex: aliasesConfig ? buildAliasIndex(aliasesConfig) : undefined,
     prefixToLocale,
   } satisfies CompiledDomainRouting
   byDomain.set(cacheKey, compiled)
@@ -1047,6 +1051,64 @@ export function createI18nRouter(
           alternateUrls: [],
           paramVariants: serializeParamVariants(paramVariants),
           queryVariants: serializeQueryVariants(queryVariants),
+        },
+      }
+    }
+  }
+
+  // Step 3.6: Check alias config (URL rewrite — serve target page at alias URL)
+  const effectiveAliases = compiled.resolved.aliases
+  if (!canonicalMatch && effectiveAliases && compiled.aliasIndex) {
+    const aliasMatch = resolveAlias(
+      compiled.aliasIndex,
+      effectiveAliases,
+      requestState.localizedRequestUrl,
+      currentLocale,
+      localeConfig,
+      effectiveRoutes.routes,
+    )
+
+    if (aliasMatch) {
+      const targetPatterns = effectiveRoutes.routes[aliasMatch.targetRouteKey]
+      const targetRoute = buildResolvedRoute(
+        effectiveRoutes,
+        domainConfig,
+        localeConfig,
+        requestState,
+        aliasMatch.targetRouteKey,
+        targetPatterns,
+        aliasMatch.params,
+        paramVariants,
+        queryVariants,
+        undefined,
+        trailingSlash,
+        trailingSlashRedirect,
+      )
+
+      // Build the localized target URL for the render rewrite
+      const targetLocalizedPath = targetPatterns
+        ? buildConcretePath(paramVariants, targetPatterns[currentLocale] ?? aliasMatch.targetRouteKey, aliasMatch.params, localeConfig, currentLocale)
+        : aliasMatch.targetRouteKey
+      const renderTo = buildLocalizedUrl(targetLocalizedPath, requestState.requestSearchParams, currentLocale, localeConfig, trailingSlash)
+
+      // Override alternateUrls: for localized aliases use alias paths; for simple/parametric use target paths
+      const alternateUrls = aliasMatch.localizedPatterns
+        ? buildAliasAlternateUrls(
+            aliasMatch.localizedPatterns,
+            aliasMatch.params,
+            localeConfig,
+            (path, locale) => applyLocalePrefix(path, locale, localeConfig, undefined, trailingSlash),
+          )
+        : targetRoute.routeConfig.alternateUrls
+
+      return {
+        ...targetRoute,
+        routeConfig: {
+          ...targetRoute.routeConfig,
+          renderTo,
+          redirectTo: undefined,
+          redirectStatus: undefined,
+          alternateUrls,
         },
       }
     }
