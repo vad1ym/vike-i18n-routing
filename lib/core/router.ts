@@ -1085,12 +1085,6 @@ export function createI18nRouter(
         trailingSlashRedirect,
       )
 
-      // Build the localized target URL for the render rewrite
-      const targetLocalizedPath = targetPatterns
-        ? buildConcretePath(paramVariants, targetPatterns[currentLocale] ?? aliasMatch.targetRouteKey, aliasMatch.params, localeConfig, currentLocale)
-        : aliasMatch.targetRouteKey
-      const renderTo = buildLocalizedUrl(targetLocalizedPath, requestState.requestSearchParams, currentLocale, localeConfig, trailingSlash)
-
       // Override alternateUrls: for localized aliases use alias paths; for simple/parametric use target paths
       const alternateUrls = aliasMatch.localizedPatterns
         ? buildAliasAlternateUrls(
@@ -1105,7 +1099,6 @@ export function createI18nRouter(
         ...targetRoute,
         routeConfig: {
           ...targetRoute.routeConfig,
-          renderTo,
           redirectTo: undefined,
           redirectStatus: undefined,
           alternateUrls,

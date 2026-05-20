@@ -28,23 +28,18 @@ describe('simple string alias', () => {
     },
   }
 
-  it('sets renderTo when visiting alias URL', () => {
+  it('routes alias URL to target page via urlLogical (no renderTo)', () => {
     const route = makeRouter('/en/company', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.renderTo).toBeUndefined()
     expect(route.routeConfig.redirectTo).toBeUndefined()
+    // canonicalUrl points to target — vike uses this as urlLogical
+    expect(route.routeConfig.canonicalUrl).toBe('/about')
   })
 
-  it('renderTo points to the target route URL', () => {
-    const route = makeRouter('/en/company', config)
-    expect(route.routeConfig.renderTo).toBe('/en/about')
-  })
-
-  it('renders target page for Russian alias', () => {
-    // Russian localized path of /about is /o-nas, not /company — no alias for ru
-    // but /ru/company should still resolve via alias
+  it('resolves target for Russian alias', () => {
     const route = makeRouter('/ru/company', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
-    expect(route.routeConfig.renderTo).toBe('/ru/o-nas')
+    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.routeConfig.canonicalUrl).toBe('/about')
   })
 
   it('does not set renderTo for direct route access', () => {
@@ -74,13 +69,14 @@ describe('localized alias', () => {
 
   it('matches English localized alias path', () => {
     const route = makeRouter('/en/spain/about', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.renderTo).toBeUndefined()
     expect(route.routeConfig.i18nUrl).toBe('/about')
+    expect(route.routeConfig.canonicalUrl).toBe('/about')
   })
 
   it('matches Russian localized alias path', () => {
     const route = makeRouter('/ru/spain/o-nas', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.renderTo).toBeUndefined()
     expect(route.routeConfig.i18nUrl).toBe('/about')
   })
 
@@ -103,13 +99,14 @@ describe('parametric alias', () => {
     },
   }
 
-  it('matches parametric alias and extracts params', () => {
+  it('matches parametric alias and routes to target page', () => {
     const route = makeRouter('/en/blog/spain/my-post', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.renderTo).toBeUndefined()
     expect(route.routeConfig.i18nUrl).toBe('/blog/:slug')
+    expect(route.routeConfig.canonicalUrl).toBe('/blog/my-post')
   })
 
-  it('merges alias params with route params', () => {
+  it('merges alias params with route params (including alias-only params)', () => {
     const route = makeRouter('/en/blog/spain/my-post', config)
     expect(route.routeConfig.i18nUrlParams).toMatchObject({
       country: 'spain',
@@ -136,16 +133,52 @@ describe('wildcard alias', () => {
 
   it('resolves wildcard alias to target route', () => {
     const route = makeRouter('/blog/spain/my-post', config)
-    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.renderTo).toBeUndefined()
     expect(route.routeConfig.i18nUrl).toBe('/blog/:slug')
-    expect(route.routeConfig.renderTo).toBe('/blog/my-post')
+    expect(route.routeConfig.canonicalUrl).toBe('/blog/my-post')
   })
 
-  it('does not set renderTo when re-rendered at rewrite target (no infinite loop)', () => {
-    // Simulates the second onBeforeRoute call vike makes when processing throw render()
-    // In this cycle, _urlRewrite is set to the target so urlOriginal is bypassed
-    const route = makeRouter('/blog/my-post', config)
+  it('includes alias-only params (country) in i18nUrlParams', () => {
+    const route = makeRouter('/blog/spain/my-post', config)
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({
+      country: 'spain',
+      slug: 'my-post',
+    })
+  })
+})
+
+// ─── Wildcard alias with localized routes ────────────────────────────────────
+
+describe('wildcard alias with localized routes', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/medicines': { en: '/medicines', ru: '/lekarstva' },
+      '/medicines/:slug': { en: '/medicines/:slug', ru: '/lekarstva/:slug' },
+    },
+    aliases: {
+      '/medicines/:country/*path': '/medicines/*path',
+    },
+  }
+
+  it('routes /medicines/asd/dsa to /medicines/:slug with country in params', () => {
+    const route = makeRouter('/medicines/asd/dsa', config)
     expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines/dsa')
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({
+      country: 'asd',
+      slug: 'dsa',
+    })
+  })
+
+  it('direct /medicines/dsa access is not treated as alias', () => {
+    const route = makeRouter('/medicines/dsa', config)
+    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
+    expect(route.routeConfig.i18nUrlParams).toEqual({ slug: 'dsa' })
   })
 })
 
@@ -169,6 +202,7 @@ describe('per-domain aliases', () => {
     const route = makeRouter('/en/empresa', config)
     // No alias configured globally — should not resolve
     expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.routeConfig.canonicalUrl).not.toBe('/about')
   })
 })
 
