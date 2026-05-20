@@ -118,6 +118,37 @@ describe('parametric alias', () => {
   })
 })
 
+// ─── Wildcard alias ─────────────────────────────────────────────────────────
+
+describe('wildcard alias', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/blog': { en: '/blog', ru: '/blog' },
+      '/blog/:slug': { en: '/blog/:slug', ru: '/blog/:slug' },
+    },
+    aliases: {
+      '/blog/:country/*path': '/blog/*path',
+    },
+  }
+
+  it('resolves wildcard alias to target route', () => {
+    const route = makeRouter('/blog/spain/my-post', config)
+    expect(route.routeConfig.renderTo).toBeDefined()
+    expect(route.routeConfig.i18nUrl).toBe('/blog/:slug')
+    expect(route.routeConfig.renderTo).toBe('/blog/my-post')
+  })
+
+  it('does not set renderTo when re-rendered at rewrite target (no infinite loop)', () => {
+    // Simulates the second onBeforeRoute call vike makes when processing throw render()
+    // In this cycle, _urlRewrite is set to the target so urlOriginal is bypassed
+    const route = makeRouter('/blog/my-post', config)
+    expect(route.routeConfig.renderTo).toBeUndefined()
+  })
+})
+
 // ─── Per-domain aliases ─────────────────────────────────────────────────────
 
 describe('per-domain aliases', () => {
