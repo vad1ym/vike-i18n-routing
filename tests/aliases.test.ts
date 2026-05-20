@@ -182,6 +182,43 @@ describe('wildcard alias with localized routes', () => {
   })
 })
 
+// ─── Alias chaining ──────────────────────────────────────────────────────────
+
+describe('alias chaining', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/medicines': { en: '/medicines', ru: '/lekarstva' },
+      '/medicines/:slug': { en: '/medicines/:slug', ru: '/lekarstva/:slug' },
+    },
+    aliases: {
+      '/medicines/p/:page': '/medicines',
+      '/medicines/:country/*path': '/medicines/*path',
+    },
+  }
+
+  it('/medicines/ukraine/p/1 chains through country alias then page alias to /medicines', () => {
+    const route = makeRouter('/medicines/ukraine/p/1', config)
+    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.routeConfig.i18nUrl).toBe('/medicines')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+  })
+
+  it('includes all params from the chain', () => {
+    const route = makeRouter('/medicines/ukraine/p/1', config)
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', page: '1' })
+  })
+
+  it('/medicines/ukraine/aspirin still routes to /medicines/:slug', () => {
+    const route = makeRouter('/medicines/ukraine/aspirin', config)
+    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines/aspirin')
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
+  })
+})
+
 // ─── Per-domain aliases ─────────────────────────────────────────────────────
 
 describe('per-domain aliases', () => {

@@ -76,6 +76,7 @@ function resolveAliasTargetKey(
 
 // Tries to match a request pathname against all alias patterns.
 // Returns the resolved alias (target route key + params) or null.
+// depth guards against circular alias chains.
 export function resolveAlias(
   index: AliasIndex,
   aliases: AliasConfig,
@@ -83,7 +84,10 @@ export function resolveAlias(
   currentLocale: LocaleCode,
   localeConfig: PageContextLocaleConfig,
   routes: FlatI18nRoutes,
+  depth = 0,
 ): ResolvedAlias | null {
+  if (depth > 10) return null
+
   const normalizedPathname = normalizePathname(pathname)
 
   // 1. Check static aliases
@@ -91,6 +95,12 @@ export function resolveAlias(
   if (staticEntry) {
     const targetKey = resolveAliasTargetKey(staticEntry.value, routes)
     if (!targetKey) return null
+
+    // Chain: if the target is itself an alias, resolve it further
+    if (!routes[targetKey]) {
+      const chained = resolveAlias(index, aliases, targetKey, currentLocale, localeConfig, routes, depth + 1)
+      if (chained) return { ...chained, params: { ...chained.params } }
+    }
 
     return {
       targetRouteKey: targetKey,
@@ -161,6 +171,15 @@ export function resolveAlias(
       return {
         targetRouteKey: bestRouteKey,
         params: params as Record<string, string>,
+      }
+    }
+
+    // No route matched — try chaining through another alias
+    const chained = resolveAlias(index, aliases, normalizedTarget, currentLocale, localeConfig, routes, depth + 1)
+    if (chained) {
+      return {
+        ...chained,
+        params: { ...params, ...chained.params },
       }
     }
   }
