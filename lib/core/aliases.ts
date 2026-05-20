@@ -56,22 +56,46 @@ export function buildAliasIndex(aliases: AliasConfig): AliasIndex {
   return { static: staticMap, dynamic }
 }
 
-// Resolves the target route key from an alias value.
-// For a simple string alias, the value IS the route key.
-// For a localized alias object, the explicit `target` field identifies the route key.
-function resolveAliasTargetKey(
+// Resolves the concrete target path and best-matching route key for an alias value + params.
+// Both string aliases and localized alias `target` fields are treated as path templates:
+// params are filled in first, then the resulting path is matched against known routes.
+// Returns null if no route can be found.
+function resolveAliasTarget(
   value: AliasValue,
+  params: Record<string, string | undefined>,
   routes: FlatI18nRoutes,
-): string | null {
-  if (typeof value === 'string') {
-    // Simple alias — value is directly the route key
-    const normalized = normalizePathname(value)
-    return routes[normalized] ? normalized : normalized
+): { targetRouteKey: string; mergedParams: Record<string, string>; normalizedTarget: string } | null {
+  const template = typeof value === 'string' ? value : value.target
+  const normalizedTarget = normalizePathname(buildRoutePath(template, params))
+
+  // Exact route key match
+  if (routes[normalizedTarget]) {
+    return { targetRouteKey: normalizedTarget, mergedParams: params as Record<string, string>, normalizedTarget }
   }
 
-  // Localized alias — use explicit target field
-  const target = normalizePathname(value.target)
-  return target
+  // Pattern match — find the most specific route whose pattern matches the concrete target path
+  let bestRouteKey: string | null = null
+  let bestScore = -1
+  let bestMerged: Record<string, string> | null = null
+
+  for (const routeKey of Object.keys(routes)) {
+    const normalizedKey = normalizePathname(routeKey)
+    const routeParams = matchRoutePattern(normalizedKey, normalizedTarget)
+    if (routeParams) {
+      const score = normalizedKey.length
+      if (score > bestScore) {
+        bestScore = score
+        bestRouteKey = routeKey
+        bestMerged = { ...params, ...routeParams } as Record<string, string>
+      }
+    }
+  }
+
+  if (bestRouteKey && bestMerged) {
+    return { targetRouteKey: bestRouteKey, mergedParams: bestMerged, normalizedTarget }
+  }
+
+  return null
 }
 
 // Tries to match a request pathname against all alias patterns.
@@ -93,18 +117,15 @@ export function resolveAlias(
   // 1. Check static aliases
   const staticEntry = index.static.get(normalizedPathname)
   if (staticEntry) {
-    const targetKey = resolveAliasTargetKey(staticEntry.value, routes)
-    if (!targetKey) return null
-
-    // Chain: if the target is itself an alias, resolve it further
-    if (!routes[targetKey]) {
-      const chained = resolveAlias(index, aliases, targetKey, currentLocale, localeConfig, routes, depth + 1)
-      if (chained) return { ...chained, params: { ...chained.params } }
+    const resolved = resolveAliasTarget(staticEntry.value, {}, routes)
+    if (!resolved) {
+      const chained = resolveAlias(index, aliases, normalizePathname(typeof staticEntry.value === 'string' ? staticEntry.value : staticEntry.value.target), currentLocale, localeConfig, routes, depth + 1)
+      if (chained) return { ...chained, localizedPatterns: isLocalizedAlias(staticEntry.value) ? staticEntry.value : undefined }
+      return null
     }
-
     return {
-      targetRouteKey: targetKey,
-      params: {},
+      targetRouteKey: resolved.targetRouteKey,
+      params: resolved.mergedParams,
       localizedPatterns: isLocalizedAlias(staticEntry.value) ? staticEntry.value : undefined,
     }
   }
@@ -117,69 +138,41 @@ export function resolveAlias(
     if (!localePattern || !(localePattern.includes(':') || localePattern.includes('{'))) continue
 
     const params = matchRoutePattern(localePattern, normalizedPathname)
-    if (params) {
-      const targetKey = resolveAliasTargetKey(value, routes)
-      if (!targetKey) continue
-      return {
-        targetRouteKey: targetKey,
-        params: params as Record<string, string>,
-        localizedPatterns: value,
-      }
+    if (!params) continue
+
+    const resolved = resolveAliasTarget(value, params as Record<string, string>, routes)
+    if (resolved) {
+      return { targetRouteKey: resolved.targetRouteKey, params: resolved.mergedParams, localizedPatterns: value }
+    }
+    // Target path didn't match a route — try chaining
+    const chained = resolveAlias(index, aliases, normalizePathname(buildRoutePath(value.target, params)), currentLocale, localeConfig, routes, depth + 1)
+    if (chained) {
+      return { ...chained, params: { ...params, ...chained.params } as Record<string, string>, localizedPatterns: value }
     }
   }
 
   // 3. Check dynamic aliases (parametric)
   for (const { aliasKey, value } of index.dynamic) {
-    if (typeof value !== 'string') continue  // localized dynamic aliases handled above
-
     const params = matchRoutePattern(aliasKey, normalizedPathname)
     if (!params) continue
 
-    // Build the target path by filling in matched params
-    const normalizedTarget = normalizePathname(buildRoutePath(value, params))
-
-    // Find the route key that matches the resolved target
-    // Target is treated as a prefix — find the most specific route key matching it
-    let bestRouteKey: string | null = null
-    let bestScore = -1
-
-    for (const routeKey of Object.keys(routes)) {
-      const normalizedKey = normalizePathname(routeKey)
-      if (normalizedTarget === normalizedKey) {
-        // Exact match
-        bestRouteKey = routeKey
-        break
-      }
-      // Prefix match — target '/medicines/ingredients/ibuprofen' matches route '/medicines/ingredients/:ingredient'
-      const routeParams = matchRoutePattern(normalizedKey, normalizedTarget)
-      if (routeParams) {
-        const score = normalizedKey.length
-        if (score > bestScore) {
-          bestScore = score
-          bestRouteKey = routeKey
-          // Merge extracted alias params with route params
-          const mergedParams = { ...params, ...routeParams } as Record<string, string>
-          return {
-            targetRouteKey: routeKey,
-            params: mergedParams,
-          }
-        }
-      }
-    }
-
-    if (bestRouteKey) {
+    const resolved = resolveAliasTarget(value, params as Record<string, string>, routes)
+    if (resolved) {
       return {
-        targetRouteKey: bestRouteKey,
-        params: params as Record<string, string>,
+        targetRouteKey: resolved.targetRouteKey,
+        params: resolved.mergedParams,
+        localizedPatterns: isLocalizedAlias(value) ? value : undefined,
       }
     }
 
     // No route matched — try chaining through another alias
-    const chained = resolveAlias(index, aliases, normalizedTarget, currentLocale, localeConfig, routes, depth + 1)
+    const template = typeof value === 'string' ? value : value.target
+    const chained = resolveAlias(index, aliases, normalizePathname(buildRoutePath(template, params)), currentLocale, localeConfig, routes, depth + 1)
     if (chained) {
       return {
         ...chained,
-        params: { ...params, ...chained.params },
+        params: { ...params, ...chained.params } as Record<string, string>,
+        localizedPatterns: isLocalizedAlias(value) ? value : chained.localizedPatterns,
       }
     }
   }

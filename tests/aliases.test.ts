@@ -219,6 +219,72 @@ describe('alias chaining', () => {
   })
 })
 
+// ─── Localized alias with parametric target ─────────────────────────────────
+
+describe('localized alias with parametric target', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/medicines': { en: '/medicines', ru: '/lekarstva' },
+      '/medicines/:slug': { en: '/medicines/:slug', ru: '/lekarstva/:slug' },
+    },
+    aliases: {
+      // target uses same param name as the alias — it's a path template filled from alias params
+      '/medicines/ingredient/:ingredient': {
+        target: '/medicines',
+        en: '/medicines/ingredient/:ingredient',
+        ru: '/lekarstva/ingredient/:ingredient',
+      },
+    },
+  }
+
+  it('routes to /medicines regardless of ingredient param', () => {
+    const route = makeRouter('/medicines/ingredient/aspirin', config)
+    expect(route.routeConfig.i18nUrl).toBe('/medicines')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({ ingredient: 'aspirin' })
+  })
+
+  it('ru locale: routes lekarstva/ingredient/:ingredient to /medicines', () => {
+    const route = makeRouter('/ru/lekarstva/ingredient/aspirin', config)
+    expect(route.routeConfig.i18nUrl).toBe('/medicines')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+  })
+})
+
+// ─── Alias chaining with localized alias ────────────────────────────────────
+
+describe('alias chaining — localized target alias', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/medicines': { en: '/medicines', ru: '/lekarstva' },
+      '/medicines/:slug': { en: '/medicines/:slug', ru: '/lekarstva/:slug' },
+    },
+    aliases: {
+      '/medicines/manufacturer/:manufacturer': { target: '/medicines', en: '/medicines', ru: '/lekarstva' },
+      '/medicines/:country/*path': '/medicines/*path',
+    },
+  }
+
+  it('/medicines/ukraine/manufacturer/123 chains to /medicines with correct params', () => {
+    const route = makeRouter('/medicines/ukraine/manufacturer/123', config)
+    expect(route.routeConfig.i18nUrl).toBe('/medicines')
+    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', manufacturer: '123' })
+  })
+
+  it('/medicines/ukraine/aspirin still routes to /medicines/:slug', () => {
+    const route = makeRouter('/medicines/ukraine/aspirin', config)
+    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
+    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
+  })
+})
+
 // ─── Per-domain aliases ─────────────────────────────────────────────────────
 
 describe('per-domain aliases', () => {
