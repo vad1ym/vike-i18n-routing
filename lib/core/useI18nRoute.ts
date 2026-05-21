@@ -671,8 +671,11 @@ function localizeDescriptorPath(
 }
 
 export function useI18nRoute(
-  pageContext: PageContextWithI18nRoute,
+  // Accepts any object to avoid TypeScript excessive stack depth errors when
+  // callers pass vike's PageContext (which has deeply recursive generic types).
+  _pageContext: object,
 ): UseI18nRouteResult {
+  const pageContext = _pageContext as PageContextWithI18nRoute
   // On client hydration, i18nRoute is created fresh by onBeforeRoute without runtime variants.
   // passToClient transfers them separately and they are restored here.
   if (
