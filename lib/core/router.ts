@@ -1229,7 +1229,7 @@ export function createI18nRouter(
         ),
       )
 
-      return buildRedirectRoute(context, configRedirectUrl, configRedirectTarget.url, configRedirectTarget.status)
+      return buildRedirectRoute(context, configRedirectUrl, context.requestState.requestUrl, configRedirectTarget.status)
     }
   }
 

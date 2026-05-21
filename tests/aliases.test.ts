@@ -367,3 +367,47 @@ describe('optional multi-segment alias with pagination', () => {
     expect(route.params).toMatchObject({ slug: 'aspirin', page: '1' })
   })
 })
+
+// ─── Alias + redirect coexistence ───────────────────────────────────────────
+// Redirect fires first: /p/1 stripped → then alias resolves the remaining URL.
+
+describe('redirect then alias — pagination stripped before alias match', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/doctors': { en: '/doctors', ru: '/vrachi' },
+    },
+    aliases: {
+      '/doctors{/speciality/:speciality}{/p/:page}': {
+        target: '/doctors',
+        en: '/doctors{/speciality/:speciality}{/p/:page}',
+        ru: '/vrachi{/specialnost/:speciality}{/p/:page}',
+      },
+    },
+    redirects: {
+      '*path/p': '*path',
+      '*path/p/1': '*path',
+    },
+  }
+
+  it('redirects /doctors/speciality/blabla/p/1 to /doctors/speciality/blabla (redirect fires first)', () => {
+    const route = makeRouter('/doctors/speciality/blabla/p/1', config)
+    expect(route.redirectTo).toBeDefined()
+    expect(route.redirectTo).toContain('/doctors/speciality/blabla')
+  })
+
+  it('resolves alias after redirect — /doctors/speciality/blabla matches alias', () => {
+    const route = makeRouter('/doctors/speciality/blabla', config)
+    expect(route.routeKey).toBe('/doctors')
+    expect(route.redirectTo).toBeUndefined()
+    expect(route.params).toMatchObject({ speciality: 'blabla' })
+  })
+
+  it('redirects /doctors/blabla/p/1 (no alias) to /doctors/blabla', () => {
+    const route = makeRouter('/doctors/blabla/p/1', config)
+    expect(route.redirectTo).toBeDefined()
+    expect(route.redirectTo).toContain('/doctors/blabla')
+  })
+})
