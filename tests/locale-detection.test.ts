@@ -76,6 +76,14 @@ describe('locale detection — Accept-Language header', () => {
 })
 
 describe('locale detection — query params', () => {
+  it('uses supported locale from ?lang query param', () => {
+    expect(
+      getRedirectTo(makePageContext('/about?lang=ru', config, {
+        headers: { host: 'site.com' },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+
   it('can disable query param locale detection', () => {
     expect(
       getRedirectTo(makePageContext('/about?locale=ru', {
@@ -89,6 +97,18 @@ describe('locale detection — query params', () => {
 })
 
 describe('locale detection — session', () => {
+  it('uses supported locale from session', () => {
+    expect(
+      getRedirectTo(makePageContext('/about', {
+        ...config,
+        localeDetector: { acceptLanguageHeader: false },
+      }, {
+        headers: { host: 'site.com' },
+        session: { locale: 'ru' },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+
   it('can disable session locale detection', () => {
     expect(
       getRedirectTo(makePageContext('/about', {
@@ -125,6 +145,70 @@ describe('locale detection — custom function', () => {
         }),
       ),
     ).toBe('/en/about')
+  })
+})
+
+describe('locale detection — precedence', () => {
+  it('prefers query locale over cookie, session, and accept-language', () => {
+    expect(
+      getRedirectTo(makePageContext('/about?locale=ru', config, {
+        headers: {
+          host: 'site.com',
+          cookie: 'locale=en',
+          'accept-language': 'en;q=1.0,ru;q=0.5',
+        },
+        session: { locale: 'en' },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+
+  it('prefers cookie over session and accept-language when no query is present', () => {
+    expect(
+      getRedirectTo(makePageContext('/about', config, {
+        headers: {
+          host: 'site.com',
+          cookie: 'locale=ru',
+          'accept-language': 'en;q=1.0,ru;q=0.5',
+        },
+        session: { locale: 'en' },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+
+  it('prefers session over accept-language when query and cookie are absent', () => {
+    expect(
+      getRedirectTo(makePageContext('/about', config, {
+        headers: {
+          host: 'site.com',
+          'accept-language': 'en;q=1.0,ru;q=0.5',
+        },
+        session: { locale: 'ru' },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+})
+
+describe('locale detection — Accept-Language matching', () => {
+  it('uses the highest-priority supported language from the header', () => {
+    expect(
+      getRedirectTo(makePageContext('/about', config, {
+        headers: {
+          host: 'site.com',
+          'accept-language': 'fr-CA;q=1.0,ru;q=0.9,en;q=0.8',
+        },
+      })),
+    ).toBe('/ru/o-nas')
+  })
+
+  it('falls back from regional tag to base language when supported', () => {
+    expect(
+      getRedirectTo(makePageContext('/about', config, {
+        headers: {
+          host: 'site.com',
+          'accept-language': 'ru-UA,fr;q=0.8',
+        },
+      })),
+    ).toBe('/ru/o-nas')
   })
 })
 

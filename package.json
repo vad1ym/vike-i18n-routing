@@ -34,6 +34,7 @@
   ],
   "scripts": {
     "test": "vitest run",
+    "test:runtime": "vitest run tests/vike-runtime-*.test.ts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
