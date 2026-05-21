@@ -1,6 +1,6 @@
 {
   "name": "vike-i18n-routing",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "Vike plugin for i18n routing with locale prefixes and translated URLs",
   "type": "module",
   "license": "MIT",
