@@ -27,3 +27,5 @@ export type {
 export { generateStaticPaths } from './core/generateStaticPaths'
 export { createUseI18nRoute, useI18nRoute } from './core/useI18nRoute'
 export type { TypedUseI18nRouteResult, UseI18nRouteResult } from './core/useI18nRoute'
+export { getCanonicalLink, getHreflangLinks, getSeoLinks } from './core/seo'
+export type { CanonicalLink, HreflangLink, SeoLinks } from './core/seo'
