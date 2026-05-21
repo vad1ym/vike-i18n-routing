@@ -15,6 +15,7 @@ const {
   setRouteQueryVariants,
   resolveRouteKey,
   localizePath,
+  switchLocaleUrl,
 } = useI18nRoute(pageContext)
 ```
 
@@ -52,6 +53,34 @@ localizePath(routeKey)
 localizePath(routeKey, locale)
 localizePath(routeKey, options)
 localizePath(routeKey, locale, options)
+```
+
+## `switchLocaleUrl()`
+
+Build a URL for the current logical route in another locale, always with `prefix: true`.
+
+```ts
+switchLocaleUrl(locale)
+switchLocaleUrl(locale, options)
+```
+
+Equivalent to:
+
+```ts
+localizePath(i18nRoute.logicalUrl, locale, { prefix: true })
+```
+
+Examples:
+
+```ts
+switchLocaleUrl('ru')
+// → '/ru/o-nas'
+
+switchLocaleUrl('en')
+// → '/en/about'
+
+switchLocaleUrl('ru', { absolute: true })
+// → 'https://site.com/ru/o-nas'
 ```
 
 ## `resolveRouteKey()`
@@ -189,6 +218,7 @@ type UseI18nRouteResult = {
   setRouteQueryVariants(paramName, variants)
   resolveRouteKey(url)
   localizePath(routeKey, locale?, options?)
+  switchLocaleUrl(locale, options?)
 }
 ```
 

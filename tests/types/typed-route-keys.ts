@@ -17,6 +17,8 @@ declare const flatPageContext: Parameters<typeof useFlatI18nRoute>[0]
 const flatRoute = useFlatI18nRoute(flatPageContext)
 flatRoute.localizePath('/about')
 flatRoute.localizePath('/services/:item', { params: { item: 'web-development' } })
+flatRoute.switchLocaleUrl('ru')
+flatRoute.switchLocaleUrl('ru', { params: { item: 'web-development' } })
 flatRoute.route('/about')
 
 // @ts-expect-error invalid flat route key
@@ -46,6 +48,7 @@ declare const groupedPageContext: Parameters<typeof useGroupedI18nRoute>[0]
 const groupedRoute = useGroupedI18nRoute(groupedPageContext)
 groupedRoute.localizePath('/blog/:slug')
 groupedRoute.localizePath('/blog/category/:category')
+groupedRoute.switchLocaleUrl('ru')
 
 // @ts-expect-error namespace keys are not route keys by themselves
 groupedRoute.localizePath('/blog')

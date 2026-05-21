@@ -55,6 +55,7 @@ export type UseI18nRouteResult = I18nRoute & {
     (routeKey: string | RouteDescriptor, locale?: LocaleCode, options?: LocalizedPathOptions): string
     (routeKey: string | RouteDescriptor, options?: LocalizedPathOptions): string
   }
+  switchLocaleUrl: (locale: LocaleCode, options?: Omit<LocalizedPathOptions, 'prefix'>) => string
 }
 
 export type BoundRouteDescriptor<TKey extends string = string> = Omit<RouteDescriptor, 'key'> & {
@@ -75,6 +76,7 @@ export type TypedUseI18nRouteResult<TConfig extends I18nConfig> = Omit<
     (routeKey: RouteKey<TConfig> | RouteDescriptor, locale?: LocaleCode, options?: LocalizedPathOptions): string
     (routeKey: RouteKey<TConfig> | RouteDescriptor, options?: LocalizedPathOptions): string
   }
+  switchLocaleUrl: (locale: LocaleCode, options?: Omit<LocalizedPathOptions, 'prefix'>) => string
 }
 
 function getParamVariants(pageContext: PageContextWithI18nRoute): ParamVariants {
@@ -630,6 +632,17 @@ export function localizePath(
   )
 }
 
+export function switchLocaleUrl(
+  pageContext: PageContextWithI18nRoute,
+  locale: LocaleCode,
+  options?: Omit<LocalizedPathOptions, 'prefix'>,
+): string {
+  return localizePath(pageContext, pageContext.i18nRoute.logicalUrl, locale, {
+    ...options,
+    prefix: true,
+  })
+}
+
 export function resolveRouteKey(
   pageContext: PageContextWithI18nRoute,
   url: string,
@@ -722,6 +735,10 @@ export function useI18nRoute(
 
     localizePath(routeKey: string | RouteDescriptor, localeOrOptions?: LocaleCode | LocalizedPathOptions, options?: LocalizedPathOptions): string {
       return localizePath(pageContext, routeKey, localeOrOptions, options)
+    },
+
+    switchLocaleUrl(locale: LocaleCode, options?: Omit<LocalizedPathOptions, 'prefix'>): string {
+      return switchLocaleUrl(pageContext, locale, options)
     },
   }
 }

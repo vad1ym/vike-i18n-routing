@@ -3,19 +3,21 @@
 Build the target URL from the current logical route.
 
 ```ts
-const { logicalUrl, localizePath } = useI18nRoute(pageContext)
+const { switchLocaleUrl } = useI18nRoute(pageContext)
 
 function switchLocale(targetLocale: string) {
-  return localizePath(logicalUrl, targetLocale)
+  return switchLocaleUrl(targetLocale)
 }
 ```
 
-Vue example:
+`switchLocaleUrl()` is a convenience alias for:
 
 ```ts
-function switchLocale(targetLocale: string) {
-  return localizePath(logicalUrl, targetLocale, {
-    prefix: true,
-  })
-}
+localizePath(i18nRoute.logicalUrl, targetLocale, { prefix: true })
+```
+
+You can still pass extra options when needed:
+
+```ts
+switchLocaleUrl('ru', { absolute: true })
 ```

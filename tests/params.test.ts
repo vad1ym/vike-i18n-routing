@@ -277,3 +277,41 @@ describe('localizePath — prefixDefaultLocale:false', () => {
     expect(i18nRoute.localizePath('/about', 'ru')).toBe('/ru/o-nas')
   })
 })
+
+describe('switchLocaleUrl', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/about': { en: '/about', ru: '/o-nas' },
+      '/services/:item': { en: '/services/:item', ru: '/uslugi/:item' },
+    },
+  }
+
+  it('forces locale prefix for current logical URL', () => {
+    const ctx = createPageContext('https://site.com/about', {
+      config: { i18n: config },
+      headers: { host: 'site.com' },
+    })
+    const i18nRoute = useI18nRoute({ ...ctx, i18nRoute: createI18nRouter('/about', ctx) } as any)
+
+    expect(i18nRoute.switchLocaleUrl('en')).toBe('/en/about')
+    expect(i18nRoute.switchLocaleUrl('ru')).toBe('/ru/o-nas')
+  })
+
+  it('preserves current params and supports extra options', () => {
+    const ctx = createPageContext('https://site.com/services/web-development', {
+      config: { i18n: config },
+      headers: { host: 'site.com' },
+    })
+    const i18nRoute = useI18nRoute({
+      ...ctx,
+      i18nRoute: createI18nRouter('/services/web-development', ctx),
+    } as any)
+
+    expect(i18nRoute.switchLocaleUrl('ru', {
+      query: { ref: 'banner' },
+    })).toBe('/ru/uslugi/web-development?ref=banner')
+  })
+})

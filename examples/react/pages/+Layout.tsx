@@ -20,11 +20,11 @@ function Layout({ children }: { children: ReactNode }) {
 function LayoutContent({ children }: { children: ReactNode }) {
   const intl = useIntl()
   const pageContext = usePageContext()
-  const { i18nRoute, localizePath } = useI18nRoute(pageContext)
+  const { i18nRoute, localizePath, switchLocaleUrl } = useI18nRoute(pageContext)
   const locales = pageContext.i18nRoute.locales
 
   function switchLocale(nextLocale: string) {
-    return localizePath(pageContext.i18nRoute.logicalUrl, nextLocale, { prefix: true })
+    return switchLocaleUrl(nextLocale)
   }
 
   return (
