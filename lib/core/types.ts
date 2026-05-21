@@ -98,7 +98,7 @@ export type PageContextLocaleEntry = LocaleConfig & {
   locale: LocaleCode
 }
 
-export type RedirectStatusCode = 301 | 302
+export type RedirectStatusCode = 301 | 302 | 307 | 308
 
 export type RedirectTarget =
   | string

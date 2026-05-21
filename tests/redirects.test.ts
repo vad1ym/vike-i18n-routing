@@ -161,6 +161,34 @@ describe('config redirects', () => {
     })
   })
 
+  describe('307/308 redirect status codes', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      redirects: {
+        '/api-old': {
+          url: '/about',
+          status: 307,
+        },
+        '/api-permanent': {
+          url: '/about',
+          status: 308,
+        },
+      },
+    }
+
+    it('uses 307 Temporary Redirect when configured', () => {
+      const routeConfig = route('/en/api-old', config)
+      expect(routeConfig.redirectTo).toBe('/en/about')
+      expect(routeConfig.redirectStatus).toBe(307)
+    })
+
+    it('uses 308 Permanent Redirect when configured', () => {
+      const routeConfig = route('/en/api-permanent', config)
+      expect(routeConfig.redirectTo).toBe('/en/about')
+      expect(routeConfig.redirectStatus).toBe(308)
+    })
+  })
+
   describe('redirect for path not in routes', () => {
     const config: I18nConfig = {
       ...baseConfig,
