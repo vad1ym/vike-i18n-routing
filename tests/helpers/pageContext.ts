@@ -57,3 +57,12 @@ export function resolveRenderRedirect(pageContext: ReturnType<typeof makePageCon
 
   return null
 }
+
+export function resolveRouteRedirect(pageContext: ReturnType<typeof makePageContext>): string | null {
+  try {
+    onBeforeRoute(pageContext as any)
+  } catch (error) {
+    return getRedirectUrl(error)
+  }
+  return null
+}

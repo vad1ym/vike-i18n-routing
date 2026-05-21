@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { onBeforeRender } from '../lib/vike/onBeforeRender'
+import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { onHydrationEnd } from '../lib/vike/onHydrationEnd'
 import { createI18nRouter } from '../lib/core/router'
 import { useI18nRoute } from '../lib/core/useI18nRoute'
@@ -28,17 +29,14 @@ afterEach(() => {
 
 describe('onBeforeRender', () => {
   it('throws redirect with configured status', () => {
+    const configWithRedirect: I18nConfig = {
+      ...config,
+      redirects: { '/about/old': { url: '/about', status: 301 } },
+    }
     try {
-      onBeforeRender({
-        config: { i18n: config },
-        locale: 'en',
-        i18nRoute: {
-          redirectTo: '/ru/o-nas',
-          redirectStatus: 301,
-        },
-      } as any)
+      onBeforeRoute(makePageContext('/en/about/old', configWithRedirect) as any)
     } catch (error) {
-      expect(getRedirectUrl(error)).toBe('/ru/o-nas')
+      expect(getRedirectUrl(error)).toBe('/en/about')
       expect((error as any)._pageContextAbort._urlRedirect.statusCode).toBe(301)
       return
     }

@@ -196,7 +196,9 @@ describe('config validation', () => {
       },
     }
 
-    onBeforeRoute(makePageContext('/legacy', config, { headers: { host: 'ru.site.com' } }) as any)
+    try {
+      onBeforeRoute(makePageContext('/legacy', config, { headers: { host: 'ru.site.com' } }) as any)
+    } catch { /* redirect thrown — expected */ }
 
     expect(warn).toHaveBeenCalledWith(
       '[vike-i18n] redirect target "/missing-domain-route" in domains["ru.site.com"] does not match any route key.',

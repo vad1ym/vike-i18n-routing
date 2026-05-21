@@ -1,10 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
+import { makePageContext, resolveRenderRedirect, getRedirectUrl } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
 function getRedirectTo(pageContext: ReturnType<typeof makePageContext>) {
-  return onBeforeRoute(pageContext as any).pageContext.i18nRoute?.redirectTo ?? null
+  try {
+    return onBeforeRoute(pageContext as any).pageContext.i18nRoute?.redirectTo ?? null
+  } catch (error) {
+    return getRedirectUrl(error)
+  }
 }
 
 const config: I18nConfig = {
