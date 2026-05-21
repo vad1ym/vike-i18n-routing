@@ -2,6 +2,7 @@ import { mergeLocales, normalizeLocales } from './locale/normalize'
 import { matchRoutePattern, normalizePathname } from './route-patterns'
 import { normalizeRoutes } from './routes'
 import type {
+  AliasConfig,
   DomainConfig,
   FlatI18nRoutes,
   I18nConfig,
@@ -82,6 +83,47 @@ function warnUnknownRedirectTargets(
   }
 }
 
+function validateAliases(aliases: AliasConfig | undefined, scope?: string): void {
+  if (!aliases) return
+
+  const prefix = scope ? ` in ${scope}` : ''
+  const aliasKeys = Object.keys(aliases)
+
+  // Detect cycles: build a static alias→target map and walk chains
+  // Only static (non-parametric) keys are checked since dynamic ones can't form deterministic cycles
+  const staticTargets = new Map<string, string>()
+  for (const [aliasKey, value] of Object.entries(aliases)) {
+    const isDynamic = aliasKey.includes(':') || aliasKey.includes('@') || aliasKey.includes('{') || aliasKey.includes('*')
+    if (!isDynamic) {
+      const target = typeof value === 'string' ? value : value.target
+      staticTargets.set(normalizePathname(aliasKey), normalizePathname(target))
+    }
+  }
+
+  for (const [start] of staticTargets) {
+    const visited = new Set<string>()
+    let current: string | undefined = start
+    while (current && staticTargets.has(current)) {
+      if (visited.has(current)) {
+        fail(`alias cycle detected${prefix}: "${start}" eventually resolves back to itself.`)
+      }
+      visited.add(current)
+      current = staticTargets.get(current)
+    }
+  }
+
+  // Detect duplicate static alias keys (case-insensitive normalized)
+  const seenKeys = new Map<string, string>()
+  for (const aliasKey of aliasKeys) {
+    const normalized = normalizePathname(aliasKey)
+    const existing = seenKeys.get(normalized)
+    if (existing) {
+      fail(`duplicate alias key${prefix}: "${existing}" and "${aliasKey}" resolve to the same path.`)
+    }
+    seenKeys.set(normalized, aliasKey)
+  }
+}
+
 function validateDomainConfig(
   domain: string,
   domainConfig: DomainConfig,
@@ -104,6 +146,7 @@ function validateDomainConfig(
     : baseRoutes
 
   warnUnknownRedirectTargets(domainConfig.redirects, routes, `domains["${domain}"]`)
+  validateAliases(domainConfig.aliases, `domains["${domain}"]`)
 }
 
 export function validateI18nConfig(i18n: I18nConfig): void {
@@ -117,6 +160,7 @@ export function validateI18nConfig(i18n: I18nConfig): void {
   const routes = normalizeRoutes(i18n.routes)
 
   warnUnknownRedirectTargets(i18n.redirects, routes)
+  validateAliases(i18n.aliases)
 
   for (const [domain, domainConfig] of Object.entries(i18n.domains ?? {})) {
     validateDomainConfig(domain, domainConfig, locales, routes)

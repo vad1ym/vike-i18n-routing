@@ -7,11 +7,11 @@ export { Layout }
 
 function Layout(props: { children: JSX.Element }) {
   const pageContext = usePageContext()
-  const { i18nRoute, locales, logicalUrl, localizePath } = useI18nRoute(pageContext)
+  const { i18nRoute, locales, localizePath, switchLocaleUrl } = useI18nRoute(pageContext)
   const t = createTranslator(() => pageContext.locale)
 
   function switchLocale(nextLocale: string) {
-    return localizePath(logicalUrl, nextLocale, { prefix: true })
+    return switchLocaleUrl(nextLocale)
   }
 
   return (

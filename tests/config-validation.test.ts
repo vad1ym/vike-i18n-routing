@@ -106,6 +106,81 @@ describe('config validation', () => {
     )
   })
 
+  it('throws when aliases form a direct cycle', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      aliases: {
+        '/company': '/firm',
+        '/firm': '/company',
+      },
+    }
+
+    expect(triggerValidation(config)).toThrow(
+      '[vike-i18n] alias cycle detected',
+    )
+  })
+
+  it('throws when aliases form an indirect cycle', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      aliases: {
+        '/a': '/b',
+        '/b': '/c',
+        '/c': '/a',
+      },
+    }
+
+    expect(triggerValidation(config)).toThrow(
+      '[vike-i18n] alias cycle detected',
+    )
+  })
+
+  it('throws when two alias keys normalize to the same path', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      aliases: {
+        '/company': '/about',
+        'company': '/about',
+      },
+    }
+
+    expect(triggerValidation(config)).toThrow(
+      '[vike-i18n] duplicate alias key',
+    )
+  })
+
+  it('does not throw for valid non-cyclic aliases', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      aliases: {
+        '/company': '/about',
+        '/firm': '/company',
+      },
+    }
+
+    expect(triggerValidation(config)).not.toThrow()
+  })
+
+  it('throws when domain aliases form a cycle', () => {
+    const config: I18nConfig = {
+      ...baseConfig,
+      domains: {
+        'site.es': {
+          defaultLocale: 'en',
+          locales: ['en'],
+          aliases: {
+            '/empresa': '/compania',
+            '/compania': '/empresa',
+          },
+        },
+      },
+    }
+
+    expect(triggerValidation(config, '/about')).toThrow(
+      '[vike-i18n] alias cycle detected in domains["site.es"]',
+    )
+  })
+
   it('warns when a merged domain redirect target does not match any route key', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const config: I18nConfig = {
