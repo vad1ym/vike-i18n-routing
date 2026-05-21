@@ -2,6 +2,8 @@
 
 `domainConfig` exposes the resolved domain-level override for the current request.
 
+If you only need the current domain string, use the `domain` shortcut from `useI18nRoute()`.
+
 ## Shape
 
 ```ts
@@ -23,6 +25,12 @@ domainConfig.domain
 domainConfig.defaultLocale
 domainConfig.prefixDefaultLocale
 domainConfig.meta
+```
+
+Shortcut:
+
+```ts
+const { domain } = useI18nRoute(pageContext)
 ```
 
 If no domain override is matched, the object can be as small as:

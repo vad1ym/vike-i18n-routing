@@ -76,7 +76,7 @@ import { loadItemFromDb } from '../data'
 export { data }
 
 function data(pageContext: PageContext) {
-  const requestedSlug = pageContext.i18nRoute.routeConfig.i18nUrlParams.item
+  const requestedSlug = pageContext.i18nRoute.params.item
   const item = loadItemFromDb(requestedSlug)
 
   if (!item) return null

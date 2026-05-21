@@ -14,7 +14,6 @@ export type {
   GenerateStaticPathsOptions,
   RouteDescriptor,
   RouteKey,
-  RouteConfig,
   RouteParamVariants,
   RouteQueryVariants,
   StaticRouteParams,

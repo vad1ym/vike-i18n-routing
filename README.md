@@ -180,7 +180,7 @@ export default {
 
 **Locale detection** — automatically from URL prefix, query param (`?locale=ru`), cookie, session, or `Accept-Language` header.
 
-**SEO** — `routeConfig.alternateUrls` gives you all locale URLs for `<link rel="alternate" hreflang>` tags.
+**SEO** — `i18nRoute.alternateUrls` gives you all locale URLs for `<link rel="alternate" hreflang>` tags.
 
 ## Documentation
 

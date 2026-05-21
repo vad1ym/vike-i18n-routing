@@ -18,9 +18,8 @@ In components, pass `pageContext` directly:
 import { usePageContext } from 'vike-vue/usePageContext'
 import { useI18nRoute } from 'vike-i18n-routing'
 
-const { i18nRoute } = useI18nRoute(usePageContext())
-const locale = i18nRoute.localeConfig.currentLocale
-const localeCurrency = i18nRoute.localeConfig.currentLocaleMeta?.currency
+const { locale, localeMeta } = useI18nRoute(usePageContext())
+const localeCurrency = localeMeta?.currency
 ```
 
 See [useI18nRoute](/guide/use-i18n-route) for the full API.

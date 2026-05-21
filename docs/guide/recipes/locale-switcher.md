@@ -1,12 +1,12 @@
 # Locale Switcher
 
-Build the target URL from the current canonical route.
+Build the target URL from the current logical route.
 
 ```ts
-const { routeConfig, localizePath } = useI18nRoute(pageContext)
+const { logicalUrl, localizePath } = useI18nRoute(pageContext)
 
 function switchLocale(targetLocale: string) {
-  return localizePath(routeConfig.canonicalUrl, targetLocale)
+  return localizePath(logicalUrl, targetLocale)
 }
 ```
 
@@ -14,8 +14,8 @@ Vue example:
 
 ```ts
 function switchLocale(targetLocale: string) {
-  return localizePath(routeConfig.value.canonicalUrl, targetLocale, {
-    prefixDefaultLocale: true,
+  return localizePath(logicalUrl, targetLocale, {
+    prefix: true,
   })
 }
 ```

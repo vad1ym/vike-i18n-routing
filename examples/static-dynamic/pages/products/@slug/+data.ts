@@ -4,7 +4,7 @@ import { findDummyJsonProductBySlug } from '../../../dummyjsonProducts'
 export { data }
 
 async function data(pageContext: PageContext) {
-  const slug = pageContext.i18nRoute.routeConfig.i18nUrlParams.slug
+  const slug = pageContext.i18nRoute.params.slug
   const product = await findDummyJsonProductBySlug(slug)
   const locale = (pageContext.locale ?? 'en') as 'en' | 'ru'
 

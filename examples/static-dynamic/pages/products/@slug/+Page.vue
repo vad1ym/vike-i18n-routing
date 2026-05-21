@@ -19,7 +19,7 @@ const messages = computed(() => getMessages(pageContext.locale))
     <p>{{ messages.product.category }}: {{ data.category }}</p>
     <p>{{ messages.product.price }}: {{ data.price }}</p>
     <p>{{ messages.product.source }}: {{ data.source }}</p>
-    <code>{{ pageContext.i18nRoute.routeConfig.currentLocaleUrl }}</code>
+    <code>{{ pageContext.i18nRoute.currentLocaleUrl }}</code>
   </section>
 </template>
 

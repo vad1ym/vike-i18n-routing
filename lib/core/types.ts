@@ -94,23 +94,11 @@ export type AlternateUrl = {
   url: string
 }
 
-export type RedirectStatusCode = 301 | 302
-
-export type RouteConfig = {
-  requestUrl: string
-  defaultLocaleUrl: string
-  currentLocaleUrl: string
-  redirectTo?: string
-  redirectStatus?: RedirectStatusCode
-  renderTo?: string
-  aliasFrom?: string
-  canonicalUrl: string
-  i18nUrl?: string
-  i18nUrlParams: Record<string, string>
-  alternateUrls: AlternateUrl[]
-  paramVariants: Record<string, ParamVariantConfig>
-  queryVariants: Record<string, QueryVariantConfig>
+export type PageContextLocaleEntry = LocaleConfig & {
+  locale: LocaleCode
 }
+
+export type RedirectStatusCode = 301 | 302
 
 export type RedirectTarget =
   | string
@@ -193,7 +181,23 @@ export type RouteDescriptor = {
 }
 
 export type I18nRoute = {
+  locale: LocaleCode
+  locales: LocaleCode[]
+  params: Record<string, string>
+  logicalUrl: string
+  routeKey?: string
+  requestUrl: string
+  defaultLocaleUrl: string
+  currentLocaleUrl: string
+  alternateUrls: AlternateUrl[]
+  redirectTo?: string
+  redirectStatus?: RedirectStatusCode
+  renderTo?: string
+  aliasFrom?: string
+  paramVariants: Record<string, ParamVariantConfig>
+  queryVariants: Record<string, QueryVariantConfig>
+  localeMeta?: LocaleMeta
+  localesConfig: PageContextLocaleEntry[]
   localeConfig: PageContextLocaleConfig
   domainConfig: PageContextDomainConfig
-  routeConfig: RouteConfig
 }

@@ -20,7 +20,7 @@ function Page() {
       <p>{data.description}</p>
       <p>
         {intl.formatMessage({ id: 'speciality.currentUrl' })}{' '}
-        <code>{pageContext.i18nRoute.routeConfig.currentLocaleUrl}</code>
+        <code>{pageContext.i18nRoute.currentLocaleUrl}</code>
       </p>
 
       <pre>{JSON.stringify(data, null, 2)}</pre>

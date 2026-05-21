@@ -7,10 +7,10 @@ export function onBeforeRender(pageContext: PageContext) {
   const i18n = pageContext.config.i18n
   const locale = pageContext.locale
 
-  if (pageContext.i18nRoute?.routeConfig?.redirectTo) {
+  if (pageContext.i18nRoute?.redirectTo) {
     throw redirect(
-      pageContext.i18nRoute.routeConfig.redirectTo,
-      pageContext.i18nRoute.routeConfig.redirectStatus,
+      pageContext.i18nRoute.redirectTo,
+      pageContext.i18nRoute.redirectStatus,
     )
   }
 
@@ -21,10 +21,10 @@ export function onBeforeRender(pageContext: PageContext) {
     pageContext.headersResponse?.append('Set-Cookie', createSetCookieHeader(cookieAction))
   }
 
-  return {
-    pageContext: {
-      i18nParamVariants: pageContext.i18nRoute.routeConfig.paramVariants,
-      i18nQueryVariants: pageContext.i18nRoute.routeConfig.queryVariants,
+    return {
+      pageContext: {
+      i18nParamVariants: pageContext.i18nRoute.paramVariants,
+      i18nQueryVariants: pageContext.i18nRoute.queryVariants,
     } as Partial<Vike.PageContext>,
   }
 }

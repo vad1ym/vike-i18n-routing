@@ -12,12 +12,12 @@ function makeCtx(i18n: I18nConfig, host = 'site.com') {
 
 function redirect(url: string, i18n: I18nConfig) {
   const ctx = makeCtx(i18n)
-  return createI18nRouter(url, ctx).routeConfig.redirectTo
+  return createI18nRouter(url, ctx).redirectTo
 }
 
 function route(url: string, i18n: I18nConfig, host = 'site.com') {
   const ctx = makeCtx(i18n, host)
-  return createI18nRouter(url, ctx).routeConfig
+  return createI18nRouter(url, ctx)
 }
 
 afterEach(() => {
@@ -257,7 +257,7 @@ describe('config redirects', () => {
 describe('domain redirects', () => {
   function redirectOnDomain(url: string, i18n: I18nConfig, host: string) {
     const ctx = makeCtx(i18n, host)
-    return createI18nRouter(url, ctx).routeConfig.redirectTo
+    return createI18nRouter(url, ctx).redirectTo
   }
 
   const config: I18nConfig = {

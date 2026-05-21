@@ -84,8 +84,8 @@ Incoming request:
 Resolved values:
 
 - `pageContext.locale` -> `ru`
-- `routeConfig.canonicalUrl` -> `/about`
-- `routeConfig.currentLocaleUrl` -> `/ru/o-nas`
+- `i18nRoute.logicalUrl` -> `/about`
+- `i18nRoute.currentLocaleUrl` -> `/ru/o-nas`
 
 ## `localizePath()`
 

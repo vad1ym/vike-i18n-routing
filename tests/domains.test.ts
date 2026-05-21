@@ -50,7 +50,7 @@ describe('domains — basic resolution', () => {
   it('resolves domain-specific default locale', () => {
     const result = onBeforeRoute(makeCtx('site.fr', '/a-propos') as any)
     expect(result.pageContext.locale).toBe('fr')
-    expect(result.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe('/about')
+    expect(result.pageContext.i18nRoute!.logicalUrl).toBe('/about')
   })
 
   it('exposes domain meta in domainConfig', () => {
@@ -285,15 +285,15 @@ describe('domains — per-domain routes', () => {
   }
 
   it('domain route override resolves canonical correctly', () => {
-    expect(createI18nRouter('/o-sajte', makeRuCtx('/o-sajte')).routeConfig.canonicalUrl).toBe('/about')
+    expect(createI18nRouter('/o-sajte', makeRuCtx('/o-sajte')).logicalUrl).toBe('/about')
   })
 
   it('domain route override builds correct localized URL', () => {
-    expect(createI18nRouter('/o-sajte', makeRuCtx('/o-sajte')).routeConfig.currentLocaleUrl).toBe('/o-sajte')
+    expect(createI18nRouter('/o-sajte', makeRuCtx('/o-sajte')).currentLocaleUrl).toBe('/o-sajte')
   })
 
   it('non-overridden global route still works on domain', () => {
-    expect(createI18nRouter('/uslugi', makeRuCtx('/uslugi')).routeConfig.canonicalUrl).toBe('/services')
+    expect(createI18nRouter('/uslugi', makeRuCtx('/uslugi')).logicalUrl).toBe('/services')
   })
 
   it('global route uses global translation on other domain', () => {
@@ -301,7 +301,7 @@ describe('domains — per-domain routes', () => {
       config: { i18n: config },
       headers: { host: 'site.com' },
     })
-    expect(createI18nRouter('/ru/o-nas', ctx).routeConfig.canonicalUrl).toBe('/about')
+    expect(createI18nRouter('/ru/o-nas', ctx).logicalUrl).toBe('/about')
   })
 })
 
@@ -344,7 +344,7 @@ describe('domains — per-domain redirects', () => {
       config: { i18n: config },
       headers: { host },
     })
-    return createI18nRouter(url, ctx).routeConfig.redirectTo
+    return createI18nRouter(url, ctx).redirectTo
   }
 
   it('applies domain-specific redirect on matching domain', () => {

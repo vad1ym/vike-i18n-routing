@@ -45,8 +45,8 @@ describe('SSR isolation — no data leaks between requests', () => {
     // router2 must produce plain path without variants
     expect(router2.localizePath('/doctors/:id', 'ru', { params: { id: '2' } })).toBe('/ru/vrachi/2')
     // router1 still has its variants
-    expect(router1.routeConfig.paramVariants).toBeDefined()
-    expect(router2.routeConfig.paramVariants).toEqual({})
+    expect(router1.paramVariants).toBeDefined()
+    expect(router2.paramVariants).toEqual({})
   })
 
   it('queryVariants set on one request do not affect another', () => {
@@ -56,8 +56,8 @@ describe('SSR isolation — no data leaks between requests', () => {
     router1.setRouteQueryVariants('tab', { en: 'info', ru: 'info', de: 'info' })
 
     expect(router2.localizePath('/about', 'ru', { query: { tab: 'info' } })).toBe('/ru/o-nas?tab=info')
-    expect(router1.routeConfig.queryVariants).toBeDefined()
-    expect(router2.routeConfig.queryVariants).toEqual({})
+    expect(router1.queryVariants).toBeDefined()
+    expect(router2.queryVariants).toEqual({})
   })
 
   it('different i18n configs produce correct isolated results', () => {
@@ -105,13 +105,13 @@ describe('SSR isolation — no data leaks between requests', () => {
     expect(() => router.localizePath('/about', 'xx' as any)).toThrow(/unknown locale/i)
   })
 
-  it('routeConfig is not shared between requests', () => {
+  it('route state is not shared between requests', () => {
     const router1 = createTestRouter('http://localhost/en/about', config)
     const router2 = createTestRouter('http://localhost/en/about', config)
 
     router1.setRouteParamVariants('id', { en: 'a', ru: 'b', de: 'c' })
 
-    expect(router1.routeConfig).not.toBe(router2.routeConfig)
-    expect(router2.routeConfig.paramVariants).toEqual({})
+    expect(router1.i18nRoute).not.toBe(router2.i18nRoute)
+    expect(router2.paramVariants).toEqual({})
   })
 })

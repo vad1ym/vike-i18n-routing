@@ -19,7 +19,7 @@ function Page() {
       <h1>{t('speciality.title', { speciality: data.speciality })}</h1>
       <p>{data.description}</p>
       <p>
-        {t('speciality.currentUrl')} <code>{pageContext.i18nRoute.routeConfig.currentLocaleUrl}</code>
+        {t('speciality.currentUrl')} <code>{pageContext.i18nRoute.currentLocaleUrl}</code>
       </p>
 
       <pre>{JSON.stringify(data, null, 2)}</pre>

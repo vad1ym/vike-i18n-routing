@@ -49,21 +49,21 @@ describe('param variants — resolution', () => {
     const pc = makeRuCtx('/ru/uslugi/veb-razrabotka')
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/ru/uslugi/veb-razrabotka', pc) } as any)
     i18nRoute.setRouteParamVariants('category', slugVariants)
-    expect(i18nRoute.routeConfig.canonicalUrl).toBe('/services/web-development')
+    expect(i18nRoute.logicalUrl).toBe('/services/web-development')
   })
 
   it('produces no redirect when slug matches current locale', () => {
     const pc = makeEnCtx('/en/services/web-development')
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/services/web-development', pc) } as any)
     i18nRoute.setRouteParamVariants('category', slugVariants)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 
   it('redirects foreign slug to correct locale slug', () => {
     const pc = makeEnCtx('/en/services/veb-razrabotka')
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/services/veb-razrabotka', pc) } as any)
     i18nRoute.setRouteParamVariants('category', slugVariants)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/services/web-development')
+    expect(i18nRoute.redirectTo).toBe('/en/services/web-development')
   })
 })
 
@@ -73,8 +73,8 @@ describe('param variants — routeConfig updates', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/services/web-development', pc) } as any)
     i18nRoute.setRouteParamVariants('category', slugVariants)
 
-    expect(i18nRoute.routeConfig.currentLocaleUrl).toBe('/en/services/web-development')
-    expect(i18nRoute.routeConfig.defaultLocaleUrl).toBe('/en/services/web-development')
+    expect(i18nRoute.currentLocaleUrl).toBe('/en/services/web-development')
+    expect(i18nRoute.defaultLocaleUrl).toBe('/en/services/web-development')
   })
 
   it('builds correct alternateUrls for all locales after setRouteParamVariants', () => {
@@ -82,7 +82,7 @@ describe('param variants — routeConfig updates', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/services/web-development', pc) } as any)
     i18nRoute.setRouteParamVariants('category', slugVariants)
 
-    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+    expect(i18nRoute.alternateUrls).toEqual([
       { locale: 'en', url: '/en/services/web-development' },
       { locale: 'ru', url: '/ru/uslugi/veb-razrabotka' },
     ])
@@ -104,7 +104,7 @@ describe('param variants — routeConfig updates', () => {
 describe('param variants — optional segments', () => {
   it('resolves optional segment path to canonical', () => {
     const result = onBeforeRoute(makePageContext('/ru/uslugi/design', config, { headers: { host: 'site.com' } }) as any)
-    expect(result.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe('/services/design')
+    expect(result.pageContext.i18nRoute!.logicalUrl).toBe('/services/design')
   })
 
   it('localizes path with optional segment for another locale', () => {
@@ -191,7 +191,7 @@ describe('localizePath — inline paramVariants', () => {
     })
 
     expect(result).toBe('/ru/uslugi/veb-razrabotka')
-    expect(i18nRoute.routeConfig.paramVariants).not.toHaveProperty('category')
+    expect(i18nRoute.paramVariants).not.toHaveProperty('category')
   })
 
   it('inline paramVariants take precedence over globally registered ones', () => {
@@ -206,7 +206,7 @@ describe('localizePath — inline paramVariants', () => {
 
     expect(result).toBe('/ru/uslugi/dizajn')
     // Global state stays unchanged
-    expect(i18nRoute.routeConfig.paramVariants.category.variants.ru).toBe('veb-razrabotka')
+    expect(i18nRoute.paramVariants.category.variants.ru).toBe('veb-razrabotka')
   })
 })
 

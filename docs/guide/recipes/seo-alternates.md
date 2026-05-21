@@ -1,11 +1,11 @@
 # SEO Alternates
 
-Use `routeConfig.alternateUrls` to render `<link rel="alternate">`.
+Use `alternateUrls` from `useI18nRoute()` or `i18nRoute.alternateUrls` to render `<link rel="alternate">`.
 
 ```ts
-const { routeConfig } = useI18nRoute(pageContext)
+const { alternateUrls } = useI18nRoute(pageContext)
 
-const alternates = routeConfig.alternateUrls
+const alternates = alternateUrls
 ```
 
 Example:

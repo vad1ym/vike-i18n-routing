@@ -33,7 +33,7 @@ describe('query variants — resolution', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/ru/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.canonicalUrl).toBe('/about?focus=frontend')
+    expect(i18nRoute.logicalUrl).toBe('/about?focus=frontend')
   })
 
   it('builds correct currentLocaleUrl and defaultLocaleUrl', () => {
@@ -41,8 +41,8 @@ describe('query variants — resolution', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/ru/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.currentLocaleUrl).toBe('/ru/o-nas?focus=frontend-ru')
-    expect(i18nRoute.routeConfig.defaultLocaleUrl).toBe('/en/about?focus=frontend')
+    expect(i18nRoute.currentLocaleUrl).toBe('/ru/o-nas?focus=frontend-ru')
+    expect(i18nRoute.defaultLocaleUrl).toBe('/en/about?focus=frontend')
   })
 
   it('builds correct alternateUrls with localized query values', () => {
@@ -50,7 +50,7 @@ describe('query variants — resolution', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/ru/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+    expect(i18nRoute.alternateUrls).toEqual([
       { locale: 'en', url: '/en/about?focus=frontend' },
       { locale: 'ru', url: '/ru/o-nas?focus=frontend-ru' },
     ])
@@ -61,7 +61,7 @@ describe('query variants — resolution', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/ru/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.queryVariants).toEqual({
+    expect(i18nRoute.queryVariants).toEqual({
       focus: { variants: focusVariants },
     })
   })
@@ -73,7 +73,7 @@ describe('query variants — redirects', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/about?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about?focus=frontend')
+    expect(i18nRoute.redirectTo).toBe('/en/about?focus=frontend')
   })
 
   it('preserves locale intent when query variant redirect removes default prefix', () => {
@@ -82,7 +82,7 @@ describe('query variants — redirects', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/about?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/about?focus=frontend&locale=en')
   })
 
   it('preserves locale query across query-value normalization redirects', () => {
@@ -91,7 +91,7 @@ describe('query variants — redirects', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/specialities?focus=frontend-ru&locale=en', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend&locale=en')
   })
 })
 
@@ -124,7 +124,7 @@ describe('query variants — edge cases', () => {
     } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend&locale=en')
   })
 })
 
@@ -165,7 +165,7 @@ describe('localizePath — query option', () => {
     })
 
     expect(result).toBe('/ru/o-nas?category=elektronika')
-    expect(i18nRoute.routeConfig.queryVariants).not.toHaveProperty('category')
+    expect(i18nRoute.queryVariants).not.toHaveProperty('category')
   })
 
   it('inline queryVariants take precedence over globally registered ones', () => {
@@ -183,6 +183,6 @@ describe('localizePath — query option', () => {
 
     expect(result).toBe('/ru/o-nas?focus=rabota')
     // Global state unchanged
-    expect(i18nRoute.routeConfig.queryVariants.focus.variants.ru).toBe('frontend-ru')
+    expect(i18nRoute.queryVariants.focus.variants.ru).toBe('frontend-ru')
   })
 })

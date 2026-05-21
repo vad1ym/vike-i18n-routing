@@ -17,7 +17,7 @@ const speciality = computed(() => data.speciality)
     <p>{{ data.description }}</p>
     <p>
       {{ t('speciality.currentUrl') }}
-      <code>{{ pageContext.i18nRoute.routeConfig.currentLocaleUrl }}</code>
+      <code>{{ pageContext.i18nRoute.currentLocaleUrl }}</code>
     </p>
 
     <pre>{{ data }}</pre>

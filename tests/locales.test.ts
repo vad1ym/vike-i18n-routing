@@ -51,8 +51,8 @@ describe('locales — object form', () => {
     const arrayResult = onBeforeRoute(makePageContext('/ru/o-nas', arrayConfig) as any)
     const objectResult = onBeforeRoute(makePageContext('/ru/o-nas', objectConfig) as any)
     expect(arrayResult.pageContext.locale).toBe(objectResult.pageContext.locale)
-    expect(arrayResult.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe(
-      objectResult.pageContext.i18nRoute!.routeConfig.canonicalUrl,
+    expect(arrayResult.pageContext.i18nRoute!.logicalUrl).toBe(
+      objectResult.pageContext.i18nRoute!.logicalUrl,
     )
   })
 

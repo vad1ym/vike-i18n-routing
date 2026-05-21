@@ -6,8 +6,8 @@ import type { I18nConfig } from '../lib/core/types'
 
 function makeRouter(url: string, config: I18nConfig) {
   const pageContext = createPageContext(url, { config: { i18n: config } })
-  const i18nRoute = createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext)
-  return { i18nRoute, ...useI18nRoute({ ...pageContext, i18nRoute }) }
+  const i18nRouteData = createI18nRouter(new URL(url, 'http://localhost').pathname, pageContext)
+  return useI18nRoute({ ...pageContext, i18nRoute: i18nRouteData })
 }
 
 const base: I18nConfig = {
@@ -24,19 +24,19 @@ const base: I18nConfig = {
 describe("trailingSlash: 'never' (default)", () => {
   it('does not redirect clean URLs', () => {
     const { i18nRoute } = makeRouter('/en/about', base)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 
   it('redirects trailing-slash URL to clean URL with 301', () => {
     const { i18nRoute } = makeRouter('/en/about/', base)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about')
-    expect(i18nRoute.routeConfig.redirectStatus).toBe(301)
+    expect(i18nRoute.redirectTo).toBe('/en/about')
+    expect(i18nRoute.redirectStatus).toBe(301)
   })
 
   it('does not redirect root / due to trailing slash', () => {
     // Root redirects to /en (locale prefix) — that is expected routing behavior, not trailing slash
     const { i18nRoute } = makeRouter('/', base)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en')
+    expect(i18nRoute.redirectTo).toBe('/en')
   })
 
   it('localizePath produces URLs without trailing slash', () => {
@@ -53,19 +53,19 @@ describe("trailingSlash: 'always'", () => {
 
   it('redirects clean URL to trailing-slash URL with 301', () => {
     const { i18nRoute } = makeRouter('/en/about', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about/')
-    expect(i18nRoute.routeConfig.redirectStatus).toBe(301)
+    expect(i18nRoute.redirectTo).toBe('/en/about/')
+    expect(i18nRoute.redirectStatus).toBe(301)
   })
 
   it('does not redirect trailing-slash URL', () => {
     const { i18nRoute } = makeRouter('/en/about/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 
   it('does not redirect root / due to trailing slash', () => {
     // Root redirects to /en/ (locale prefix + always slash) — expected routing behavior
     const { i18nRoute } = makeRouter('/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/')
+    expect(i18nRoute.redirectTo).toBe('/en/')
   })
 
   it('localizePath produces URLs with trailing slash', () => {
@@ -76,7 +76,7 @@ describe("trailingSlash: 'always'", () => {
 
   it('alternateUrls have trailing slashes', () => {
     const { i18nRoute } = makeRouter('/en/about/', config)
-    for (const alt of i18nRoute.routeConfig.alternateUrls) {
+    for (const alt of i18nRoute.alternateUrls) {
       expect(alt.url).toMatch(/\/$/)
     }
   })
@@ -89,12 +89,12 @@ describe("trailingSlash: 'preserve'", () => {
 
   it('does not redirect trailing-slash URL', () => {
     const { i18nRoute } = makeRouter('/en/about/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 
   it('does not redirect clean URL', () => {
     const { i18nRoute } = makeRouter('/en/about', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 })
 
@@ -104,14 +104,14 @@ describe('trailingSlashRedirect', () => {
   it('uses custom redirect status code', () => {
     const config: I18nConfig = { ...base, trailingSlash: 'never', trailingSlashRedirect: 302 }
     const { i18nRoute } = makeRouter('/en/about/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about')
-    expect(i18nRoute.routeConfig.redirectStatus).toBe(302)
+    expect(i18nRoute.redirectTo).toBe('/en/about')
+    expect(i18nRoute.redirectStatus).toBe(302)
   })
 
   it('disables redirect when false', () => {
     const config: I18nConfig = { ...base, trailingSlash: 'never', trailingSlashRedirect: false }
     const { i18nRoute } = makeRouter('/en/about/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBeUndefined()
+    expect(i18nRoute.redirectTo).toBeUndefined()
   })
 })
 
@@ -128,7 +128,7 @@ describe('per-domain trailingSlash override', () => {
 
   it('global domain uses never', () => {
     const { i18nRoute } = makeRouter('/en/about/', config)
-    expect(i18nRoute.routeConfig.redirectTo).toBe('/en/about')
+    expect(i18nRoute.redirectTo).toBe('/en/about')
   })
 })
 

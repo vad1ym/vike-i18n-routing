@@ -30,31 +30,31 @@ describe('simple string alias', () => {
 
   it('routes alias URL to target page via urlLogical (no renderTo)', () => {
     const route = makeRouter('/en/company', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.redirectTo).toBeUndefined()
+    expect(route.renderTo).toBeUndefined()
+    expect(route.redirectTo).toBeUndefined()
     // canonicalUrl points to target — vike uses this as urlLogical
-    expect(route.routeConfig.canonicalUrl).toBe('/about')
+    expect(route.logicalUrl).toBe('/about')
   })
 
   it('resolves target for Russian alias', () => {
     const route = makeRouter('/ru/company', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.canonicalUrl).toBe('/about')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.logicalUrl).toBe('/about')
   })
 
   it('does not set renderTo for direct route access', () => {
     const route = makeRouter('/en/about', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.renderTo).toBeUndefined()
   })
 
   it('i18nUrl points to target route key', () => {
     const route = makeRouter('/en/company', config)
-    expect(route.routeConfig.i18nUrl).toBe('/about')
+    expect(route.routeKey).toBe('/about')
   })
 
   it('stores alias source in routeConfig', () => {
     const route = makeRouter('/en/company', config)
-    expect(route.routeConfig.aliasFrom).toBe('/company')
+    expect(route.aliasFrom).toBe('/company')
   })
 })
 
@@ -74,21 +74,21 @@ describe('localized alias', () => {
 
   it('matches English localized alias path', () => {
     const route = makeRouter('/en/spain/about', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/about')
-    expect(route.routeConfig.canonicalUrl).toBe('/about')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/about')
+    expect(route.logicalUrl).toBe('/about')
   })
 
   it('matches Russian localized alias path', () => {
     const route = makeRouter('/ru/spain/o-nas', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/about')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/about')
   })
 
   it('alternateUrls use alias paths not target paths', () => {
     const route = makeRouter('/en/spain/about', config)
-    const enAlt = route.routeConfig.alternateUrls.find((a) => a.locale === 'en')
-    const ruAlt = route.routeConfig.alternateUrls.find((a) => a.locale === 'ru')
+    const enAlt = route.alternateUrls.find((a) => a.locale === 'en')
+    const ruAlt = route.alternateUrls.find((a) => a.locale === 'ru')
     expect(enAlt?.url).toBe('/en/spain/about')
     expect(ruAlt?.url).toBe('/ru/spain/o-nas')
   })
@@ -106,14 +106,14 @@ describe('parametric alias', () => {
 
   it('matches parametric alias and routes to target page', () => {
     const route = makeRouter('/en/blog/spain/my-post', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/blog/:slug')
-    expect(route.routeConfig.canonicalUrl).toBe('/blog/my-post')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/blog/:slug')
+    expect(route.logicalUrl).toBe('/blog/my-post')
   })
 
   it('merges alias params with route params (including alias-only params)', () => {
     const route = makeRouter('/en/blog/spain/my-post', config)
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({
+    expect(route.params).toMatchObject({
       country: 'spain',
       slug: 'my-post',
     })
@@ -138,14 +138,14 @@ describe('wildcard alias', () => {
 
   it('resolves wildcard alias to target route', () => {
     const route = makeRouter('/blog/spain/my-post', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/blog/:slug')
-    expect(route.routeConfig.canonicalUrl).toBe('/blog/my-post')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/blog/:slug')
+    expect(route.logicalUrl).toBe('/blog/my-post')
   })
 
   it('includes alias-only params (country) in i18nUrlParams', () => {
     const route = makeRouter('/blog/spain/my-post', config)
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({
+    expect(route.params).toMatchObject({
       country: 'spain',
       slug: 'my-post',
     })
@@ -170,10 +170,10 @@ describe('wildcard alias with localized routes', () => {
 
   it('routes /medicines/asd/dsa to /medicines/:slug with country in params', () => {
     const route = makeRouter('/medicines/asd/dsa', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines/dsa')
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.logicalUrl).toBe('/medicines/dsa')
+    expect(route.params).toMatchObject({
       country: 'asd',
       slug: 'dsa',
     })
@@ -181,9 +181,9 @@ describe('wildcard alias with localized routes', () => {
 
   it('direct /medicines/dsa access is not treated as alias', () => {
     const route = makeRouter('/medicines/dsa', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
-    expect(route.routeConfig.i18nUrlParams).toEqual({ slug: 'dsa' })
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.params).toEqual({ slug: 'dsa' })
   })
 })
 
@@ -206,26 +206,26 @@ describe('alias chaining', () => {
 
   it('/medicines/ukraine/p/1 chains through country alias then page alias to /medicines', () => {
     const route = makeRouter('/medicines/ukraine/p/1', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.i18nUrl).toBe('/medicines')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.routeKey).toBe('/medicines')
+    expect(route.logicalUrl).toBe('/medicines')
   })
 
   it('includes all params from the chain', () => {
     const route = makeRouter('/medicines/ukraine/p/1', config)
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', page: '1' })
+    expect(route.params).toMatchObject({ country: 'ukraine', page: '1' })
   })
 
   it('stores outer alias source for chained aliases', () => {
     const route = makeRouter('/medicines/ukraine/p/1', config)
-    expect(route.routeConfig.aliasFrom).toBe('/medicines/:country/*path')
+    expect(route.aliasFrom).toBe('/medicines/:country/*path')
   })
 
   it('/medicines/ukraine/aspirin still routes to /medicines/:slug', () => {
     const route = makeRouter('/medicines/ukraine/aspirin', config)
-    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines/aspirin')
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.logicalUrl).toBe('/medicines/aspirin')
+    expect(route.params).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
   })
 })
 
@@ -252,15 +252,15 @@ describe('localized alias with parametric target', () => {
 
   it('routes to /medicines regardless of ingredient param', () => {
     const route = makeRouter('/medicines/ingredient/aspirin', config)
-    expect(route.routeConfig.i18nUrl).toBe('/medicines')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({ ingredient: 'aspirin' })
+    expect(route.routeKey).toBe('/medicines')
+    expect(route.logicalUrl).toBe('/medicines')
+    expect(route.params).toMatchObject({ ingredient: 'aspirin' })
   })
 
   it('ru locale: routes lekarstva/ingredient/:ingredient to /medicines', () => {
     const route = makeRouter('/ru/lekarstva/ingredient/aspirin', config)
-    expect(route.routeConfig.i18nUrl).toBe('/medicines')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
+    expect(route.routeKey).toBe('/medicines')
+    expect(route.logicalUrl).toBe('/medicines')
   })
 })
 
@@ -283,15 +283,15 @@ describe('alias chaining — localized target alias', () => {
 
   it('/medicines/ukraine/manufacturer/123 chains to /medicines with correct params', () => {
     const route = makeRouter('/medicines/ukraine/manufacturer/123', config)
-    expect(route.routeConfig.i18nUrl).toBe('/medicines')
-    expect(route.routeConfig.canonicalUrl).toBe('/medicines')
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', manufacturer: '123' })
+    expect(route.routeKey).toBe('/medicines')
+    expect(route.logicalUrl).toBe('/medicines')
+    expect(route.params).toMatchObject({ country: 'ukraine', manufacturer: '123' })
   })
 
   it('/medicines/ukraine/aspirin still routes to /medicines/:slug', () => {
     const route = makeRouter('/medicines/ukraine/aspirin', config)
-    expect(route.routeConfig.i18nUrl).toBe('/medicines/:slug')
-    expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.params).toMatchObject({ country: 'ukraine', slug: 'aspirin' })
   })
 })
 
@@ -314,8 +314,8 @@ describe('per-domain aliases', () => {
   it('domain alias does not apply on global domain', () => {
     const route = makeRouter('/en/empresa', config)
     // No alias configured globally — should not resolve
-    expect(route.routeConfig.renderTo).toBeUndefined()
-    expect(route.routeConfig.canonicalUrl).not.toBe('/about')
+    expect(route.renderTo).toBeUndefined()
+    expect(route.logicalUrl).not.toBe('/about')
   })
 })
 
@@ -331,11 +331,11 @@ describe('alias fallthrough', () => {
 
   it('does not use alias when real route matches', () => {
     const route = makeRouter('/en/about', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.renderTo).toBeUndefined()
   })
 
   it('does not use alias for localized route path', () => {
     const route = makeRouter('/ru/o-nas', config)
-    expect(route.routeConfig.renderTo).toBeUndefined()
+    expect(route.renderTo).toBeUndefined()
   })
 })

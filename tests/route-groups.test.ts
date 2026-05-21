@@ -39,14 +39,14 @@ describe('routes — grouped definitions', () => {
     }) as any)
 
     expect(result.pageContext.locale).toBe('ru')
-    expect(result.pageContext.i18nRoute!.routeConfig.canonicalUrl).toBe('/shop/cart')
-    expect(result.pageContext.i18nRoute!.routeConfig.currentLocaleUrl).toBe('/ru/shop/korzina')
+    expect(result.pageContext.i18nRoute!.logicalUrl).toBe('/shop/cart')
+    expect(result.pageContext.i18nRoute!.currentLocaleUrl).toBe('/ru/shop/korzina')
   })
 
   it('localizes canonical paths from grouped routes', () => {
     const route = createTestRouter('/en/blog/category/design', groupedRoutesConfig)
 
-    expect(route.routeConfig.canonicalUrl).toBe('/blog/category/design')
+    expect(route.logicalUrl).toBe('/blog/category/design')
     expect(route.localizePath('/blog/category/design', 'ru')).toBe('/ru/blog/kategoriya/design')
   })
 
@@ -112,7 +112,7 @@ describe('domains — grouped route overrides', () => {
     })
 
     const route = createI18nRouter('/shop/telezhka', pageContext)
-    expect(route.routeConfig.canonicalUrl).toBe('/shop/cart')
-    expect(route.routeConfig.currentLocaleUrl).toBe('/shop/telezhka')
+    expect(route.logicalUrl).toBe('/shop/cart')
+    expect(route.currentLocaleUrl).toBe('/shop/telezhka')
   })
 })

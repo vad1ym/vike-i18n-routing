@@ -14,11 +14,10 @@ import { usePageContext } from 'vike-vue/usePageContext'
 import { useI18nRoute } from 'vike-i18n-routing'
 
 const { locale } = useI18n({ useScope: 'global' })
-const { i18nRoute, localizePath } = useI18nRoute(usePageContext())
-const currentLocale = i18nRoute.localeConfig.currentLocale
+const { locale: currentLocale, localizePath } = useI18nRoute(usePageContext())
 
 watchEffect(() => {
-  locale.value = currentLocale.value
+  locale.value = currentLocale
 })
 </script>
 

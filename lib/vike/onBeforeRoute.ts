@@ -7,8 +7,8 @@ export function onBeforeRoute(pageContext: PageContextServer) {
 
   return {
     pageContext: {
-      urlLogical: i18nRoute.routeConfig.canonicalUrl,
-      locale: i18nRoute.localeConfig.currentLocale,
+      urlLogical: i18nRoute.logicalUrl,
+      locale: i18nRoute.locale,
       i18nRoute,
     } as Partial<Vike.PageContext>,
   }

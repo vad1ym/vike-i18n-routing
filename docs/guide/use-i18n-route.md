@@ -6,10 +6,11 @@
 import { useI18nRoute } from 'vike-i18n-routing'
 
 const {
+  i18nRoute,
+  domain,
   locale,
   localeConfig,
   domainConfig,
-  routeConfig,
   setRouteParamVariants,
   setRouteQueryVariants,
   resolveRouteKey,
@@ -17,7 +18,7 @@ const {
 } = useI18nRoute(pageContext)
 ```
 
-`locale`, `localeConfig`, `domainConfig`, and `routeConfig` are plain getters on the returned object.
+`i18nRoute` contains the resolved flat route state. `domain`, `locale`, `localeConfig`, and `domainConfig` are convenience getters on the returned object.
 
 ## In components
 
@@ -167,10 +168,23 @@ If `absolute: true` is used without any configured `baseUrl`, the library warns 
 
 ```ts
 type UseI18nRouteResult = {
+  i18nRoute
+  domain
   locale
+  locales
+  params
+  logicalUrl
+  routeKey
+  requestUrl
+  defaultLocaleUrl
+  currentLocaleUrl
+  alternateUrls
+  redirectTo?
+  redirectStatus?
   localeConfig
   domainConfig
-  routeConfig
+  paramVariants
+  queryVariants
   setRouteParamVariants(paramName, variants)
   setRouteQueryVariants(paramName, variants)
   resolveRouteKey(url)
@@ -178,4 +192,4 @@ type UseI18nRouteResult = {
 }
 ```
 
-Next: [routeConfig](/guide/route-config)
+Next: [i18nRoute state](/guide/route-config)

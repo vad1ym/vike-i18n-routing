@@ -6,10 +6,9 @@ import { useI18nRoute } from 'vike-i18n-routing'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const pageContext = usePageContext()
-const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
+const { i18nRoute, locales, logicalUrl, localizePath } = useI18nRoute(pageContext)
 
-const currentPath = computed(() => routeConfig.canonicalUrl)
-const locales = computed(() => Object.keys(localeConfig.locales))
+const currentPath = computed(() => logicalUrl)
 
 watchEffect(() => {
   locale.value = pageContext.locale
@@ -50,7 +49,7 @@ function switchLocale(l) {
     </main>
 
     <footer>
-      <pre>{{ routeConfig }}</pre>
+      <pre>{{ i18nRoute }}</pre>
     </footer>
   </div>
 </template>

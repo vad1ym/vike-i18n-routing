@@ -5,10 +5,9 @@ import { useI18nRoute } from 'vike-i18n-routing'
 import { getMessages } from '../messages'
 
 const pageContext = usePageContext()
-const { routeConfig, localeConfig, localizePath } = useI18nRoute(pageContext)
+const { locales, logicalUrl, localizePath } = useI18nRoute(pageContext)
 
-const currentPath = computed(() => routeConfig.canonicalUrl)
-const locales = computed(() => Object.keys(localeConfig.locales))
+const currentPath = computed(() => logicalUrl)
 const messages = computed(() => getMessages(pageContext.locale))
 
 function switchLocale(targetLocale) {

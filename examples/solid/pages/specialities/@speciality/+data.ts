@@ -5,7 +5,7 @@ import { findSpecialityBySlug } from '../data'
 export { data }
 
 function data(pageContext: PageContext) {
-  const requestedSlug = pageContext.i18nRoute.routeConfig.i18nUrlParams.speciality
+  const requestedSlug = pageContext.i18nRoute.params.speciality
   const speciality = findSpecialityBySlug(requestedSlug)
 
   if (!speciality) {

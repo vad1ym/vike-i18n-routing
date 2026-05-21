@@ -35,7 +35,7 @@ describe('alternate URLs', () => {
       config: { i18n: config },
       headers: { host: 'site.com' },
     })
-    expect(createI18nRouter('/about', pageContext).routeConfig.alternateUrls).toEqual([
+    expect(createI18nRouter('/about', pageContext).alternateUrls).toEqual([
       { locale: 'en', url: '/en/about' },
       { locale: 'ru', url: '/ru/o-nas' },
     ])
@@ -60,7 +60,7 @@ describe('alternate URLs', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/services/web-development', pc) } as any)
     i18nRoute.setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
 
-    expect(i18nRoute.routeConfig.alternateUrls).toEqual([
+    expect(i18nRoute.alternateUrls).toEqual([
       { locale: 'en', url: '/en/services/web-development' },
       { locale: 'ru', url: '/ru/uslugi/veb-razrabotka' },
     ])
