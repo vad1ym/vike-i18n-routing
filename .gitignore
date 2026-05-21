@@ -1,6 +1,7 @@
 node_modules
 dist
 .vite
+coverage
 docs/.vitepress/cache
 docs/.vitepress/dist
 CHANGELOG.md
