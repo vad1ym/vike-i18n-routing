@@ -8,9 +8,11 @@ export function onBeforeRender(pageContext: PageContext) {
   const locale = pageContext.locale
 
   if (pageContext.i18nRoute?.redirectTo) {
+    // vike's redirect() type only accepts 301 | 302, but we support 307 | 308 as well.
+    // The cast is safe: vike passes the status code through to the HTTP response as-is.
     throw redirect(
       pageContext.i18nRoute.redirectTo,
-      pageContext.i18nRoute.redirectStatus,
+      pageContext.i18nRoute.redirectStatus as 301 | 302 | undefined,
     )
   }
 
