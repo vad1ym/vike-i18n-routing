@@ -13,6 +13,8 @@ function isLocalizedAlias(value: AliasValue): value is LocalizedAliasValue {
 }
 
 export type ResolvedAlias = {
+  // Alias config key that matched the request (e.g. '/company')
+  aliasKey: string
   // The canonical route key this alias resolves to (e.g. '/about')
   targetRouteKey: string
   // Params extracted from the alias pattern (e.g. { country: 'spain' })
@@ -120,10 +122,17 @@ export function resolveAlias(
     const resolved = resolveAliasTarget(staticEntry.value, {}, routes)
     if (!resolved) {
       const chained = resolveAlias(index, aliases, normalizePathname(typeof staticEntry.value === 'string' ? staticEntry.value : staticEntry.value.target), currentLocale, localeConfig, routes, depth + 1)
-      if (chained) return { ...chained, localizedPatterns: isLocalizedAlias(staticEntry.value) ? staticEntry.value : undefined }
+      if (chained) {
+        return {
+          ...chained,
+          aliasKey: staticEntry.aliasKey,
+          localizedPatterns: isLocalizedAlias(staticEntry.value) ? staticEntry.value : undefined,
+        }
+      }
       return null
     }
     return {
+      aliasKey: staticEntry.aliasKey,
       targetRouteKey: resolved.targetRouteKey,
       params: resolved.mergedParams,
       localizedPatterns: isLocalizedAlias(staticEntry.value) ? staticEntry.value : undefined,
@@ -142,12 +151,22 @@ export function resolveAlias(
 
     const resolved = resolveAliasTarget(value, params as Record<string, string>, routes)
     if (resolved) {
-      return { targetRouteKey: resolved.targetRouteKey, params: resolved.mergedParams, localizedPatterns: value }
+      return {
+        aliasKey: _aliasKey,
+        targetRouteKey: resolved.targetRouteKey,
+        params: resolved.mergedParams,
+        localizedPatterns: value,
+      }
     }
     // Target path didn't match a route — try chaining
     const chained = resolveAlias(index, aliases, normalizePathname(buildRoutePath(value.target, params)), currentLocale, localeConfig, routes, depth + 1)
     if (chained) {
-      return { ...chained, params: { ...params, ...chained.params } as Record<string, string>, localizedPatterns: value }
+      return {
+        ...chained,
+        aliasKey: _aliasKey,
+        params: { ...params, ...chained.params } as Record<string, string>,
+        localizedPatterns: value,
+      }
     }
   }
 
@@ -159,6 +178,7 @@ export function resolveAlias(
     const resolved = resolveAliasTarget(value, params as Record<string, string>, routes)
     if (resolved) {
       return {
+        aliasKey,
         targetRouteKey: resolved.targetRouteKey,
         params: resolved.mergedParams,
         localizedPatterns: isLocalizedAlias(value) ? value : undefined,
@@ -171,6 +191,7 @@ export function resolveAlias(
     if (chained) {
       return {
         ...chained,
+        aliasKey,
         params: { ...params, ...chained.params } as Record<string, string>,
         localizedPatterns: isLocalizedAlias(value) ? value : chained.localizedPatterns,
       }

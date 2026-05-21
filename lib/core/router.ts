@@ -909,6 +909,7 @@ function buildResolvedRoute(
       currentLocaleUrl,
       redirectTo,
       redirectStatus,
+      aliasFrom: undefined,
       canonicalUrl: buildUrl(canonicalPath, canonicalSearchParams),
       i18nUrl: routePattern,
       i18nUrlParams: params,
@@ -1045,6 +1046,7 @@ export function createI18nRouter(
           currentLocaleUrl: configRedirectUrl,
           redirectTo: configRedirectUrl,
           redirectStatus: configRedirectTarget.status,
+          aliasFrom: undefined,
           canonicalUrl: configRedirectTarget.url,
           i18nUrl: undefined,
           i18nUrlParams: {},
@@ -1101,6 +1103,7 @@ export function createI18nRouter(
           ...targetRoute.routeConfig,
           redirectTo: undefined,
           redirectStatus: undefined,
+          aliasFrom: aliasMatch.aliasKey,
           alternateUrls,
         },
       }

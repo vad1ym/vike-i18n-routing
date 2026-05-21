@@ -51,6 +51,11 @@ describe('simple string alias', () => {
     const route = makeRouter('/en/company', config)
     expect(route.routeConfig.i18nUrl).toBe('/about')
   })
+
+  it('stores alias source in routeConfig', () => {
+    const route = makeRouter('/en/company', config)
+    expect(route.routeConfig.aliasFrom).toBe('/company')
+  })
 })
 
 // ─── Localized alias ────────────────────────────────────────────────────────
@@ -209,6 +214,11 @@ describe('alias chaining', () => {
   it('includes all params from the chain', () => {
     const route = makeRouter('/medicines/ukraine/p/1', config)
     expect(route.routeConfig.i18nUrlParams).toMatchObject({ country: 'ukraine', page: '1' })
+  })
+
+  it('stores outer alias source for chained aliases', () => {
+    const route = makeRouter('/medicines/ukraine/p/1', config)
+    expect(route.routeConfig.aliasFrom).toBe('/medicines/:country/*path')
   })
 
   it('/medicines/ukraine/aspirin still routes to /medicines/:slug', () => {

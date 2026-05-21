@@ -103,6 +103,7 @@ export type RouteConfig = {
   redirectTo?: string
   redirectStatus?: RedirectStatusCode
   renderTo?: string
+  aliasFrom?: string
   canonicalUrl: string
   i18nUrl?: string
   i18nUrlParams: Record<string, string>
