@@ -339,3 +339,31 @@ describe('alias fallthrough', () => {
     expect(route.renderTo).toBeUndefined()
   })
 })
+
+// ─── Optional multi-segment alias (bucket count bug regression) ─────────────
+
+describe('optional multi-segment alias with pagination', () => {
+  const config: I18nConfig = {
+    defaultLocale: 'en',
+    locales: ['en', 'ru'],
+    prefixDefaultLocale: false,
+    routes: {
+      '/medicines/:slug': { en: '/medicines/:slug', ru: '/lekarstva/:slug' },
+    },
+    aliases: {
+      '/medicines{/category/:slug}{/p/:page}': '/medicines{/:slug}',
+    },
+  }
+
+  it('matches alias with category segment only', () => {
+    const route = makeRouter('/medicines/category/aspirin', config)
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.params).toMatchObject({ slug: 'aspirin' })
+  })
+
+  it('matches alias with both category and pagination segments', () => {
+    const route = makeRouter('/medicines/category/aspirin/p/1', config)
+    expect(route.routeKey).toBe('/medicines/:slug')
+    expect(route.params).toMatchObject({ slug: 'aspirin', page: '1' })
+  })
+})

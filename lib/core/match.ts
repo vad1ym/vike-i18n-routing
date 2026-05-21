@@ -436,7 +436,8 @@ export function buildRouteIndex(routes: FlatI18nRoutes): RouteIndex {
     const { segmentCount, staticPrefix } = entry.template
     if (segmentCount === -1) {
       const base = entry.canonicalPattern.replace(/\{[^}]*\}/g, '').split('/').filter(Boolean).length
-      const optionalSegs = (entry.canonicalPattern.match(/\{/g) || []).length
+      const optionalBlocks = [...entry.canonicalPattern.matchAll(/\{([^}]*)\}/g)]
+      const optionalSegs = optionalBlocks.reduce((sum, m) => sum + m[1].split('/').filter(Boolean).length, 0)
       for (let i = base; i <= base + optionalSegs; i++) {
         let bucket = dynamicBySegments.get(i)
         if (!bucket) { bucket = []; dynamicBySegments.set(i, bucket) }
