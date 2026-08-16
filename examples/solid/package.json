@@ -7,15 +7,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "solid-js": "^1.9.9",
-    "vike": "^0.4.259",
+    "solid-js": "^1.9.14",
+    "vike": "^0.4.260",
     "vike-i18n-routing": "workspace:*",
-    "vike-solid": "^0.7.13",
-    "vite": "^8.0.12",
-    "vite-plugin-solid": "^2.11.8"
+    "vike-solid": "^0.8.4",
+    "vite": "^8.2.1",
+    "vite-plugin-solid": "^2.11.14"
   },
   "devDependencies": {
-    "@types/node": "^25.7.0",
-    "typescript": "^6.0.3"
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
   }
 }

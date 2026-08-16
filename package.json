@@ -66,23 +66,23 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^25.7.0",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitest/coverage-v8": "^4.1.10",
     "changelogen": "^0.6.2",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "solid-js": "^1.9.9",
-    "typescript": "^6.0.3",
-    "vike": "^0.4.259",
-    "vike-react": "^0.6.23",
-    "vike-solid": "^0.7.20",
-    "vike-vue": "^0.9.11",
-    "vite": "^8.0.12",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "solid-js": "^1.9.14",
+    "typescript": "^7.0.2",
+    "vike": "^0.4.260",
+    "vike-react": "^0.6.26",
+    "vike-solid": "^0.8.4",
+    "vike-vue": "^0.9.13",
+    "vite": "^8.2.1",
     "vitepress": "^1.6.4",
-    "vitest": "^4.1.6",
-    "vue": "^3.5.34"
+    "vitest": "^4.1.10",
+    "vue": "^3.5.41"
   },
   "peerDependencies": {
     "vike": ">=0.4.259"
