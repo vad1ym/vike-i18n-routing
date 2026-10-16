@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "solid-js": "^1.9.14",
-    "vike": "^0.4.260",
+    "vike": "^0.4.268",
     "vike-i18n-routing": "workspace:*",
-    "vike-solid": "^0.8.4",
+    "vike-solid": "^0.8.7",
     "vite": "^8.2.1",
     "vite-plugin-solid": "^2.11.14"
   },
