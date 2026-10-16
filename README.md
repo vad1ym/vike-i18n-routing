@@ -178,7 +178,7 @@ export default {
 } satisfies Config
 ```
 
-**Locale detection** — automatically from URL prefix, query param (`?locale=ru`), cookie, session, or `Accept-Language` header.
+**Locale detection** — automatically from URL prefix, cookie, session, or `Accept-Language` header.
 
 **SEO** — `i18nRoute.alternateUrls` gives you all locale URLs for `<link rel="alternate" hreflang>` tags.
 

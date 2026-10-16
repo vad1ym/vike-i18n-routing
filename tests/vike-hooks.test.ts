@@ -38,7 +38,7 @@ describe('onBeforeRoute', () => {
   })
 
   it('sets the locale cookie of the redirect target on the redirect response', () => {
-    const pageContext = makePageContext('/about?lang=ru', config) as any
+    const pageContext = makePageContext('/about', config, { headers: { 'accept-language': 'ru' } }) as any
 
     expect(() => onBeforeRoute(pageContext)).toThrow()
     expect(pageContext.headersResponse).toBeInstanceOf(Headers)
@@ -48,7 +48,7 @@ describe('onBeforeRoute', () => {
   })
 
   it('appends to an existing headersResponse', () => {
-    const pageContext = makePageContext('/about?lang=ru', config) as any
+    const pageContext = makePageContext('/about', config, { headers: { 'accept-language': 'ru' } }) as any
     pageContext.headersResponse = new Headers([['Set-Cookie', 'session=abc']])
 
     expect(() => onBeforeRoute(pageContext)).toThrow()
@@ -59,11 +59,11 @@ describe('onBeforeRoute', () => {
   })
 
   it('does not set a cookie on the client or when localeCookie is disabled', () => {
-    const clientContext = { ...makePageContext('/about?lang=ru', config), isClientSide: true } as any
+    const clientContext = { ...makePageContext('/about', config, { headers: { 'accept-language': 'ru' } }), isClientSide: true } as any
     expect(() => onBeforeRoute(clientContext)).toThrow()
     expect(clientContext.headersResponse).toBeUndefined()
 
-    const noCookieContext = makePageContext('/about?lang=ru', { ...config, localeCookie: false }) as any
+    const noCookieContext = makePageContext('/about', { ...config, localeCookie: false }, { headers: { 'accept-language': 'ru' } }) as any
     expect(() => onBeforeRoute(noCookieContext)).toThrow()
     expect(noCookieContext.headersResponse).toBeUndefined()
   })

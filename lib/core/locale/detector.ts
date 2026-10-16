@@ -1,4 +1,4 @@
-import { getCookies, getHeaders, getSearchParams, getSession } from '../pageContext'
+import { getCookies, getHeaders, getSession } from '../pageContext'
 import { resolveDomainConfig } from '../domain/normalize'
 import type { I18nConfig, I18nPageContext, LocaleCode, LocaleDetectorConfig, ResolvedDomainConfig } from '../types'
 
@@ -117,36 +117,6 @@ export function detectRequestLocale(
     pushTrace(traces, 'localeDetector fn', false, 'not configured')
   }
 
-  const searchParams = getSearchParams(pageContext)
-  if (detectorConfig.queryParams !== false) {
-    candidate = searchParams.get('locale')
-    if (isSupportedLocale(candidate, resolvedDomain)) {
-      pushTrace(traces, 'query ?locale', true, `'${candidate}'`)
-      emitLocaleDebugLog(i18n, candidate, traces)
-      return candidate
-    }
-    pushTrace(
-      traces,
-      'query ?locale',
-      false,
-      candidate == null ? 'not present' : `unsupported locale '${candidate}'`,
-    )
-
-    candidate = searchParams.get('lang')
-    if (isSupportedLocale(candidate, resolvedDomain)) {
-      pushTrace(traces, 'query ?lang', true, `'${candidate}'`)
-      emitLocaleDebugLog(i18n, candidate, traces)
-      return candidate
-    }
-    pushTrace(
-      traces,
-      'query ?lang',
-      false,
-      candidate == null ? 'not present' : `unsupported locale '${candidate}'`,
-    )
-  } else {
-    pushTrace(traces, 'query params', false, 'disabled')
-  }
 
   if (detectorConfig.localeCookie !== false) {
     candidate = resolveCookieLocale(pageContext, i18n)

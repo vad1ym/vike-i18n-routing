@@ -16,7 +16,6 @@ type I18nConfig = {
     | {
         acceptLanguageHeader?: boolean
         localeCookie?: boolean
-        queryParams?: boolean
         session?: boolean
       }
   debug?: boolean
@@ -140,7 +139,6 @@ i18n: {
   localeDetector: {
     acceptLanguageHeader: false,
     localeCookie: false,
-    queryParams: false,
     session: true,
   },
 }

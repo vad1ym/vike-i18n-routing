@@ -40,10 +40,6 @@ export function getCookies(pageContext: I18nPageContext): Record<string, string>
   return parseCookies(typeof headers.cookie === 'string' ? headers.cookie : '')
 }
 
-export function getSearchParams(pageContext: I18nPageContext): URLSearchParams {
-  return getParsedUrl(pageContext).searchParams
-}
-
 export function getSession(pageContext: I18nPageContext): Record<string, string | undefined> | undefined {
   return pageContext.session
 }

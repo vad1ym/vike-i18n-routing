@@ -120,7 +120,7 @@ export function canonicalizeQueryParams(
 ): URLSearchParams {
   const canonical = new URLSearchParams()
 
-  for (const [name, value] of sanitizeRouteSearchParams(searchParams).entries()) {
+  for (const [name, value] of searchParams.entries()) {
     canonical.append(name, canonicalizeQueryValue(queryVariants, name, value, localeConfig))
   }
 
@@ -140,11 +140,4 @@ export function localizeQueryParams(
   }
 
   return localized
-}
-
-export function sanitizeRouteSearchParams(searchParams: URLSearchParams): URLSearchParams {
-  const sanitized = new URLSearchParams(searchParams)
-  sanitized.delete('locale')
-  sanitized.delete('lang')
-  return sanitized
 }

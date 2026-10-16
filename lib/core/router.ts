@@ -25,7 +25,6 @@ import {
   localizeNamedQueryValue,
   localizeParamValue,
   localizeQueryParams,
-  sanitizeRouteSearchParams,
   type ParamVariants,
   type QueryVariants,
 } from './variants'
@@ -458,7 +457,7 @@ function localizeCanonicalPathInner({
 
   const canonicalSearchParams = !hasQuery
     ? new URLSearchParams()
-    : sanitizeRouteSearchParams(new URLSearchParams(canonicalPath.slice(qIndex + 1)))
+    : new URLSearchParams(canonicalPath.slice(qIndex + 1))
 
   return buildUrl(
     finalPath,
@@ -525,7 +524,6 @@ type CompiledDomainRouting = {
 }
 
 type ResolvedRequestState = {
-  explicitLocaleQuery: string | null
   isPageContextJsonRequest: boolean
   rawPathname: string
   requestPath: string
@@ -752,7 +750,7 @@ function buildLocalizedPathForRoute(
 
 // Parse pathname and query without URL constructor (avoids ~1-2μs overhead).
 // Handles both plain paths ("/foo?bar=1") and full URLs ("https://host/foo?bar=1").
-function parsePathAndQuery(input: string): { pathname: string; searchParams: URLSearchParams; explicitLocaleQuery: string | null } {
+function parsePathAndQuery(input: string): { pathname: string; searchParams: URLSearchParams } {
   let pathStart = 0
   // Detect full URL — skip scheme + authority
   if (input.charCodeAt(0) !== 47 /* '/' */) {
@@ -766,13 +764,11 @@ function parsePathAndQuery(input: string): { pathname: string; searchParams: URL
   const qIndex = input.indexOf('?', pathStart)
   if (qIndex === -1) {
     const pathname = pathStart === 0 ? (input || '/') : (input.slice(pathStart) || '/')
-    return { pathname, searchParams: new URLSearchParams(), explicitLocaleQuery: null }
+    return { pathname, searchParams: new URLSearchParams() }
   }
   const pathname = input.slice(pathStart, qIndex) || '/'
   const queryString = input.slice(qIndex + 1)
-  const searchParams = new URLSearchParams(queryString)
-  const explicitLocaleQuery = searchParams.get('locale') ?? searchParams.get('lang')
-  return { pathname, searchParams, explicitLocaleQuery }
+  return { pathname, searchParams: new URLSearchParams(queryString) }
 }
 
 const EMPTY_PARAM_VARIANTS_OBJ: Record<string, ParamVariantConfig> = {}
@@ -800,8 +796,7 @@ function resolveRequestState(
   const rawPathname = isPageContextJsonRequest
     ? normalizedPath
     : request.pathname === '' ? '/' : request.pathname
-  const explicitLocaleQuery = request.explicitLocaleQuery
-  const requestSearchParams = sanitizeRouteSearchParams(request.searchParams)
+  const requestSearchParams = request.searchParams
   const requestUrl = buildUrl(rawPathname, requestSearchParams)
   const segments = normalizedPath.split('/').filter(Boolean)
 
@@ -822,7 +817,6 @@ function resolveRequestState(
 
   const currentLocale = prefixedLocale ?? detectedLocale ?? localeConfig.defaultLocale
   return {
-    explicitLocaleQuery,
     isPageContextJsonRequest,
     rawPathname,
     requestPath,
@@ -1071,11 +1065,6 @@ function resolveRouteUrlState(context: RouteResolveContext): ResolvedRouteUrlSta
   }
 }
 
-function isQueryLocaleDetectionEnabled(i18n: I18nConfig): boolean {
-  const detector = i18n.localeDetector
-  return !(detector && typeof detector === 'object' && detector.queryParams === false)
-}
-
 function resolveRouteRedirectState(
   context: RouteResolveContext,
   urlState: ResolvedRouteUrlState,
@@ -1100,13 +1089,8 @@ function resolveRouteRedirectState(
     && onlyTrailingSlashDiff(target)
     // A .pageContext.json URL carries no trailing-slash information about its page URL
     && (trailingSlash === 'preserve' || trailingSlashRedirect === false || requestState.isPageContextJsonRequest)
-  // An explicit ?locale= / ?lang= is consumed on the server: the request is redirected to the clean
-  // localized URL and the locale is persisted by the cookie set on that redirect (see onBeforeRoute).
-  const hasLocaleQuery = requestState.explicitLocaleQuery !== null && isQueryLocaleDetectionEnabled(context.i18n)
   const rawRedirectTo = normalizedRedirect
-    ?? (hasLocaleQuery || requestState.requestUrl !== urlState.currentLocaleUrl
-      ? urlState.currentLocaleUrl
-      : undefined)
+    ?? (requestState.requestUrl !== urlState.currentLocaleUrl ? urlState.currentLocaleUrl : undefined)
   const redirectTo = rawRedirectTo && suppressTrailingSlashRedirect(rawRedirectTo)
     ? undefined
     : rawRedirectTo

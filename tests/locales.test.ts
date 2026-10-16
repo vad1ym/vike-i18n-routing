@@ -87,8 +87,8 @@ describe('locales — default locale without prefix', () => {
     ).toBe('/')
   })
 
-  it('prefers locale query over stale locale cookie and persists it on the redirect', () => {
-    const pageContext = makePageContext('/?locale=en', noDefaultPrefixConfig, {
+  it('prefers the explicit default locale prefix over a stale cookie and persists it on the redirect', () => {
+    const pageContext = makePageContext('/en', noDefaultPrefixConfig, {
       headers: { cookie: 'locale=ru' },
     }) as any
 

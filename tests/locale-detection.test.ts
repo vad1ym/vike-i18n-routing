@@ -79,27 +79,6 @@ describe('locale detection — Accept-Language header', () => {
   })
 })
 
-describe('locale detection — query params', () => {
-  it('uses supported locale from ?lang query param', () => {
-    expect(
-      getRedirectTo(makePageContext('/about?lang=ru', config, {
-        headers: { host: 'site.com' },
-      })),
-    ).toBe('/ru/o-nas')
-  })
-
-  it('can disable query param locale detection', () => {
-    expect(
-      getRedirectTo(makePageContext('/about?locale=ru', {
-        ...config,
-        localeDetector: { queryParams: false },
-      }, {
-        headers: { host: 'site.com' },
-      })),
-    ).toBe('/en/about')
-  })
-})
-
 describe('locale detection — session', () => {
   it('uses supported locale from session', () => {
     expect(
@@ -153,20 +132,7 @@ describe('locale detection — custom function', () => {
 })
 
 describe('locale detection — precedence', () => {
-  it('prefers query locale over cookie, session, and accept-language', () => {
-    expect(
-      getRedirectTo(makePageContext('/about?locale=ru', config, {
-        headers: {
-          host: 'site.com',
-          cookie: 'locale=en',
-          'accept-language': 'en;q=1.0,ru;q=0.5',
-        },
-        session: { locale: 'en' },
-      })),
-    ).toBe('/ru/o-nas')
-  })
-
-  it('prefers cookie over session and accept-language when no query is present', () => {
+  it('prefers cookie over session and accept-language', () => {
     expect(
       getRedirectTo(makePageContext('/about', config, {
         headers: {
@@ -233,8 +199,6 @@ describe('locale detection — debug log', () => {
     expect(info.mock.calls).toEqual([
       ['[vike-i18n-routing] locale resolved: ru'],
       ['[vike-i18n-routing]   ✗ localeDetector fn -> null'],
-      ['[vike-i18n-routing]   ✗ query ?locale -> not present'],
-      ['[vike-i18n-routing]   ✗ query ?lang -> not present'],
       ["[vike-i18n-routing]   ✓ cookie 'locale' -> 'ru'"],
     ])
   })

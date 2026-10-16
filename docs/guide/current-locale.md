@@ -50,7 +50,6 @@ i18n: {
   localeDetector: {
     acceptLanguageHeader: false,
     localeCookie: false,
-    queryParams: false,
     session: true,
   },
 }
@@ -74,7 +73,6 @@ Example output:
 ```text
 [vike-i18n-routing] locale resolved: ru
 [vike-i18n-routing]   ✗ localeDetector fn -> null
-[vike-i18n-routing]   ✗ query ?locale -> not present
 [vike-i18n-routing]   ✓ cookie 'i18n-locale' -> 'ru'
 ```
 
@@ -83,17 +81,15 @@ Example output:
 For requests without an explicit locale prefix, locale resolution checks:
 
 1. `localeDetector(pageContext)` if `localeDetector` is a function
-2. query `locale` unless `localeDetector.queryParams === false`
-3. query `lang` unless `localeDetector.queryParams === false`
-4. locale cookie unless `localeDetector.localeCookie === false`
-5. `session.locale` unless `localeDetector.session === false`
-6. `Accept-Language` unless `localeDetector.acceptLanguageHeader === false`
-7. `defaultLocale`
+2. locale cookie unless `localeDetector.localeCookie === false`
+3. `session.locale` unless `localeDetector.session === false`
+4. `Accept-Language` unless `localeDetector.acceptLanguageHeader === false`
+5. `defaultLocale`
 
 ## Locale cookie
 
 The resolved locale is persisted in a cookie (`i18n-locale` by default, configurable via `localeCookie`) on every rendered page and on every redirect the plugin issues, so the next request without a locale prefix resolves to the same locale.
 
-An explicit `?locale=` / `?lang=` query is consumed on the server: the request is redirected to the clean localized URL and the chosen locale is stored in the cookie by that redirect. For example, `/about?locale=ru` redirects to `/ru/o-nas` with `Set-Cookie: i18n-locale=ru`.
+To switch locale, link to a prefixed URL. A canonical path under a locale prefix redirects to its translated form and stores that locale: `/ru/about` redirects to `/ru/o-nas` with `Set-Cookie: i18n-locale=ru`, and `/en/about` (with `prefixDefaultLocale: false`) redirects to `/about` with `Set-Cookie: i18n-locale=en`.
 
 Next: [Usage On Client](/guide/client-usage)

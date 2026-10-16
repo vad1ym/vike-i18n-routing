@@ -54,7 +54,6 @@ export type LocaleCookieAction = {
 export type LocaleDetectorConfig = {
   acceptLanguageHeader?: boolean
   localeCookie?: boolean
-  queryParams?: boolean
   session?: boolean
 }
 

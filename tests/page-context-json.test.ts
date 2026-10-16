@@ -44,7 +44,7 @@ describe('.pageContext.json requests', () => {
   })
 
   it('still redirects when the page URL itself needs a redirect', () => {
-    const i18nRoute = route('/about/index.pageContext.json?lang=ru')
+    const i18nRoute = route('/about/index.pageContext.json', { headers: { 'accept-language': 'ru' } })
     expect(i18nRoute.redirectTo).toBe('/ru/o-nas')
   })
 

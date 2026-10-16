@@ -30,7 +30,9 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
     })
 
     it('applies locale detection redirect through runtime middleware', async () => {
-      const response = await runtime.request('/about?lang=ru')
+      const response = await runtime.request('/about', {
+        headers: { 'accept-language': 'ru' },
+      })
 
       expect(response.status).toBe(302)
       expect(response.headers.get('location')).toBe('/ru/o-nas')
@@ -44,18 +46,18 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
       expect(response.headers.getSetCookie()).toEqual(['locale=en; Path=/; SameSite=Lax; HttpOnly'])
     })
 
-    it('consumes an explicit locale query with a redirect that sets the locale cookie', async () => {
-      const response = await runtime.request('/about?locale=en', {
-        headers: { cookie: 'locale=ru' },
-      })
+    it('redirects a canonical path under a locale prefix to its translated form', async () => {
+      const response = await runtime.request('/ru/about')
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe('/about')
-      expect(response.headers.getSetCookie()).toEqual(['locale=en; Path=/; SameSite=Lax; HttpOnly'])
+      expect(response.headers.get('location')).toBe('/ru/o-nas')
+      expect(response.headers.getSetCookie()).toEqual(['locale=ru; Path=/; SameSite=Lax; HttpOnly'])
     })
 
     it('sets the locale cookie on locale detection redirects', async () => {
-      const response = await runtime.request('/about?lang=ru')
+      const response = await runtime.request('/about', {
+        headers: { 'accept-language': 'ru' },
+      })
 
       expect(response.headers.getSetCookie()).toEqual(['locale=ru; Path=/; SameSite=Lax; HttpOnly'])
     })
@@ -70,7 +72,9 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
     })
 
     it('redirects pageContext.json when the page URL needs a redirect', async () => {
-      const response = await runtime.request('/about/index.pageContext.json?lang=ru')
+      const response = await runtime.request('/about/index.pageContext.json', {
+        headers: { 'accept-language': 'ru' },
+      })
 
       expect(response.status).toBe(200)
       expect(response.body).toContain('"_urlRedirect"')
