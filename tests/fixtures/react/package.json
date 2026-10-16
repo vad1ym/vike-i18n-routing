@@ -1,0 +1,13 @@
+{
+  "name": "fixture-react",
+  "private": true,
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vike": "^0.4.268",
+    "vike-i18n-routing": "workspace:*",
+    "vike-react": "^0.6.29",
+    "vite": "^8.2.1"
+  }
+}
