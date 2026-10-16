@@ -152,3 +152,54 @@ describe('per-call trailingSlash in localizePath', () => {
     expect(localizePath('/about', 'en', { trailingSlash: 'preserve' })).toBe('/en/about')
   })
 })
+
+// ─── file URLs (e.g. /feed.atom) never get a trailing slash ──────────────────
+
+describe('file URLs', () => {
+  const always: I18nConfig = { ...base, trailingSlash: 'always' }
+
+  it("'always' does not add a slash to a file URL", () => {
+    const { i18nRoute } = makeRouter('/en/feed.atom', always)
+    expect(i18nRoute.redirectTo).toBeUndefined()
+    expect(i18nRoute.currentLocaleUrl).toBe('/en/feed.atom')
+  })
+
+  it("'always' strips the slash from a file URL with 301", () => {
+    const { i18nRoute } = makeRouter('/en/feed.atom/', always)
+    expect(i18nRoute.redirectTo).toBe('/en/feed.atom')
+    expect(i18nRoute.redirectStatus).toBe(301)
+  })
+
+  it("'always' localizePath and alternateUrls keep file URLs clean", () => {
+    const { localizePath, i18nRoute } = makeRouter('/en/sitemap.xml', always)
+    expect(localizePath('/sitemap.xml')).toBe('/en/sitemap.xml')
+    expect(localizePath('/sitemap.xml', 'ru')).toBe('/ru/sitemap.xml')
+    for (const alt of i18nRoute.alternateUrls) {
+      expect(alt.url).not.toMatch(/\/$/)
+    }
+  })
+
+  it("'always' still adds a slash to a dotted path with an unknown extension", () => {
+    const { i18nRoute } = makeRouter('/en/v1.2', always)
+    expect(i18nRoute.redirectTo).toBe('/en/v1.2/')
+    expect(i18nRoute.redirectStatus).toBe(301)
+  })
+
+  it("'never' strips the slash from a file URL", () => {
+    const { i18nRoute } = makeRouter('/en/feed.atom/', base)
+    expect(i18nRoute.redirectTo).toBe('/en/feed.atom')
+    expect(i18nRoute.redirectStatus).toBe(301)
+  })
+
+  it("'preserve' leaves file URLs untouched", () => {
+    const { i18nRoute } = makeRouter('/en/feed.atom/', { ...base, trailingSlash: 'preserve' })
+    expect(i18nRoute.redirectTo).toBeUndefined()
+  })
+
+  it('matches the extension case-insensitively and only on the last segment', () => {
+    const { i18nRoute: upper } = makeRouter('/en/FEED.ATOM', always)
+    expect(upper.redirectTo).toBeUndefined()
+    const { i18nRoute: nested } = makeRouter('/en/docs.json/latest', always)
+    expect(nested.redirectTo).toBe('/en/docs.json/latest/')
+  })
+})

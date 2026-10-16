@@ -1,6 +1,6 @@
 import { buildAliasIndex, buildAliasAlternateUrls, resolveAlias, type AliasIndex } from './aliases'
 import { detectDomain, resolveDomainConfigForDomain } from './domain/normalize'
-import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl } from './format'
+import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl, resolveTrailingSlashMode } from './format'
 import { detectRequestLocale } from './locale/detector'
 import {
   buildRouteIndex,
@@ -1108,13 +1108,14 @@ function resolveRouteRedirectState(
   const redirectTo = rawRedirectTo && suppressTrailingSlashRedirect(rawRedirectTo)
     ? undefined
     : rawRedirectTo
+  const effectiveTrailingSlash = resolveTrailingSlashMode(requestState.rawPathname, trailingSlash)
   const trailingSlashMismatch = redirectTo !== undefined
-    && trailingSlash !== 'preserve'
+    && effectiveTrailingSlash !== 'preserve'
     && trailingSlashRedirect !== false
     && requestState.rawPathname !== '/'
     && (
-      (trailingSlash === 'never' && requestState.rawPathname.endsWith('/'))
-      || (trailingSlash === 'always' && !requestState.rawPathname.endsWith('/'))
+      (effectiveTrailingSlash === 'never' && requestState.rawPathname.endsWith('/'))
+      || (effectiveTrailingSlash === 'always' && !requestState.rawPathname.endsWith('/'))
     )
   const redirectStatus: RedirectStatusCode | undefined = redirectTo
     ? (trailingSlashMismatch ? trailingSlashRedirect as RedirectStatusCode : 302)
