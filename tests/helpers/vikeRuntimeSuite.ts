@@ -36,6 +36,23 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
       expect(response.headers.get('location')).toBe('/ru/o-nas')
     })
 
+    it('serves pageContext.json for client-side navigation without redirecting to itself', async () => {
+      const response = await runtime.request('/ru/o-nas/index.pageContext.json')
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-type')).toContain('application/json')
+      expect(response.body).not.toContain('_urlRedirect')
+      expect(response.body).toContain('"locale":"ru"')
+    })
+
+    it('redirects pageContext.json when the page URL needs a redirect', async () => {
+      const response = await runtime.request('/about/index.pageContext.json?lang=ru')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toContain('"_urlRedirect"')
+      expect(response.body).toContain('/ru/o-nas')
+    })
+
     it('serializes runtime param and query variants through Vike passToClient', async () => {
       const response = await runtime.request('/services/web-development?focus=frontend')
 

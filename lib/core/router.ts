@@ -526,6 +526,7 @@ type CompiledDomainRouting = {
 
 type ResolvedRequestState = {
   explicitLocaleQuery: string | null
+  isPageContextJsonRequest: boolean
   rawPathname: string
   requestPath: string
   requestSearchParams: URLSearchParams
@@ -794,9 +795,13 @@ function resolveRequestState(
   prefixToLocale?: Record<string, LocaleCode>,
 ): ResolvedRequestState {
   const normalizedPath = normalizeRoutingPathname(request.pathname)
-  // Preserve raw pathname for trailing-slash detection; use normalized for routing logic
   const requestPath = normalizedPath
-  const rawPathname = request.pathname === '' ? '/' : request.pathname
+  // Preserve the raw pathname for trailing-slash detection. A .pageContext.json request (client-side
+  // navigation) is compared by its page URL instead, otherwise it would always redirect to itself.
+  const isPageContextJsonRequest = normalizedPath !== normalizePathname(request.pathname)
+  const rawPathname = isPageContextJsonRequest
+    ? normalizedPath
+    : request.pathname === '' ? '/' : request.pathname
   const explicitLocaleQuery = request.explicitLocaleQuery
   const requestSearchParams = sanitizeRouteSearchParams(request.searchParams)
   const requestUrl = buildUrl(rawPathname, requestSearchParams)
@@ -820,6 +825,7 @@ function resolveRequestState(
   const currentLocale = prefixedLocale ?? detectedLocale ?? localeConfig.defaultLocale
   return {
     explicitLocaleQuery,
+    isPageContextJsonRequest,
     rawPathname,
     requestPath,
     requestSearchParams,
@@ -1091,7 +1097,8 @@ function resolveRouteRedirectState(
   const suppressTrailingSlashRedirect = (target: string) =>
     onlyTrailingSlashDiff(requestState.requestUrl)
     && onlyTrailingSlashDiff(target)
-    && (trailingSlash === 'preserve' || trailingSlashRedirect === false)
+    // A .pageContext.json URL carries no trailing-slash information about its page URL
+    && (trailingSlash === 'preserve' || trailingSlashRedirect === false || requestState.isPageContextJsonRequest)
   const rawRedirectTo = requestState.defaultLocaleAccessedViaPrefix
     ? normalizedRedirect
       ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
