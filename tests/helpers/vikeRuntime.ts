@@ -1,5 +1,4 @@
-import { createDevMiddleware } from 'vike/server'
-import { renderPage } from 'vike/server'
+import { createDevMiddleware, renderPage } from 'vike/server'
 
 export type RuntimeServer = {
   request: (urlOriginal: string, init?: {
@@ -12,15 +11,9 @@ export type RuntimeServer = {
   close: () => Promise<void>
 }
 
-async function resetVikeGlobalContext() {
-  const moduleUrl = new URL('../../node_modules/vike/dist/server/runtime/globalContext.js', import.meta.url)
-  const { clearGlobalContext } = await import(/* @vite-ignore */ moduleUrl.href)
-  clearGlobalContext()
-}
-
+// Each test file runs in its own worker (vitest isolates files by default), so vike's
+// global context is fresh per fixture and doesn't need resetting between runs.
 export async function startRuntimeServer(root: string): Promise<RuntimeServer> {
-  await resetVikeGlobalContext()
-
   const { viteServer } = await createDevMiddleware({
     root,
     viteConfig: {
@@ -49,7 +42,6 @@ export async function startRuntimeServer(root: string): Promise<RuntimeServer> {
     },
     async close() {
       await viteServer.close()
-      await resetVikeGlobalContext()
     },
   }
 }
