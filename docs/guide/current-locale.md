@@ -90,4 +90,10 @@ For requests without an explicit locale prefix, locale resolution checks:
 6. `Accept-Language` unless `localeDetector.acceptLanguageHeader === false`
 7. `defaultLocale`
 
+## Locale cookie
+
+The resolved locale is persisted in a cookie (`i18n-locale` by default, configurable via `localeCookie`) on every rendered page and on every redirect the plugin issues, so the next request without a locale prefix resolves to the same locale.
+
+An explicit `?locale=` / `?lang=` query is consumed on the server: the request is redirected to the clean localized URL and the chosen locale is stored in the cookie by that redirect. For example, `/about?locale=ru` redirects to `/ru/o-nas` with `Set-Cookie: i18n-locale=ru`.
+
 Next: [Usage On Client](/guide/client-usage)

@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { onBeforeRender } from '../lib/vike/onBeforeRender'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { onHydrationEnd } from '../lib/vike/onHydrationEnd'
+import { headersResponse } from '../lib/vike/headersResponse'
 import { createI18nRouter } from '../lib/core/router'
 import { useI18nRoute } from '../lib/core/useI18nRoute'
 import { createPageContext } from '../lib/core/pageContext'
@@ -22,12 +22,7 @@ const config: I18nConfig = {
   },
 }
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
-})
-
-describe('onBeforeRender', () => {
+describe('onBeforeRoute', () => {
   it('throws redirect with configured status', () => {
     const configWithRedirect: I18nConfig = {
       ...config,
@@ -44,12 +39,54 @@ describe('onBeforeRender', () => {
     throw new Error('Expected redirect to be thrown')
   })
 
-  it('appends locale cookie and passes runtime variants to client', () => {
-    const append = vi.fn()
+  it('sets the locale cookie of the redirect target on the redirect response', () => {
+    const pageContext = makePageContext('/about?lang=ru', config) as any
+
+    expect(() => onBeforeRoute(pageContext)).toThrow()
+    expect(pageContext.headersResponse).toBeInstanceOf(Headers)
+    expect(pageContext.headersResponse.getSetCookie()).toEqual([
+      'locale=ru; Path=/; SameSite=Lax; HttpOnly',
+    ])
+  })
+
+  it('appends to an existing headersResponse', () => {
+    const pageContext = makePageContext('/about?lang=ru', config) as any
+    pageContext.headersResponse = new Headers([['Set-Cookie', 'session=abc']])
+
+    expect(() => onBeforeRoute(pageContext)).toThrow()
+    expect(pageContext.headersResponse.getSetCookie()).toEqual([
+      'session=abc',
+      'locale=ru; Path=/; SameSite=Lax; HttpOnly',
+    ])
+  })
+
+  it('does not set a cookie on the client or when localeCookie is disabled', () => {
+    const clientContext = { ...makePageContext('/about?lang=ru', config), isClientSide: true } as any
+    expect(() => onBeforeRoute(clientContext)).toThrow()
+    expect(clientContext.headersResponse).toBeUndefined()
+
+    const noCookieContext = makePageContext('/about?lang=ru', { ...config, localeCookie: false }) as any
+    expect(() => onBeforeRoute(noCookieContext)).toThrow()
+    expect(noCookieContext.headersResponse).toBeUndefined()
+  })
+})
+
+describe('headersResponse', () => {
+  it('returns the locale cookie for the rendered page', () => {
+    expect(headersResponse({ config: { i18n: config }, locale: 'ru' } as any)).toEqual({
+      'Set-Cookie': 'locale=ru; Path=/; SameSite=Lax; HttpOnly',
+    })
+  })
+
+  it('returns no headers when localeCookie is disabled or locale is missing', () => {
+    expect(headersResponse({ config: { i18n: { ...config, localeCookie: false } }, locale: 'ru' } as any)).toEqual({})
+    expect(headersResponse({ config: { i18n: config } } as any)).toEqual({})
+  })
+})
+
+describe('onBeforeRender', () => {
+  it('passes runtime variants to the client', () => {
     const result = onBeforeRender({
-      config: { i18n: config },
-      locale: 'ru',
-      headersResponse: { append },
       i18nRoute: {
         paramVariants: {
           category: {
@@ -64,10 +101,6 @@ describe('onBeforeRender', () => {
       },
     } as any)
 
-    expect(append).toHaveBeenCalledWith(
-      'Set-Cookie',
-      'locale=ru; Path=/; SameSite=Lax; HttpOnly',
-    )
     expect(result).toEqual({
       pageContext: {
         i18nParamVariants: {
@@ -82,55 +115,6 @@ describe('onBeforeRender', () => {
         },
       },
     })
-  })
-
-  it('does not append cookie when localeCookie is disabled', () => {
-    const append = vi.fn()
-
-    onBeforeRender({
-      config: {
-        i18n: {
-          ...config,
-          localeCookie: false,
-        },
-      },
-      locale: 'ru',
-      headersResponse: { append },
-      i18nRoute: {
-        paramVariants: {},
-        queryVariants: {},
-      },
-    } as any)
-
-    expect(append).not.toHaveBeenCalled()
-  })
-})
-
-describe('onHydrationEnd', () => {
-  it('removes locale query param and preserves other params and hash', () => {
-    const replaceState = vi.fn()
-
-    vi.stubGlobal('location', {
-      href: 'https://site.com/about?locale=ru&page=2#team',
-    })
-    vi.stubGlobal('history', { replaceState })
-
-    onHydrationEnd()
-
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/about?page=2#team')
-  })
-
-  it('does nothing when locale query param is absent', () => {
-    const replaceState = vi.fn()
-
-    vi.stubGlobal('location', {
-      href: 'https://site.com/about?page=2#team',
-    })
-    vi.stubGlobal('history', { replaceState })
-
-    onHydrationEnd()
-
-    expect(replaceState).not.toHaveBeenCalled()
   })
 })
 

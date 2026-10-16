@@ -1,6 +1,6 @@
 import { buildAliasIndex, buildAliasAlternateUrls, resolveAlias, type AliasIndex } from './aliases'
 import { detectDomain, resolveDomainConfigForDomain } from './domain/normalize'
-import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildSetLocaleRedirect, buildUrl, resolveTrailingSlashMode } from './format'
+import { applyLocalePrefix, applyTrailingSlash, buildLocalizedUrl, buildUrl, resolveTrailingSlashMode } from './format'
 import { detectRequestLocale } from './locale/detector'
 import {
   buildRouteIndex,
@@ -533,8 +533,6 @@ type ResolvedRequestState = {
   requestUrl: string
   prefixedLocale?: string
   currentLocale: string
-  defaultLocaleAccessedViaPrefix: boolean
-  defaultLocaleAccessedViaQuery: boolean
   localizedRequestUrl: string
 }
 
@@ -832,8 +830,6 @@ function resolveRequestState(
     requestUrl,
     prefixedLocale,
     currentLocale,
-    defaultLocaleAccessedViaPrefix: !localeConfig.prefixDefaultLocale && prefixedLocale === localeConfig.defaultLocale,
-    defaultLocaleAccessedViaQuery: !localeConfig.prefixDefaultLocale && explicitLocaleQuery === localeConfig.defaultLocale,
     localizedRequestUrl: prefixedLocale
       ? normalizePathname(`/${segments.slice(1).join('/')}`)
       : requestPath,
@@ -1075,6 +1071,11 @@ function resolveRouteUrlState(context: RouteResolveContext): ResolvedRouteUrlSta
   }
 }
 
+function isQueryLocaleDetectionEnabled(i18n: I18nConfig): boolean {
+  const detector = i18n.localeDetector
+  return !(detector && typeof detector === 'object' && detector.queryParams === false)
+}
+
 function resolveRouteRedirectState(
   context: RouteResolveContext,
   urlState: ResolvedRouteUrlState,
@@ -1099,19 +1100,13 @@ function resolveRouteRedirectState(
     && onlyTrailingSlashDiff(target)
     // A .pageContext.json URL carries no trailing-slash information about its page URL
     && (trailingSlash === 'preserve' || trailingSlashRedirect === false || requestState.isPageContextJsonRequest)
-  const rawRedirectTo = requestState.defaultLocaleAccessedViaPrefix
-    ? normalizedRedirect
-      ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
-      : buildSetLocaleRedirect(urlState.currentLocaleUrl, localeConfig.defaultLocale)
-    : requestState.defaultLocaleAccessedViaQuery
-      ? normalizedRedirect
-        ? buildSetLocaleRedirect(normalizedRedirect, localeConfig.defaultLocale)
-        : undefined
-    : normalizedRedirect
-      ? normalizedRedirect
-    : requestState.requestUrl !== urlState.currentLocaleUrl
+  // An explicit ?locale= / ?lang= is consumed on the server: the request is redirected to the clean
+  // localized URL and the locale is persisted by the cookie set on that redirect (see onBeforeRoute).
+  const hasLocaleQuery = requestState.explicitLocaleQuery !== null && isQueryLocaleDetectionEnabled(context.i18n)
+  const rawRedirectTo = normalizedRedirect
+    ?? (hasLocaleQuery || requestState.requestUrl !== urlState.currentLocaleUrl
       ? urlState.currentLocaleUrl
-      : undefined
+      : undefined)
   const redirectTo = rawRedirectTo && suppressTrailingSlashRedirect(rawRedirectTo)
     ? undefined
     : rawRedirectTo

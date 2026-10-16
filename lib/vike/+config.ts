@@ -14,9 +14,11 @@ export default {
   },
 
   onBeforeRoute: 'import:vike-i18n-routing/__internal/onBeforeRoute:onBeforeRoute',
-  onHydrationEnd: 'import:vike-i18n-routing/__internal/onHydrationEnd:onHydrationEnd',
 
-  // Writes Set-Cookie via headersResponse (only available during render, not in onBeforeRoute)
+  // Writes the locale cookie on rendered pages (redirects set it in onBeforeRoute).
+  // Vike resolves `import:` pointers for any config value, but only types them for hooks.
+  headersResponse: 'import:vike-i18n-routing/__internal/headersResponse:headersResponse' as unknown as Config['headersResponse'],
+
   onBeforeRender: 'import:vike-i18n-routing/__internal/onBeforeRender:onBeforeRender',
 
   passToClient: ['locale', 'canonical', 'i18nRoute', 'i18nParamVariants', 'i18nQueryVariants'],

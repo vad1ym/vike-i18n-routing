@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
-import { makePageContext, resolveRenderRedirect } from './helpers/pageContext'
+import { makePageContext, resolveRenderRedirect, resolveRouteRedirect } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
 const arrayConfig: I18nConfig = {
@@ -77,24 +77,24 @@ describe('locales — object form', () => {
 })
 
 describe('locales — default locale without prefix', () => {
-  it('redirects explicit default locale prefix to unprefixed url with locale', () => {
+  it('redirects explicit default locale prefix to the unprefixed url', () => {
     expect(
       resolveRenderRedirect(
         makePageContext('/en', noDefaultPrefixConfig, {
           headers: { cookie: 'locale=ru' },
         }),
       ),
-    ).toBe('/?locale=en')
+    ).toBe('/')
   })
 
-  it('prefers locale query over stale locale cookie', () => {
-    const result = onBeforeRoute(
-      makePageContext('/?locale=en', noDefaultPrefixConfig, {
-        headers: { cookie: 'locale=ru' },
-      }) as any,
-    )
+  it('prefers locale query over stale locale cookie and persists it on the redirect', () => {
+    const pageContext = makePageContext('/?locale=en', noDefaultPrefixConfig, {
+      headers: { cookie: 'locale=ru' },
+    }) as any
 
-    expect(result.pageContext.locale).toBe('en')
-    expect(result.pageContext.i18nRoute!.localeConfig.currentLocale).toBe('en')
+    expect(resolveRouteRedirect(pageContext)).toBe('/')
+    expect(pageContext.headersResponse.getSetCookie()).toEqual([
+      'locale=en; Path=/; SameSite=Lax; HttpOnly',
+    ])
   })
 })

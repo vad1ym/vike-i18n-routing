@@ -72,11 +72,3 @@ export function buildLocalizedUrl(
   )
 }
 
-export function buildSetLocaleRedirect(
-  pathname: string,
-  locale: LocaleCode,
-): string {
-  const url = new URL(pathname, 'http://localhost')
-  url.searchParams.set('locale', locale)
-  return `${url.pathname}${url.search}`
-}

@@ -23,7 +23,7 @@
     "./config": "./lib/vike/+config.ts",
     "./__internal/onBeforeRoute": "./lib/vike/onBeforeRoute.ts",
     "./__internal/onBeforeRender": "./lib/vike/onBeforeRender.ts",
-    "./__internal/onHydrationEnd": "./lib/vike/onHydrationEnd.ts",
+    "./__internal/headersResponse": "./lib/vike/headersResponse.ts",
     "./middleware": "./lib/middleware.ts",
     "./vue/Link": "./lib/vue/Link.vue",
     "./react/Link": "./lib/react/Link.tsx",

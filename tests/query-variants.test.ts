@@ -82,16 +82,16 @@ describe('query variants — redirects', () => {
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/en/o-nas?focus=frontend-ru', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.redirectTo).toBe('/about?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/about?focus=frontend')
   })
 
-  it('preserves locale query across query-value normalization redirects', () => {
+  it('drops the locale query on query-value normalization redirects', () => {
     const noPrefixConfig: I18nConfig = { ...config, prefixDefaultLocale: false }
     const pc = makePageContext('/specialities?focus=frontend-ru&locale=en', noPrefixConfig, { headers: { host: 'site.com' } })
     const i18nRoute = useI18nRoute({ ...pc, i18nRoute: createI18nRouter('/specialities?focus=frontend-ru&locale=en', pc) } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend')
   })
 })
 
@@ -124,7 +124,7 @@ describe('query variants — edge cases', () => {
     } as any)
     i18nRoute.setRouteQueryVariants('focus', focusVariants)
 
-    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend&locale=en')
+    expect(i18nRoute.redirectTo).toBe('/specialities?focus=frontend')
   })
 })
 

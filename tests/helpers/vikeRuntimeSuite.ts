@@ -36,6 +36,30 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
       expect(response.headers.get('location')).toBe('/ru/o-nas')
     })
 
+    it('redirects the prefixed default locale to the clean url and sets the locale cookie', async () => {
+      const response = await runtime.request('/en/about')
+
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe('/about')
+      expect(response.headers.getSetCookie()).toEqual(['locale=en; Path=/; SameSite=Lax; HttpOnly'])
+    })
+
+    it('consumes an explicit locale query with a redirect that sets the locale cookie', async () => {
+      const response = await runtime.request('/about?locale=en', {
+        headers: { cookie: 'locale=ru' },
+      })
+
+      expect(response.status).toBe(302)
+      expect(response.headers.get('location')).toBe('/about')
+      expect(response.headers.getSetCookie()).toEqual(['locale=en; Path=/; SameSite=Lax; HttpOnly'])
+    })
+
+    it('sets the locale cookie on locale detection redirects', async () => {
+      const response = await runtime.request('/about?lang=ru')
+
+      expect(response.headers.getSetCookie()).toEqual(['locale=ru; Path=/; SameSite=Lax; HttpOnly'])
+    })
+
     it('serves pageContext.json for client-side navigation without redirecting to itself', async () => {
       const response = await runtime.request('/ru/o-nas/index.pageContext.json')
 
