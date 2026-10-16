@@ -19,7 +19,5 @@ export default {
   // Vike resolves `import:` pointers for any config value, but only types them for hooks.
   headersResponse: 'import:vike-i18n-routing/__internal/headersResponse:headersResponse' as unknown as Config['headersResponse'],
 
-  onBeforeRender: 'import:vike-i18n-routing/__internal/onBeforeRender:onBeforeRender',
-
-  passToClient: ['locale', 'canonical', 'i18nRoute', 'i18nParamVariants', 'i18nQueryVariants'],
+  passToClient: ['locale', 'canonical', 'i18nRoute'],
 } satisfies Config

@@ -39,8 +39,6 @@ const ROUTE_DESCRIPTOR_CACHE = Symbol('vike-i18n-route-descriptor-cache')
 
 export type PageContextWithI18nRoute = I18nPageContext & {
   i18nRoute: I18nRoute
-  i18nParamVariants?: Record<string, ParamVariantConfig>
-  i18nQueryVariants?: Record<string, QueryVariantConfig>
   [ROUTE_DESCRIPTOR_CACHE]?: Map<string, BoundRouteDescriptor>
 }
 
@@ -676,26 +674,6 @@ export function useI18nRoute(
   _pageContext: object,
 ): UseI18nRouteResult {
   const pageContext = _pageContext as PageContextWithI18nRoute
-  // On client hydration, i18nRoute is created fresh by onBeforeRoute without runtime variants.
-  // passToClient transfers them separately and they are restored here.
-  if (
-    (
-      (pageContext.i18nParamVariants && Object.keys(pageContext.i18nParamVariants).length > 0) ||
-      (pageContext.i18nQueryVariants && Object.keys(pageContext.i18nQueryVariants).length > 0)
-    ) &&
-    Object.keys(pageContext.i18nRoute.paramVariants ?? {}).length === 0 &&
-    Object.keys(pageContext.i18nRoute.queryVariants ?? {}).length === 0
-  ) {
-    const paramVariants = new Map(Object.entries(pageContext.i18nParamVariants ?? {}))
-    const queryVariants = new Map(Object.entries(pageContext.i18nQueryVariants ?? {}))
-    const restored = createI18nRouter(
-      pageContext.urlOriginal,
-      pageContext,
-      paramVariants,
-      queryVariants,
-    )
-    syncI18nRoute(pageContext.i18nRoute, restored)
-  }
 
   return {
     get i18nRoute() { return pageContext.i18nRoute },

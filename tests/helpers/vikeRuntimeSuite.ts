@@ -82,10 +82,9 @@ export function defineVikeRuntimeSuite(name: string, fixtureRoot: string) {
 
       expect(response.status).toBe(200)
       expect(response.body).toContain('Services runtime fixture')
-      expect(response.body).toContain('i18nParamVariants')
       expect(response.body).toContain('veb-razrabotka')
-      expect(response.body).toContain('i18nQueryVariants')
       expect(response.body).toContain('frontend-ru')
+      expect(response.body).not.toContain('i18nParamVariants')
       expect(response.body).toContain('/services/web-development?focus=frontend')
     })
   })

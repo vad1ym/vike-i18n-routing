@@ -6,7 +6,15 @@ import type { I18nRoute } from '../core/types'
 
 // Vike route hook that resolves locale-aware routing before page matching.
 export function onBeforeRoute(pageContext: PageContextServer) {
-  const i18nRoute = createI18nRouter(pageContext.urlOriginal, pageContext as any)
+  // On client hydration pageContext already holds the server's i18nRoute (passToClient), including
+  // the runtime variants that +data registered. Re-routing must keep them.
+  const serverRoute = (pageContext as { i18nRoute?: I18nRoute }).i18nRoute
+  const i18nRoute = createI18nRouter(
+    pageContext.urlOriginal,
+    pageContext as any,
+    new Map(Object.entries(serverRoute?.paramVariants ?? {})),
+    new Map(Object.entries(serverRoute?.queryVariants ?? {})),
+  )
 
   if (i18nRoute.redirectTo) {
     setLocaleCookieOnRedirect(pageContext, i18nRoute)

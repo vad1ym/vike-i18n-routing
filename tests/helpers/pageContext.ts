@@ -1,4 +1,3 @@
-import { onBeforeRender } from '../../lib/vike/onBeforeRender'
 import { onBeforeRoute } from '../../lib/vike/onBeforeRoute'
 import { createPageContext } from '../../lib/core/pageContext'
 import { createI18nRouter } from '../../lib/core/router'
@@ -44,20 +43,6 @@ export function createTestRouter(url: string, config: I18nConfig) {
   return useI18nRoute({ ...pageContext, i18nRoute: i18nRouteData })
 }
 
-export function resolveRenderRedirect(pageContext: ReturnType<typeof makePageContext>): string | null {
-  try {
-    const routeResult = onBeforeRoute(pageContext as any)
-    onBeforeRender({
-      ...pageContext,
-      ...routeResult?.pageContext,
-    } as any)
-  } catch (error) {
-    return getRedirectUrl(error)
-  }
-
-  return null
-}
-
 export function resolveRouteRedirect(pageContext: ReturnType<typeof makePageContext>): string | null {
   try {
     onBeforeRoute(pageContext as any)
@@ -66,3 +51,6 @@ export function resolveRouteRedirect(pageContext: ReturnType<typeof makePageCont
   }
   return null
 }
+
+// Kept for older tests: redirects are thrown by onBeforeRoute only.
+export const resolveRenderRedirect = resolveRouteRedirect

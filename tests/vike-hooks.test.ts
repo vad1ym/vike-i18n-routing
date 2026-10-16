@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { onBeforeRender } from '../lib/vike/onBeforeRender'
 import { onBeforeRoute } from '../lib/vike/onBeforeRoute'
 import { headersResponse } from '../lib/vike/headersResponse'
 import { createI18nRouter } from '../lib/core/router'
 import { useI18nRoute } from '../lib/core/useI18nRoute'
-import { createPageContext } from '../lib/core/pageContext'
 import { getRedirectUrl, makePageContext } from './helpers/pageContext'
 import type { I18nConfig } from '../lib/core/types'
 
@@ -84,84 +82,44 @@ describe('headersResponse', () => {
   })
 })
 
-describe('onBeforeRender', () => {
-  it('passes runtime variants to the client', () => {
-    const result = onBeforeRender({
-      i18nRoute: {
-        paramVariants: {
-          category: {
-            variants: { en: 'web-development', ru: 'veb-razrabotka' },
-          },
-        },
-        queryVariants: {
-          focus: {
-            variants: { en: 'frontend', ru: 'frontend-ru' },
-          },
-        },
-      },
+describe('onBeforeRoute on client hydration', () => {
+  it('keeps the runtime variants of the server-provided i18nRoute', () => {
+    const url = '/en/services/web-development?focus=frontend'
+    const serverContext = makePageContext(url, config, { headers: { host: 'site.com' } })
+    const serverRoute = createI18nRouter(url, serverContext as any)
+    expect(serverRoute.paramVariants).toEqual({})
+
+    // +data registers variants on the server; the resulting i18nRoute is passed to the client
+    const { setRouteParamVariants, setRouteQueryVariants } = useI18nRoute({ ...serverContext, i18nRoute: serverRoute })
+    setRouteParamVariants('category', { en: 'web-development', ru: 'veb-razrabotka' })
+    setRouteQueryVariants('focus', { en: 'frontend', ru: 'frontend-ru' })
+
+    // The client re-runs onBeforeRoute with the serialized i18nRoute already on pageContext
+    const hydrated = onBeforeRoute({
+      ...makePageContext(url, config),
+      isClientSide: true,
+      i18nRoute: JSON.parse(JSON.stringify(serverRoute)),
     } as any)
+    const i18nRoute = hydrated.pageContext.i18nRoute!
 
-    expect(result).toEqual({
-      pageContext: {
-        i18nParamVariants: {
-          category: {
-            variants: { en: 'web-development', ru: 'veb-razrabotka' },
-          },
-        },
-        i18nQueryVariants: {
-          focus: {
-            variants: { en: 'frontend', ru: 'frontend-ru' },
-          },
-        },
-      },
+    expect(i18nRoute.paramVariants).toEqual({
+      category: { variants: { en: 'web-development', ru: 'veb-razrabotka' } },
     })
-  })
-})
-
-describe('useI18nRoute hydration restore', () => {
-  it('restores param and query variants passed from SSR', () => {
-    const pageContext = createPageContext('https://site.com/en/services/web-development?focus=frontend', {
-      config: { i18n: config },
-      headers: { host: 'site.com' },
+    expect(i18nRoute.queryVariants).toEqual({
+      focus: { variants: { en: 'frontend', ru: 'frontend-ru' } },
     })
-    const i18nRoute = createI18nRouter('/en/services/web-development?focus=frontend', pageContext)
-
-    expect(i18nRoute.paramVariants).toEqual({})
-    expect(i18nRoute.queryVariants).toEqual({})
-
-    const restored = useI18nRoute({
-      ...pageContext,
-      urlOriginal: '/en/services/web-development?focus=frontend',
-      i18nRoute,
-      i18nParamVariants: {
-        category: {
-          variants: { en: 'web-development', ru: 'veb-razrabotka' },
-        },
-      },
-      i18nQueryVariants: {
-        focus: {
-          variants: { en: 'frontend', ru: 'frontend-ru' },
-        },
-      },
-    } as any)
-
-    expect(restored.paramVariants).toEqual({
-      category: {
-        variants: { en: 'web-development', ru: 'veb-razrabotka' },
-      },
-    })
-    expect(restored.queryVariants).toEqual({
-      focus: {
-        variants: { en: 'frontend', ru: 'frontend-ru' },
-      },
-    })
-    expect(restored.localizePath('/services/:category', 'ru', {
-      params: { category: 'web-development' },
-      query: { focus: 'frontend' },
-    })).toBe('/ru/uslugi/veb-razrabotka?focus=frontend-ru')
-    expect(restored.alternateUrls).toEqual([
+    expect(i18nRoute.alternateUrls).toEqual([
       { locale: 'en', url: '/en/services/web-development?focus=frontend' },
       { locale: 'ru', url: '/ru/uslugi/veb-razrabotka?focus=frontend-ru' },
     ])
+    expect(useI18nRoute({ ...makePageContext(url, config), i18nRoute }).localizePath('/services/:category', 'ru', {
+      params: { category: 'web-development' },
+      query: { focus: 'frontend' },
+    })).toBe('/ru/uslugi/veb-razrabotka?focus=frontend-ru')
+  })
+
+  it('routes without variants when pageContext has no i18nRoute (client-side navigation)', () => {
+    const result = onBeforeRoute({ ...makePageContext('/en/services/web-development', config), isClientSide: true } as any)
+    expect(result.pageContext.i18nRoute!.paramVariants).toEqual({})
   })
 })
